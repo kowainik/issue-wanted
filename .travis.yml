@@ -45,4 +45,8 @@ script:
 
 notifications:
   email: false
-
+  slack:
+    rooms:
+      - kowainik:k3hrOZtFA7ViWPFCLrSokLcU
+    on_success: change
+    on_failure: always
