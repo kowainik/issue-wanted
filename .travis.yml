@@ -13,10 +13,6 @@ matrix:
   include:
 
   - ghc: 8.2.2
-    env: GHCVER='8.2.2' STACK_YAML="$HOME/build/kowainik/issue-wanted/stack-$GHCVER.yaml"
-  
-
-  - ghc: 8.2.2
     env: GHCVER='8.2.2' STACK_YAML="$HOME/build/kowainik/issue-wanted/stack.yaml"
 
 addons:
