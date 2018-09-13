@@ -1,3 +1,4 @@
+cabal-version:       2.2
 name:                issue-wanted
 version:             0.0.0
 description:         Web application to help beginners to start contributing into Haskell projects
@@ -13,16 +14,23 @@ category:            Web, Application
 build-type:          Simple
 extra-doc-files:     README.md
                    , CHANGELOG.md
-cabal-version:       1.24
-tested-with:         GHC == 8.2.2
+tested-with:         GHC == 8.4.3
 
 library
   hs-source-dirs:      src
   exposed-modules:     IssueWanted
-                       Prelude
+                     , Prelude
   ghc-options:         -Wall
-  build-depends:       base-noprelude
-                     , universum >= 1.2.0
+                       -Wincomplete-uni-patterns
+                       -Wincomplete-record-updates
+                       -Wcompat
+                       -Widentities
+                       -Wredundant-constraints
+                       -fhide-source-paths
+
+  build-depends:       base-noprelude >= 4.11 && < 5
+                     , relude ^>= 0.3.0
+
   default-language:    Haskell2010
   default-extensions:  DeriveGeneric
                        GeneralizedNewtypeDeriving
@@ -35,10 +43,22 @@ library
 executable issue-wanted
   hs-source-dirs:      app
   main-is:             Main.hs
-  ghc-options:         -Wall -threaded -rtsopts -with-rtsopts=-N
+
+  ghc-options:         -Wall
+                       -threaded
+                       -rtsopts
+                       -with-rtsopts=-N
+                       -Wincomplete-uni-patterns
+                       -Wincomplete-record-updates
+                       -Wcompat
+                       -Widentities
+                       -Wredundant-constraints
+                       -fhide-source-paths
+
   build-depends:       base-noprelude
+                     , relude
                      , issue-wanted
-                     , universum
+
   default-language:    Haskell2010
   default-extensions:  DeriveGeneric
                        GeneralizedNewtypeDeriving
@@ -52,10 +72,22 @@ test-suite issue-wanted-test
   type:                exitcode-stdio-1.0
   hs-source-dirs:      test
   main-is:             Spec.hs
+
   build-depends:       base-noprelude
+                     , relude
                      , issue-wanted
-                     , universum
-  ghc-options:         -Wall -Werror -threaded -rtsopts -with-rtsopts=-N
+
+  ghc-options:         -Wall
+                       -threaded
+                       -rtsopts
+                       -with-rtsopts=-N
+                       -Wincomplete-uni-patterns
+                       -Wincomplete-record-updates
+                       -Wcompat
+                       -Widentities
+                       -Wredundant-constraints
+                       -fhide-source-paths
+
   default-language:    Haskell2010
   default-extensions:  DeriveGeneric
                        GeneralizedNewtypeDeriving

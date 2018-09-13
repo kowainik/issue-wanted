@@ -1,8 +1,7 @@
--- | Uses [universum](https://hackage.haskell.org/package/universum) as default Prelude.
+-- | Uses [relude](https://github.com/kowainik/relude) as default Prelude.
 
 module Prelude
-       ( module Universum
+       ( module Relude
        ) where
 
-import Universum
-
+import Relude
