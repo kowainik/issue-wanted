@@ -10,6 +10,9 @@ cache:
   - "$HOME/.stack"
   - "$TRAVIS_BUILD_DIR/.stack-work"
 
+matrix:
+  include:
+
   - ghc: 8.4.3
     env: GHCVER='8.4.3' CABALVER='head'
     os: linux

@@ -28,8 +28,9 @@ library
                        -Wredundant-constraints
                        -fhide-source-paths
 
-  build-depends:       base-noprelude
+  build-depends:       base-noprelude >= 4.11 && < 5
                      , relude ^>= 0.3.0
+                     , base-noprelude >= 4.11.1.0
 
   default-language:    Haskell2010
   default-extensions:  DeriveGeneric
