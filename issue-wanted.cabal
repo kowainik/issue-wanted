@@ -1,6 +1,6 @@
 cabal-version:       2.2
 name:                issue-wanted
-version:             0.0.1
+version:             0.0.0
 description:         Web application to help beginners to start contributing into Haskell projects
 synopsis:            Web application to help beginners to start contributing into Haskell projects
 homepage:            https://github.com/kowainik/issue-wanted
@@ -14,12 +14,12 @@ category:            Web, Application
 build-type:          Simple
 extra-doc-files:     README.md
                    , CHANGELOG.md
-tested-with:         GHC == 8.2.2
-                   , GHC == 8.4.3
+tested-with:         GHC == 8.4.3
 
 library
   hs-source-dirs:      src
   exposed-modules:     IssueWanted
+                     , Prelude
   ghc-options:         -Wall
                        -Wincomplete-uni-patterns
                        -Wincomplete-record-updates
@@ -28,7 +28,7 @@ library
                        -Wredundant-constraints
                        -fhide-source-paths
 
-  build-depends:       base >= 4.10 && < 5
+  build-depends:       base-noprelude
                      , relude ^>= 0.3.0
 
   default-language:    Haskell2010
@@ -55,7 +55,7 @@ executable issue-wanted
                        -Wredundant-constraints
                        -fhide-source-paths
 
-  build-depends:       base
+  build-depends:       base-noprelude
                      , relude
                      , issue-wanted
 
@@ -73,7 +73,7 @@ test-suite issue-wanted-test
   hs-source-dirs:      test
   main-is:             Spec.hs
 
-  build-depends:       base
+  build-depends:       base-noprelude
                      , relude
                      , issue-wanted
 
