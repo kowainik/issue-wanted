@@ -30,6 +30,7 @@ library
 
   build-depends:       base-noprelude >= 4.11 && < 5
                      , relude ^>= 0.3.0
+                     , github
 
   default-language:    Haskell2010
   default-extensions:  DeriveGeneric
