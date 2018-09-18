@@ -1,7 +1,10 @@
 module Main where
 
-import IssueWanted (someFunc)
+import GitHub (Error, Repo, SearchResult)
 
-main :: IO ()
-main = someFunc
+import Search (fetchAllHaskellRepos)
+
+
+main :: IO (Either Error (SearchResult Repo))
+main = fetchAllHaskellRepos
 
