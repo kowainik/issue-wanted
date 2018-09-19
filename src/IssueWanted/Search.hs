@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Search where
+module IssueWanted.Search where
 
 import GitHub (Error, Repo, SearchResult, Issue)
 import GitHub.Endpoints.Search (searchRepos, searchIssues)

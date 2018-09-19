@@ -19,7 +19,8 @@ tested-with:         GHC == 8.4.3
 library
   hs-source-dirs:      src
   exposed-modules:     Prelude
-                       Search
+                       IssueWanted
+                         IssueWanted.Search
 
   ghc-options:         -Wall
                        -Wincomplete-uni-patterns
@@ -78,6 +79,7 @@ test-suite issue-wanted-test
 
   build-depends:       base-noprelude
                      , relude
+                     , issue-wanted
 
   ghc-options:         -Wall
                        -threaded
