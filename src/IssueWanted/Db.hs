@@ -1,0 +1,1 @@
+module IssueWanted.Db where
