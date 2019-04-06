@@ -25,3 +25,7 @@ fetchHelpWanted = searchIssues "language:haskell label:\"help wanted\""
 -- | Fetch all issues with Haskell language and label "good-first-issue"
 fetchGoodFirstIssue :: IO (Either Error (SearchResult Issue))
 fetchGoodFirstIssue = searchIssues "language:haskell label:\"good first issue\""
+
+-- | Fetch all issues with Haskell language and label "low-hanging-fruit"
+fetchLowHangingFruitIssue :: IO (Either Error (SearchResult Issue))
+fetchLowHangingFruitIssue = searchIssues "language:haskell label:\"low-hanging-fruit\""
