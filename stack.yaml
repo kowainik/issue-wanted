@@ -1,5 +1,6 @@
-resolver: lts-12.9
+resolver: lts-13.20
 
 extra-deps:
-    - base-noprelude-4.11.1.0
-    - relude-0.3.0
+    - github-0.21
+    - relude-0.5.0
+
