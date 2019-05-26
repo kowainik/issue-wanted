@@ -6,4 +6,3 @@
 [![MPL-2.0 license](https://img.shields.io/badge/license-MPL--2.0-blue.svg)](https://github.com/kowainik/issue-wanted/blob/master/LICENSE)
 
 `issue-wanted` is a web application focused on improving the open-source Haskell community by centralizing GitHub issues across many Haskell repositories into a single location. The goals of `issue-wanted` are to make it easier for programmers of all skill levels to find Haskell projects to contribute to, increase the number of contributions to open-source Haskell projects, and encourage more programmers to become a part of the Haskell community.  
-
