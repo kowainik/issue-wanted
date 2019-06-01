@@ -4,6 +4,7 @@ module IW.Search where
 
 import GitHub (Error, Repo, SearchResult, Issue)
 import GitHub.Endpoints.Search (searchRepos, searchIssues)
+import Data.List.Extra (mconcatMap)
 
 -- | Fetch all repositories with Haskell language
 fetchAllHaskellRepos :: IO (Either Error (SearchResult Repo))
@@ -22,7 +23,7 @@ fetchOpenIssuesWithLabels :: [Text] -> IO (Either Error (SearchResult Issue))
 fetchOpenIssuesWithLabels labels = searchIssues $ "language:haskell is:open " <> labelQualifiers
   where
     labelQualifiers :: Text
-    labelQualifiers = concatMap (\x -> " label:\"" <> x <> "\" ") labels   
+    labelQualifiers = mconcatMap (\x -> " label:\"" <> x <> "\" ") labels   
 
 -- | Fetch all open issues with Haskell language and label "help-wanted"
 fetchHelpWanted :: IO (Either Error (SearchResult Issue))
