@@ -35,8 +35,12 @@ common common-options
 
   default-language:    Haskell2010
   default-extensions:  DeriveGeneric
+                       FlexibleInstances
                        GeneralizedNewtypeDeriving
+                       InstanceSigs
+                       KindSignatures
                        LambdaCase
+                       MultiParamTypeClasses
                        OverloadedStrings
                        RecordWildCards
                        ScopedTypeVariables
@@ -47,8 +51,18 @@ library
   hs-source-dirs:      src
   exposed-modules:     Prelude
                        IW
-                       IW.Search
-  build-depends:       github == 0.20 
+                         IW.Search
+
+                       Lib.App.Env
+                       Lib.App.Error
+                       Lib.App.Monad
+
+                       Lib.Effects.Log  
+  build-depends:       co-log ^>= 0.3.0  
+                     , github == 0.20 
+                     , co-log ^>= 0.3.0
+                     , postgresql-simple ^>= 0.6.1
+                     , resource-pool
 
 executable issue-wanted
   import:              common-options
