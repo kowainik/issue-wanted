@@ -17,17 +17,17 @@ fetchHaskellReposHW = searchRepos "language:haskell help-wanted-issues:>0"
 fetchHaskellReposGFI :: IO (Either Error (SearchResult Repo))
 fetchHaskellReposGFI = searchRepos "language:haskell good-first-issues:>0"
 
--- | Fetch all issues with Haskell language and the labels passed in to the function
-fetchIssuesWithLabels :: [Text] -> IO (Either Error (SearchResult Issue))
-fetchIssuesWithLabels labels = searchIssues $ "is:open language:haskell " <> labelQualifiers
+-- | Fetch all open issues with Haskell language and the labels passed in to the function
+fetchOpenIssuesWithLabels :: [Text] -> IO (Either Error (SearchResult Issue))
+fetchOpenIssuesWithLabels labels = searchIssues $ "language:haskell is:open " <> labelQualifiers
   where
     labelQualifiers :: Text
     labelQualifiers = unwords $ (\x -> " label:\"" <> x <> "\"") <$> labels   
 
--- | Fetch all issues with Haskell language and label "help-wanted"
+-- | Fetch all open issues with Haskell language and label "help-wanted"
 fetchHelpWanted :: IO (Either Error (SearchResult Issue))
 fetchHelpWanted = fetchIssuesWithLabels ["help wanted"]
 
--- | Fetch all issues with Haskell language and label "good-first-issue"
+-- | Fetch all open issues with Haskell language and label "good-first-issue"
 fetchGoodFirstIssue :: IO (Either Error (SearchResult Issue))
 fetchGoodFirstIssue = fetchIssuesWithLabels ["good first issue"]
