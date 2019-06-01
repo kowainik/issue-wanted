@@ -22,7 +22,7 @@ fetchOpenIssuesWithLabels :: [Text] -> IO (Either Error (SearchResult Issue))
 fetchOpenIssuesWithLabels labels = searchIssues $ "language:haskell is:open " <> labelQualifiers
   where
     labelQualifiers :: Text
-    labelQualifiers = unwords $ (\x -> " label:\"" <> x <> "\"") <$> labels   
+    labelQualifiers = concatMap (\x -> " label:\"" <> x <> "\" ") labels   
 
 -- | Fetch all open issues with Haskell language and label "help-wanted"
 fetchHelpWanted :: IO (Either Error (SearchResult Issue))
