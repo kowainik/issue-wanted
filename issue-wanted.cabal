@@ -50,14 +50,27 @@ library
   import:              common-options
   hs-source-dirs:      src
   exposed-modules:     Prelude
+
                        IW
-                         IW.Search
-
-                       Lib.App.Env
-                       Lib.App.Error
-                       Lib.App.Monad
-
-                       Lib.Effects.Log  
+                         -- Application Monad
+                         IW.App
+                           IW.App.Env
+                           IW.App.Error
+                           IW.App.Monad
+                        
+                         IW.Config
+                         
+                         -- Database
+                         IW.Db
+                           IW.Db.Functions
+                           IW.Db.Schema
+                      
+                         -- Effects
+                         IW.Effects.Log  
+                         
+                         -- Server
+                         IW.Server
+                           IW.Server.Search
   build-depends:       co-log ^>= 0.3.0  
                      , github == 0.20 
                      , co-log ^>= 0.3.0

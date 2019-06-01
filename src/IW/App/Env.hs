@@ -1,7 +1,12 @@
 {-# LANGUAGE AllowAmbiguousTypes  #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 
-module Lib.App.Env where
+module IW.App.Env
+       ( Env (..)
+       , Has (..)
+       , grab
+       , DbPool
+       ) where
     
 import Colog (HasLog (..), Message, LogAction)
 import Data.Pool (Pool)
@@ -26,3 +31,6 @@ class Has field env where
 
 instance Has DbPool                (Env m) where obtain = envDbPool
 instance Has (LogAction m Message) (Env m) where obtain = envLogAction
+
+grab :: forall field env m . (MonadReader env m, Has field env) => m field
+grab = asks $ obtain @field
