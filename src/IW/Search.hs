@@ -26,8 +26,8 @@ fetchOpenIssuesWithLabels labels = searchIssues $ "language:haskell is:open " <>
 
 -- | Fetch all open issues with Haskell language and label "help-wanted"
 fetchHelpWanted :: IO (Either Error (SearchResult Issue))
-fetchHelpWanted = fetchIssuesWithLabels ["help wanted"]
+fetchHelpWanted = fetchOpenIssuesWithLabels ["help wanted"]
 
 -- | Fetch all open issues with Haskell language and label "good-first-issue"
 fetchGoodFirstIssue :: IO (Either Error (SearchResult Issue))
-fetchGoodFirstIssue = fetchIssuesWithLabels ["good first issue"]
+fetchGoodFirstIssue = fetchOpenIssuesWithLabels ["good first issue"]
