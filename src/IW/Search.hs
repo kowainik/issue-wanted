@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module IW.Search where
 
 import GitHub (Error, Repo, SearchResult, Issue)
