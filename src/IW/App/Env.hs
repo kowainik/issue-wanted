@@ -12,6 +12,7 @@ import Colog (HasLog (..), Message, LogAction)
 import Data.Pool (Pool)
 import Database.PostgreSQL.Simple (Connection)
 
+
 type DbPool = Pool Connection
 
 data Env (m :: Type -> Type) = Env 

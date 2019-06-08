@@ -8,4 +8,6 @@ extra-deps:
     - torsor-0.1 # for chronos
     - github-0.20
     - relude-0.5.0
+    - servant-0.16.0.1
+    - servant-server-0.16
     - typerep-map-0.3.2
