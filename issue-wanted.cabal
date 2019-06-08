@@ -35,6 +35,8 @@ common common-options
 
   default-language:    Haskell2010
   default-extensions:  DeriveGeneric
+                       DerivingStrategies
+                       FlexibleContexts
                        FlexibleInstances
                        GeneralizedNewtypeDeriving
                        InstanceSigs
@@ -71,11 +73,15 @@ library
                          -- Server
                          IW.Server
                            IW.Server.Search
-  build-depends:       co-log ^>= 0.3.0  
+  build-depends:       case-insensitive ^>= 1.2
+                     , co-log ^>= 0.3.0  
                      , github == 0.20 
-                     , co-log ^>= 0.3.0
+                     , http-types ^>= 0.12
+                     , mtl ^>= 2.2.2
                      , postgresql-simple ^>= 0.6.1
                      , resource-pool
+                     , servant ^>= 0.16
+                     , servant-server ^>= 0.16
 
 executable issue-wanted
   import:              common-options
