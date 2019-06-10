@@ -109,7 +109,7 @@ library
                      , unordered-containers
                      , warp ^>= 3.2
 
-executable issue-wanted
+executable issue-wanted-exe
   import:              common-options
   hs-source-dirs:      app
   main-is:             Main.hs
