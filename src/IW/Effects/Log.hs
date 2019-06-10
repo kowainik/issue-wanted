@@ -8,7 +8,7 @@ module IW.Effects.Log
        , runAppLogIO_
        ) where
 
-import Colog (pattern E, LogAction, Message, Msg (..), Severity, filterBySeverity, richMessageAction, log)
+import Colog (LogAction, Message, Msg (..), Severity, filterBySeverity, richMessageAction)
 import Control.Monad.Except (liftEither)
 import Servant.Server (Handler)
 

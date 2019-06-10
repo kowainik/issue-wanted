@@ -34,8 +34,12 @@ common common-options
                        -Wpartial-fields
 
   default-language:    Haskell2010
-  default-extensions:  DeriveGeneric
+  default-extensions:  BangPatterns
+                       ConstraintKinds
+                       DataKinds
+                       DeriveGeneric
                        DerivingStrategies
+                       DerivingVia
                        FlexibleContexts
                        FlexibleInstances
                        GeneralizedNewtypeDeriving
@@ -44,10 +48,12 @@ common common-options
                        LambdaCase
                        MultiParamTypeClasses
                        OverloadedStrings
-                       PatternSynonyms
+                       OverloadedLabels
                        RecordWildCards
                        ScopedTypeVariables
                        TypeApplications
+                       TypeFamilies
+                       TypeOperators
 
 library
   import:              common-options
@@ -74,15 +80,34 @@ library
                          -- Server
                          IW.Server
                            IW.Server.Search
-  build-depends:       case-insensitive ^>= 1.2
-                     , co-log ^>= 0.3.0  
-                     , github == 0.20 
+  build-depends:       aeson >= 1.4
+                     , bcrypt ^>= 0.0.11
+                     , bytestring ^>= 0.10
+                     , case-insensitive ^>= 1.2
+                     , co-log ^>= 0.3.0
+                     , containers >= 0.6
+                     , ekg ^>= 0.4.0.15
+                     , ekg-core ^>= 0.1.1.6
+                     , github == 0.20
+                     , http-api-data ^>= 0.4
                      , http-types ^>= 0.12
+                     , jwt ^>= 0.9.0
+                     , lens ^>= 4.17
                      , mtl ^>= 2.2.2
                      , postgresql-simple ^>= 0.6.1
+                     , proto-lens ^>= 0.5.0.0
+                     , proto-lens-protoc ^>= 0.5.0.0
+                     , proto-lens-runtime ^>= 0.5.0.0
+                     , random ^>= 1.1
                      , resource-pool
                      , servant ^>= 0.16
+                     , servant-proto-lens ^>= 0.1.0.3
                      , servant-server ^>= 0.16
+                     , text
+                     , time >= 1.8 && < 1.10
+                     , tomland ^>= 1.0.0
+                     , unordered-containers
+                     , warp ^>= 3.2
 
 executable issue-wanted
   import:              common-options

@@ -1,41 +1,39 @@
-{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DeriveAnyClass  #-}
 
 module IW.App.Error
-    ( AppError (..)
-    , AppErrorType
-    , AppException (..)
-    , WithError
-    , throwError
-    , toHttpError
+       ( AppError (..)
+       , AppErrorType
+       , AppException (..)
+       , WithError
+       , throwError
+       , toHttpError
 
-      -- * Error checks
-    , isServerError
-    , isNotAllowed
-    , isInvalid
+         -- * Error checks
+       , isServerError
+       , isNotAllowed
+       , isInvalid
 
-      -- * Internal error helpers
-    , notFound
-    , serverError
-    , notAllowed
-    , invalid
-    , missingHeader
-    , headerDecodeError
-    , dbError
-    , limitError
+         -- * Internal error helpers
+       , notFound
+       , serverError
+       , notAllowed
+       , invalid
+       , missingHeader
+       , headerDecodeError
+       , dbError
 
-      -- * Error throwing helpers
-    , throwOnNothing
-    , throwOnNothingM
-    , notFoundOnNothing
-    , notFoundOnNothingM
-    ) where
+         -- * Error throwing helpers
+       , throwOnNothing
+       , throwOnNothingM
+       , notFoundOnNothing
+       , notFoundOnNothingM
+       ) where
 
 import Control.Monad.Except (MonadError)
 import Data.CaseInsensitive (foldedCase)
 import GHC.Stack (SrcLoc (SrcLoc, srcLocModule, srcLocStartLine))
 import Network.HTTP.Types.Header (HeaderName)
-import Servant.Server (err401, err404, err413, err417, err500, errBody)
+import Servant.Server (err401, err404, err417, err500, errBody)
 
 import qualified Control.Monad.Except as E (throwError)
 import qualified Servant.Server as Servant (ServerError)
@@ -109,8 +107,6 @@ data IError
     | HeaderDecodeError Text
     -- | Data base specific errors
     | DbError Text
-    -- | Limits on the multi-request are overflowed.
-    | LimitError
     deriving (Show, Eq)
 
 -- | Map 'AppError' into a HTTP error code.
@@ -124,7 +120,6 @@ toHttpError (AppError _callStack errorType) = case errorType of
         MissingHeader name     -> err401 { errBody = toLazy $ "Header not found: " <> foldedCase name }
         HeaderDecodeError name -> err401 { errBody = encodeUtf8 $ "Unable to decode header: " <> name }
         DbError e              -> err500 { errBody = encodeUtf8 e }
-        LimitError             -> err413 { errBody = "Request is over the limits"}
 
 ----------------------------------------------------------------------------
 -- Error checks
@@ -166,9 +161,6 @@ headerDecodeError = InternalError . HeaderDecodeError
 
 dbError :: Text -> AppErrorType
 dbError = InternalError . DbError
-
-limitError :: AppErrorType
-limitError = InternalError LimitError
 
 ----------------------------------------------------------------------------
 -- Helpers
