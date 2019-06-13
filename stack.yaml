@@ -1,5 +1,17 @@
 resolver: lts-13.23
 
 extra-deps:
-    - github-0.20
-    - relude-0.5.0
+  - relude-0.5.0
+
+  # logging
+  - co-log-0.3.0.0
+  - ansi-terminal-0.9       # for co-log
+  - chronos-1.0.5           # for co-log
+  - co-log-core-0.2.0.0     # for co-log
+  - torsor-0.1              # for co-log
+  - typerep-map-0.3.2       # for co-log
+
+  - github-0.20
+  - servant-0.16.0.1
+  - servant-server-0.16
+  - tomland-1.0.0
