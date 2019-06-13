@@ -1,5 +1,3 @@
-{-# OPTIONS -fno-warn-orphans #-}
-
 {-# LANGUAGE PatternSynonyms #-}
 
 -- | Uses [relude](https://hackage.haskell.org/package/relude) as default Prelude.
@@ -9,7 +7,6 @@ module Prelude
        , module Colog
        , module Control.Lens
        , module Json
-       , module Proto
        , module Sql
        , module Web
 
@@ -25,8 +22,6 @@ import Colog (pattern D, pattern E, pattern I, LogAction (..), Severity (..), pa
 
 import Data.Aeson as Json (FromJSON (parseJSON), ToJSON (toJSON))
 
-import Data.ProtoLens.Message as Proto (defMessage)
-
 import Database.PostgreSQL.Simple.FromField as Sql (FromField (fromField))
 import Database.PostgreSQL.Simple.FromRow as Sql (FromRow (fromRow), field)
 import Database.PostgreSQL.Simple.SqlQQ as Sql (sql)
@@ -36,7 +31,6 @@ import Database.PostgreSQL.Simple.Types as Sql (Only (..))
 
 import Servant.API as Web ((:>), Capture, Get, Header, Header', JSON, NoContent (NoContent), Post,
                            QueryParam, QueryParam', ReqBody)
-import Servant.API.ContentTypes.Proto as Web (Proto)
 import Servant.API.Generic as Web ((:-), toServant)
 import Web.HttpApiData as Web (FromHttpApiData (..), ToHttpApiData (..))
 

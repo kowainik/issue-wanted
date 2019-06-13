@@ -1,9 +1,9 @@
 module IW.App.Monad
-    ( -- * Application monad
-      App (..)
-    , AppEnv
-    , runAppAsIO
-    ) where
+       ( -- * Application monad
+         App (..)
+       , AppEnv
+       , runAppAsIO
+       ) where
 
 import Control.Exception (catch, throwIO, try)
 import Control.Monad.Except (MonadError (..))
