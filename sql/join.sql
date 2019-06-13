@@ -1,2 +1,2 @@
 -- To execute this file from SQL REPL:
--- \i sql/seed.sql
+-- \i sql/join.sql
