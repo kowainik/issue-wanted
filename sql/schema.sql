@@ -31,7 +31,6 @@ CREATE TABLE IF NOT EXISTS categories
 CREATE TABLE IF NOT EXISTS labels
 ( id          INT  NOT NULL
 , label_name  TEXT NOT NULL
-, label_color TEXT NOT NULL -- Hex Color Code
 );
 
 -----------------

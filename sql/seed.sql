@@ -26,8 +26,8 @@ VALUES ( 1
 INSERT INTO categories (id, category_name)
 VALUES (1, 'Text'), (2, 'FFI');
 
-INSERT INTO labels (id, label_name, label_color)
-VALUES (1, 'good first issue', '00FFFF'), (2, 'help wanted', 'F08080');
+INSERT INTO labels (id, label_name)
+VALUES (1, 'good first issue'), (2, 'help wanted');
 
 -----------------
 -- JOIN TABLES --
