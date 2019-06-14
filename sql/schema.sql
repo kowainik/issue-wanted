@@ -38,14 +38,14 @@ CREATE TABLE IF NOT EXISTS labels
 -- JOIN TABLES --
 -----------------
 
-CREATE TABLE IF NOT EXISTS issues_labels
-( issue_id INT NOT NULL
-, label_id INT NOT NULL  
-);
-
 CREATE TABLE IF NOT EXISTS repos_categories
 ( repo_id     INT NOT NULL
 , category_id INT NOT NULL  
+);
+
+CREATE TABLE IF NOT EXISTS issues_labels
+( issue_id INT NOT NULL
+, label_id INT NOT NULL  
 );
 
 -----------------

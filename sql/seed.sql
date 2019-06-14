@@ -28,3 +28,13 @@ VALUES (1, 'Text'), (2, 'FFI');
 
 INSERT INTO labels (id, label_name, label_color)
 VALUES (1, 'good first issue', '00FFFF'), (2, 'help wanted', 'F08080');
+
+-----------------
+-- JOIN TABLES --
+-----------------
+
+INSERT INTO repos_categories (repo_id, category_id)
+VALUES (1, 1);
+
+INSERT INTO issues_labels (issue_id, label_id)
+VALUES (1, 2);
