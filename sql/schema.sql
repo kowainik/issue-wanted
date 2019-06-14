@@ -10,7 +10,6 @@ CREATE TABLE IF NOT EXISTS repos
 , repo_name        TEXT NOT NULL
 , repo_desc        TEXT NOT NULL
 , repo_url         TEXT NOT NULL -- The repo html_url
-, stargazer_count  INT  NOT NULL
 , open_issue_count INT  NOT NULL
 , fork_count       INT  NOT NULL
 );

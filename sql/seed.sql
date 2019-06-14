@@ -1,12 +1,11 @@
 -- To execute this file from SQL REPL:
 -- \i sql/seed.sql
 
-INSERT INTO repos (id, repo_name, repo_desc, repo_url, stargazer_count, open_issue_count, fork_count)
+INSERT INTO repos (id, repo_name, repo_desc, repo_url, open_issue_count, fork_count)
 VALUES ( 1
        , 'pandoc'
        , 'Universal markup converter'
        , 'https://github.com/jgm/pandoc'
-       , 15815
        , 495
        , 1788 
        );
