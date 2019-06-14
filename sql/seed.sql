@@ -1,6 +1,10 @@
 -- To execute this file from SQL REPL:
 -- \i sql/seed.sql
 
+-----------------
+-- BASE TABLES --
+-----------------
+
 INSERT INTO repos (id, repo_name, repo_desc, repo_url, open_issue_count, fork_count)
 VALUES ( 1
        , 'pandoc'
@@ -18,3 +22,9 @@ VALUES ( 1
        , 'https://api.github.com/repos/jgm/pandoc/issues/342'
        , 1
        );
+
+INSERT INTO categories (id, category_name)
+VALUES (1, 'Text'), (2, 'FFI');
+
+INSERT INTO labels (id, label_name, label_color)
+VALUES (1, 'good first issue', '00FFFF'), (2, 'help wanted', 'F08080');

@@ -1,9 +1,9 @@
 -- To execute this file from SQL REPL:
 -- \i sql/schema.sql
 
-------------
--- TABLES --
-------------
+-----------------
+-- BASE TABLES --
+-----------------
 
 CREATE TABLE IF NOT EXISTS repos
 ( id               INT  NOT NULL
@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS categories
 CREATE TABLE IF NOT EXISTS labels
 ( id          INT  NOT NULL
 , label_name  TEXT NOT NULL
-, label_color TEXT NOT NULL
+, label_color TEXT NOT NULL -- Hex Color Code
 );
 
 -----------------
