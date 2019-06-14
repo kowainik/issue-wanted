@@ -6,33 +6,33 @@
 ------------
 
 CREATE TABLE IF NOT EXISTS repos
-( id                  INT                      NOT NULL
-, repo_name           TEXT                     NOT NULL
-, repo_desc           TEXT                     NOT NULL
-, repo_url            TEXT                     NOT NULL -- The repo html_url
-, stargazer_count     INT                      NOT NULL
-, issue_count         INT                      NOT NULL
-, fork_count          INT                      NOT NULL
+( id               INT  NOT NULL
+, repo_name        TEXT NOT NULL
+, repo_desc        TEXT NOT NULL
+, repo_url         TEXT NOT NULL -- The repo html_url
+, stargazer_count  INT  NOT NULL
+, open_issue_count INT  NOT NULL
+, fork_count       INT  NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS issues
-( id               INT                      NOT NULL
-, issue_number     INT                      NOT NULL
-, issue_title      TEXT                     NOT NULL
-, issue_body       TEXT                     NOT NULL
-, issue_url        TEXT                     NOT NULL
-, repo_id          INT                      NOT NULL
+( id           INT  NOT NULL
+, issue_number INT  NOT NULL
+, issue_title  TEXT NOT NULL
+, issue_body   TEXT NOT NULL
+, issue_url    TEXT NOT NULL
+, repo_id      INT  NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS categories
-( id                  INT                      NOT NULL
-, category_name       TEXT                     NOT NULL
+( id            INT  NOT NULL
+, category_name TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS labels
-( id               INT                      NOT NULL
-, label_name       TEXT                     NOT NULL
-, label_color      TEXT                     NOT NULL
+( id          INT  NOT NULL
+, label_name  TEXT NOT NULL
+, label_color TEXT NOT NULL
 );
 
 -----------------
@@ -40,13 +40,13 @@ CREATE TABLE IF NOT EXISTS labels
 -----------------
 
 CREATE TABLE IF NOT EXISTS issues_labels
-( issue_id     INT                        NOT NULL
-, label_id     INT                        NOT NULL  
+( issue_id INT NOT NULL
+, label_id INT NOT NULL  
 );
 
 CREATE TABLE IF NOT EXISTS repos_categories
-( repo_id         INT                        NOT NULL
-, category_id     INT                        NOT NULL  
+( repo_id     INT NOT NULL
+, category_id INT NOT NULL  
 );
 
 -----------------
