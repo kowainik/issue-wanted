@@ -83,7 +83,7 @@ library
                          
                          -- Server
                          IW.Server
-                           IW.Server.Endpoints
+                           IW.Server.Issue
                            IW.Server.Search
                            IW.Server.Types
   build-depends:       aeson >= 1.4
