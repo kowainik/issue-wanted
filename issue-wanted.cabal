@@ -68,10 +68,14 @@ library
                            IW.App.Monad
                         
                          IW.Config
+                        
+                         -- Core Modules
+                         IW.Core.Issue
                          
                          -- Database
                          IW.Db
                            IW.Db.Functions
+                           IW.Db.Issue
                            IW.Db.Schema
                       
                          -- Effects
@@ -79,7 +83,9 @@ library
                          
                          -- Server
                          IW.Server
+                           IW.Server.Endpoints
                            IW.Server.Search
+                           IW.Server.Types
   build-depends:       aeson >= 1.4
                      , bytestring ^>= 0.10
                      , case-insensitive ^>= 1.2
