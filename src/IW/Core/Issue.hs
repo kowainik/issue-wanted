@@ -14,3 +14,4 @@ data Issue = Issue
     , issueRepoId :: Int
     } deriving stock (Generic, Show, Eq)
       deriving anyclass (FromRow)
+      deriving (FromJSON, ToJSON) 
