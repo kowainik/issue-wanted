@@ -13,7 +13,7 @@ import IW.Db (WithDb, getIssueById)
 import IW.Server.Types (AppServer, ToApi)
 
 
-data IssueSite route = IssueSite
+newtype IssueSite route = IssueSite
     { -- | Fetch issue by issue ID
       issueByIdRoute :: route
         :- "issues"
