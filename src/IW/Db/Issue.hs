@@ -4,7 +4,6 @@
 
 module IW.Db.Issue
        ( getIssueById
-       , getIssuesByLabel
        ) where
 
 import IW.App (WithError)
@@ -18,6 +17,3 @@ getIssueById issueId = asSingleRow $ query [sql|
     FROM issues
     WHERE id = ?
 |] (Only issueId)
-
-getIssuesByLabel :: (WithDb env m, WithError m) => m [Issue]
-getIssuesByLabel = undefined

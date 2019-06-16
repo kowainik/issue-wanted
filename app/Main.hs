@@ -1,5 +1,7 @@
 module Main where
 
-main :: IO ()
-main = putStrLn "IssueWanted"
+import qualified IW
 
+
+main :: IO ()
+main = IW.main
