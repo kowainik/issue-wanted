@@ -5,8 +5,9 @@
 -- BASE TABLES --
 -----------------
 
-INSERT INTO repos (id, repo_name, repo_desc, repo_url, open_issue_count, fork_count)
+INSERT INTO repos (id, category, repo_name, repo_desc, repo_url, open_issue_count, fork_count)
 VALUES ( 1
+       , 'Text'
        , 'pandoc'
        , 'Universal markup converter'
        , 'https://github.com/jgm/pandoc'

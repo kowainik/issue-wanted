@@ -7,9 +7,12 @@
 
 CREATE TABLE IF NOT EXISTS repos
 ( id               INT  NOT NULL
+-- Some repos may not have a category
+, category         TEXT          
 , repo_name        TEXT NOT NULL
 , repo_desc        TEXT NOT NULL
-, repo_url         TEXT NOT NULL -- The repo html_url
+-- The repo's html_url
+, repo_url         TEXT NOT NULL 
 , open_issue_count INT  NOT NULL
 , fork_count       INT  NOT NULL
 );
