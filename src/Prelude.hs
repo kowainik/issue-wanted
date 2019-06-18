@@ -30,7 +30,7 @@ import Database.PostgreSQL.Simple.ToRow as Sql (ToRow (toRow))
 import Database.PostgreSQL.Simple.Types as Sql (Only (..))
 
 import Servant.API as Web ((:>), Capture, Get, Header, Header', JSON, NoContent (NoContent), Post,
-                           QueryParam, QueryParam', ReqBody)
+                           QueryFlag, QueryParam, QueryParam', ReqBody)
 import Servant.API.Generic as Web ((:-), toServant)
 import Web.HttpApiData as Web (FromHttpApiData (..), ToHttpApiData (..))
 
