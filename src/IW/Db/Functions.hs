@@ -1,8 +1,10 @@
+-- | MonadReader wrappers around postgresql-simple library.
+
 module IW.Db.Functions
        ( WithDb
        , initialisePool
 
-       -- * Sql functions
+         -- * Sql functions
        , query
        , queryRaw
        , execute
@@ -10,7 +12,7 @@ module IW.Db.Functions
        , executeMany
        , returning
 
-       -- * Error handling
+         -- * Error handling
        , asSingleRow
        , singleRowError
        ) where
