@@ -12,6 +12,7 @@ import IW.App (WithError)
 import IW.Core.Issue (Issue)
 import IW.Db.Functions (WithDb, asSingleRow, query, queryRaw)
 
+
 getIssues :: (WithDb env m) => m [Issue]
 getIssues = queryRaw [sql|
     SELECT id, number, title, body, url, repo_id
