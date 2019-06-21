@@ -14,22 +14,22 @@ import IW.Db.Functions (WithDb, asSingleRow, query, queryRaw)
 
 getIssues :: (WithDb env m, WithError m) => m [Issue]
 getIssues = queryRaw [sql|
-    SELECT *
+    SELECT id, number, title, body, url, repo_id
     FROM issues
 |]
 
 getIssueById :: (WithDb env m, WithError m) => Int -> m Issue
 getIssueById issueId = asSingleRow $ query [sql|
-    SELECT *
+    SELECT id, number, title, body, url, repo_id
     FROM issues
     WHERE id = ?
 |] (Only issueId)
 
 getIssuesByLabel :: (WithDb env m, WithError m) => Text -> m [Issue]
 getIssuesByLabel label = query [sql|
-    SELECT issues.*
+    SELECT issues.id, issues.number, issues.title, issues.body, issues.url, issues.repo_id
     FROM issues_labels
     JOIN issues ON issues.id = issues_labels.issue_id
     JOIN labels ON labels.id = issues_labels.label_id 
-    WHERE labels.label_name = ?
+    WHERE labels.name = ?
 |] (Only label)
