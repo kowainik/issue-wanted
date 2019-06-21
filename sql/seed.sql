@@ -5,20 +5,18 @@
 -- BASE TABLES --
 -----------------
 
-INSERT INTO repos (repo_name, repo_owner, repo_desc, repo_url)
+INSERT INTO repos (name, owner, descr)
 VALUES ( 'pandoc'
        , 'jgm'
        , 'Universal markup converter'
-       , 'https://github.com/jgm/pandoc'
        )
        ,
        ( 'test1'
        , 'john117'
        , 'A test repo'
-       , 'https://github.com/john117/test1'
        );
 
-INSERT INTO issues (issue_number, issue_title, issue_body, issue_url, repo_id)
+INSERT INTO issues (number, title, body, url, repo_id)
 VALUES ( 342
        , 'Fix docs'
        , 'Docs need to be fixed.'
@@ -40,10 +38,10 @@ VALUES ( 342
        , 2
        );
 
-INSERT INTO categories (category_name)
+INSERT INTO categories (name)
 VALUES ('Text'), ('FFI');
 
-INSERT INTO labels (label_name)
+INSERT INTO labels (name)
 VALUES ('good first issue'), ('help wanted');
 
 -----------------

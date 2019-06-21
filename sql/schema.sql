@@ -6,31 +6,29 @@
 -----------------
 
 CREATE TABLE IF NOT EXISTS repos
-( id         SERIAL       
-, repo_name  TEXT   NOT NULL
-, repo_owner TEXT   NOT NULL
-, repo_desc  TEXT
--- The repo's html_url
-, repo_url   TEXT   NOT NULL 
+( id    SERIAL PRIMARY KEY        
+, name  TEXT   NOT NULL
+, owner TEXT   NOT NULL
+, descr TEXT
 );
 
 CREATE TABLE IF NOT EXISTS issues
-( id           SERIAL 
-, issue_number INT    NOT NULL
-, issue_title  TEXT   NOT NULL
-, issue_body   TEXT
-, issue_url    TEXT   NOT NULL
-, repo_id      INT    NOT NULL
+( id      SERIAL PRIMARY KEY 
+, number  INT    NOT NULL
+, title   TEXT   NOT NULL
+, body    TEXT
+, url     TEXT   NOT NULL
+, repo_id INT    NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS categories
-( id            SERIAL
-, category_name TEXT   NOT NULL
+( id   SERIAL PRIMARY KEY
+, name TEXT   NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS labels
-( id         SERIAL
-, label_name TEXT   NOT NULL
+( id   SERIAL PRIMARY KEY
+, name TEXT   NOT NULL
 );
 
 -----------------
@@ -46,28 +44,6 @@ CREATE TABLE IF NOT EXISTS issues_labels
 ( issue_id INT NOT NULL
 , label_id INT NOT NULL  
 );
-
------------------------------
--- PRIMARY KEY CONSTRAINTS --
------------------------------
-
-ALTER TABLE ONLY repos 
-  ADD CONSTRAINT pk_repos PRIMARY KEY (id);
-
-ALTER TABLE ONLY issues
-  ADD CONSTRAINT pk_issues PRIMARY KEY (id);
-
-ALTER TABLE ONLY categories 
-  ADD CONSTRAINT pk_categories PRIMARY KEY (id);
-
-ALTER TABLE ONLY labels
-  ADD CONSTRAINT pk_labels PRIMARY KEY (id);
-
-ALTER TABLE ONLY repos_categories
-  ADD CONSTRAINT pk_repos_categories PRIMARY KEY (repo_id, category_id);
-
-ALTER TABLE ONLY issues_labels
-  ADD CONSTRAINT pk_issues_labels PRIMARY KEY (issue_id, label_id);
 
 -----------------------------
 -- FOREIGN KEY CONSTRAINTS --
