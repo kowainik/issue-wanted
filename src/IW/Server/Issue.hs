@@ -44,7 +44,6 @@ issueByIdHandler = getIssueById
 
 issuesHandler 
     :: ( WithDb env m
-       , WithError m
        )
     => Maybe Text
     -> m [Issue]

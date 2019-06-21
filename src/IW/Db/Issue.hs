@@ -12,7 +12,7 @@ import IW.App (WithError)
 import IW.Core.Issue (Issue)
 import IW.Db.Functions (WithDb, asSingleRow, query, queryRaw)
 
-getIssues :: (WithDb env m, WithError m) => m [Issue]
+getIssues :: (WithDb env m) => m [Issue]
 getIssues = queryRaw [sql|
     SELECT id, number, title, body, url, repo_id
     FROM issues
@@ -25,7 +25,7 @@ getIssueById issueId = asSingleRow $ query [sql|
     WHERE id = ?
 |] (Only issueId)
 
-getIssuesByLabel :: (WithDb env m, WithError m) => Text -> m [Issue]
+getIssuesByLabel :: (WithDb env m) => Text -> m [Issue]
 getIssuesByLabel label = query [sql|
     SELECT issues.id, issues.number, issues.title, issues.body, issues.url, issues.repo_id
     FROM issues_labels
