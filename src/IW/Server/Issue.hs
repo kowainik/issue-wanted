@@ -30,8 +30,6 @@ data IssueSite route = IssueSite
         :> Get '[JSON] Issue
     , issuesRoute :: route
         :- "issues"
-        :> QueryParam "sort" Sort
-        :> QueryFlag "desc"
         :> QueryParam "label" Text
         :> Get '[JSON] [Issue]
     } deriving (Generic)
@@ -56,28 +54,8 @@ issuesHandler
     :: ( WithDb env m
        , WithError m
        )
-    => Maybe Sort
-    -> Bool
-    -> Maybe Text
+    => Maybe Text
     -> m [Issue]
-issuesHandler sortParam isDesc labelParam = do 
-  issues       <- case labelParam of
-                    Nothing -> getIssues
-                    Just p  -> getIssuesByLabel p
-  return $ sortDesc isDesc . sortIssues sortParam $ issues
-  where
-    sortById :: [Issue] -> [Issue]
-    sortById = sortOn issueId
-
-    sortByTitle :: [Issue] -> [Issue]
-    sortByTitle = sortOn issueTitle
-
-    sortIssues :: Maybe Sort -> [Issue] -> [Issue]
-    sortIssues Nothing      = id
-    sortIssues (Just sort') = case sort' of
-                                Id    -> sortById
-                                Title -> sortByTitle
-    
-    sortDesc :: Bool -> [Issue] -> [Issue]
-    sortDesc True  = reverse
-    sortDesc False = id 
+issuesHandler maybeLabel = case maybeLabel of
+    Nothing    -> getIssues
+    Just label -> getIssuesByLabel label 
