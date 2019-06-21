@@ -24,7 +24,7 @@ mkAppEnv Config{..} = do
     pure Env{..}
 
 runServer :: AppEnv -> IO ()
-runServer env@Env{..} = run 8081 application
+runServer env@Env{..} = run 8080 application
   where
     application = serve (Proxy @API) (server env)
 

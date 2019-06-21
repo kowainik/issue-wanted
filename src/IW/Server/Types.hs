@@ -12,4 +12,4 @@ import IW.App (App)
 
 
 type AppServer = AsServerT App
-type ToApi (site :: * -> *) = ToServantApi site
+type ToApi (site :: Type -> Type) = ToServantApi site
