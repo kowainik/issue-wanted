@@ -13,14 +13,6 @@ import IW.Core.Issue (Issue (..))
 import IW.Db (WithDb, getIssues, getIssueById, getIssuesByLabel)
 import IW.Server.Types (AppServer, ToApi)
 
-data Sort = Id | Title
-  deriving (Generic, Show, Eq)
-
-instance FromHttpApiData Sort where
-    parseQueryParam :: Text -> Either Text Sort
-    parseQueryParam "id"    = Right Id
-    parseQueryParam "title" = Right Title
-    parseQueryParam _       = Left "Error parsing sort value"
 
 data IssueSite route = IssueSite
     { -- | Fetch issue by issue ID
