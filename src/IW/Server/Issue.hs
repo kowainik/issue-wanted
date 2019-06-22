@@ -5,20 +5,25 @@ module IW.Server.Issue
 
          -- * Handlers
        , issueByIdHandler
+       , issuesHandler
        ) where
 
 import IW.App.Error (WithError)
 import IW.Core.Issue (Issue (..))
-import IW.Db (WithDb, getIssueById)
+import IW.Db (WithDb, getIssues, getIssueById, getIssuesByLabel)
 import IW.Server.Types (AppServer, ToApi)
 
 
-newtype IssueSite route = IssueSite
+data IssueSite route = IssueSite
     { -- | Fetch issue by issue ID
       issueByIdRoute :: route
         :- "issues"
         :> Capture "id" Int
         :> Get '[JSON] Issue
+    , issuesRoute :: route
+        :- "issues"
+        :> QueryParam "label" Text
+        :> Get '[JSON] [Issue]
     } deriving (Generic)
 
 type IssueAPI = ToApi IssueSite
@@ -26,6 +31,7 @@ type IssueAPI = ToApi IssueSite
 issueServer :: IssueSite AppServer
 issueServer = IssueSite
     { issueByIdRoute  = issueByIdHandler
+    , issuesRoute     = issuesHandler
     }
 
 issueByIdHandler
@@ -35,3 +41,12 @@ issueByIdHandler
     => Int
     -> m Issue
 issueByIdHandler = getIssueById
+
+issuesHandler 
+    :: ( WithDb env m
+       )
+    => Maybe Text
+    -> m [Issue]
+issuesHandler maybeLabel = case maybeLabel of
+    Nothing    -> getIssues
+    Just label -> getIssuesByLabel label 
