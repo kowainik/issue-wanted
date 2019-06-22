@@ -1,4 +1,4 @@
-module IW.Server.Search where
+module IW.Sync.Search where
 
 import GitHub (Error, Repo, SearchResult, Issue)
 import GitHub.Endpoints.Search (searchRepos, searchIssues)
