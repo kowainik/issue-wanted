@@ -4,8 +4,8 @@ module IW.Core.Issue
        ( Issue (..)
        ) where
   
-import IW.Core.Id (Id)
-import IW.Core.Repo (Repo)
+import IW.Core.Id (Id (..))
+import IW.Core.Repo (Repo (..))
 
 
 -- | Data type representing a GitHub issue.

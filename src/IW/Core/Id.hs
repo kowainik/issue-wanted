@@ -15,7 +15,7 @@ import Data.Type.Equality (type (==))
 -- type-safety.
 newtype Id a = Id { unId :: Int }
     deriving stock (Show, Generic)
-    deriving newtype (Eq, Ord, FromField, ToField, FromJSON, ToJSON)
+    deriving newtype (Eq, Ord, FromField, ToField, FromJSON, ToJSON, FromHttpApiData)
 
 -- | When we don't care about type of 'Id' but don't want to deal with type variables.
 type AnyId = Id ()
