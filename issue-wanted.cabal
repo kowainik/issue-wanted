@@ -90,8 +90,8 @@ library
                         
                          -- Sync Worker
                          IW.Sync
+                           IW.Sync.Insert
                            IW.Sync.Search
-                           
   build-depends:       aeson >= 1.4
                      , bytestring ^>= 0.10
                      , case-insensitive ^>= 1.2
