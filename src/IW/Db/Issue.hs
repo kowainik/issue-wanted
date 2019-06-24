@@ -1,6 +1,6 @@
 {-# LANGUAGE QuasiQuotes #-}
 
--- | SQL queries to work with the @users@ table.
+-- | SQL queries to work with the @issues@ table
 
 module IW.Db.Issue
        ( getIssues
