@@ -9,7 +9,8 @@ module IW.Db.Issue
        ) where
 
 import IW.App (WithError)
-import IW.Core.Issue (Issue)
+import IW.Core.Issue (Issue (..))
+import IW.Core.Id (Id (..))
 import IW.Db.Functions (WithDb, asSingleRow, query, queryRaw)
 
 
@@ -19,7 +20,7 @@ getIssues = queryRaw [sql|
     FROM issues
 |]
 
-getIssueById :: (WithDb env m, WithError m) => Int -> m Issue
+getIssueById :: (WithDb env m, WithError m) => Id Issue -> m Issue
 getIssueById issueId = asSingleRow $ query [sql|
     SELECT id, number, title, body, url, repo_id
     FROM issues

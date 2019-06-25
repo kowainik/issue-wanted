@@ -9,6 +9,7 @@ module IW.Server.Issue
        ) where
 
 import IW.App.Error (WithError)
+import IW.Core.Id (Id (..))
 import IW.Core.Issue (Issue (..))
 import IW.Db (WithDb, getIssues, getIssueById, getIssuesByLabel)
 import IW.Server.Types (AppServer, ToApi)
@@ -18,7 +19,7 @@ data IssueSite route = IssueSite
     { -- | Fetch issue by issue ID
       issueByIdRoute :: route
         :- "issues"
-        :> Capture "id" Int
+        :> Capture "id" (Id Issue)
         :> Get '[JSON] Issue
     , issuesRoute :: route
         :- "issues"
@@ -38,7 +39,7 @@ issueByIdHandler
     :: ( WithDb env m
        , WithError m
        )
-    => Int
+    => Id Issue
     -> m Issue
 issueByIdHandler = getIssueById
 

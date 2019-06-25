@@ -3,15 +3,18 @@
 module IW.Core.Issue
        ( Issue (..)
        ) where
+  
+import IW.Core.Id (Id (..))
+import IW.Core.Repo (Repo)
 
 
 -- | Data type representing a GitHub issue.
 data Issue = Issue
-    { issueId     :: Int
+    { issueId     :: Id Issue
     , issueNumber :: Int
     , issueTitle  :: Text
     , issueBody   :: Text
     , issueUrl    :: Text
-    , issueRepoId :: Int
+    , issueRepoId :: Id Repo
     } deriving stock (Generic, Show, Eq)
-      deriving anyclass (FromRow, FromJSON, ToJSON)
+      deriving anyclass (FromJSON, ToJSON, FromRow, ToRow)

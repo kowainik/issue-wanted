@@ -70,7 +70,9 @@ library
                          IW.Config
                         
                          -- Core Modules
+                         IW.Core.Id
                          IW.Core.Issue
+                         IW.Core.Repo
                          
                          -- Database
                          IW.Db
