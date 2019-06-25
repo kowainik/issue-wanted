@@ -15,7 +15,7 @@ import IW.App (WithError)
 import IW.Core.Issue (Issue (..))
 import IW.Core.Repo (Repo)
 import IW.Core.Id (Id (..))
-import IW.Db.Functions (WithDb, asSingleRow, execute, query, queryRaw)
+import IW.Db.Functions (WithDb, asSingleRow, execute, executeMany, query, queryRaw)
 
 
 -- | Get a list of all issues from database
@@ -55,4 +55,7 @@ insertIssue issue = execute [sql|
 
 -- | Insert a list of issues into the database
 insertIssues :: (WithDb env m) => [Issue] -> m ()
-insertIssues = undefined
+insertIssues issues = executeMany [sql|
+    INSERT INTO issues (number, title, body, url, repo_id)
+    VALUES (?, ?, ?, ?, ?);
+|] $ issueToRow <$> issues
