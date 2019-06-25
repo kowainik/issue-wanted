@@ -6,6 +6,8 @@ module IW.Db.Issue
        ( getIssues
        , getIssueById
        , getIssuesByLabel
+       , insertIssue
+       , insertIssues
        ) where
 
 import IW.App (WithError)
