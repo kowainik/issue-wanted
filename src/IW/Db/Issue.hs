@@ -6,12 +6,14 @@ module IW.Db.Issue
        ( getIssues
        , getIssueById
        , getIssuesByLabel
+       , issueToRow
        , insertIssue
        , insertIssues
        ) where
 
 import IW.App (WithError)
 import IW.Core.Issue (Issue (..))
+import IW.Core.Repo (Repo)
 import IW.Core.Id (Id (..))
 import IW.Db.Functions (WithDb, asSingleRow, execute, query, queryRaw)
 
@@ -41,12 +43,15 @@ getIssuesByLabel label = query [sql|
     WHERE labels.name = ?
 |] (Only label)
 
+issueToRow :: Issue -> (Int, Text, Text, Text, Id Repo)
+issueToRow Issue{..} = (issueNumber, issueTitle, issueBody, issueUrl, issueRepoId)
+
 -- | Insert a single issue into the database
 insertIssue :: (WithDb env m) => Issue -> m ()
-insertIssue Issue{..} = execute [sql|
+insertIssue issue = execute [sql|
     INSERT INTO issues (number, title, body, url, repo_id)
     VALUES (?, ?, ?, ?, ?);
-|] (issueNumber, issueTitle, issueBody, issueUrl, issueRepoId)
+|] . issueToRow $ issue
 
 -- | Insert a list of issues into the database
 insertIssues :: (WithDb env m) => [Issue] -> m ()

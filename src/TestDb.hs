@@ -8,6 +8,7 @@ import IW.App.Env (Env (..))
 import IW.Core.Issue (Issue (..))
 import IW.Core.Id (Id (..))
 import IW.Config (Config (..))
+import IW.Db.Issue (issueToRow)
 import Toml (TomlCodec, (.=))
 import qualified Toml
 import qualified Database.PostgreSQL.Simple as Sql
