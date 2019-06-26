@@ -1,4 +1,4 @@
-resolver: lts-13.23
+resolver: lts-13.26
 
 extra-deps:
   - relude-0.5.0

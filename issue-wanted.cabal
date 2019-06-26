@@ -66,23 +66,23 @@ library
                            IW.App.Env
                            IW.App.Error
                            IW.App.Monad
-                        
+
                          IW.Config
-                        
+
                          -- Core Modules
                          IW.Core.Id
                          IW.Core.Issue
                          IW.Core.Repo
-                         
+
                          -- Database
                          IW.Db
                            IW.Db.Functions
                            IW.Db.Issue
                            IW.Db.Schema
-                      
+
                          -- Effects
-                         IW.Effects.Log  
-                         
+                         IW.Effects.Log
+
                          -- Server
                          IW.Server
                            IW.Server.Issue
@@ -121,4 +121,6 @@ test-suite issue-wanted-test
   type:                exitcode-stdio-1.0
   hs-source-dirs:      test
   main-is:             Spec.hs
+
   build-depends:       issue-wanted
+                     , resource-pool
