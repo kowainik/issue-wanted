@@ -72,6 +72,7 @@ library
                          -- Core Modules
                          IW.Core.Id
                          IW.Core.Issue
+                         IW.Core.PGArray'
                          IW.Core.Repo
 
                          -- Database
@@ -121,6 +122,5 @@ test-suite issue-wanted-test
   type:                exitcode-stdio-1.0
   hs-source-dirs:      test
   main-is:             Spec.hs
-
   build-depends:       issue-wanted
                      , resource-pool
