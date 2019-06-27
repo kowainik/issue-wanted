@@ -35,7 +35,7 @@ Issue-wanted endpoints available:
 
 * `http://localhost:8080/issues?label=<label name>`
 
-  Returns a list of issue with the corresponding label.  
+  Returns a list of issues with the corresponding label.  
 
 Tip: If you stop running the server and then try to restart it, you may need to run the command `fuser -n tcp -k 8080` to free the port.
 
