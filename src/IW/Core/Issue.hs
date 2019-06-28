@@ -5,7 +5,7 @@ module IW.Core.Issue
        ) where
   
 import IW.Core.Id (Id (..))
-import IW.Core.PGArray' (PGArray' (..))
+import IW.Core.SqlArray (SqlArray (..))
 
 
 -- | Data type representing a GitHub issue.
@@ -17,6 +17,6 @@ data Issue = Issue
     , issueUrl      :: Text
     , issueOwner    :: Text
     , issueRepoName :: Text
-    , issueLabels   :: PGArray' Text
+    , issueLabels   :: SqlArray Text
     } deriving stock (Generic, Show, Eq)
       deriving anyclass (ToJSON, FromRow, ToRow)

@@ -72,7 +72,7 @@ library
                          -- Core Modules
                          IW.Core.Id
                          IW.Core.Issue
-                         IW.Core.PGArray'
+                         IW.Core.SqlArray
                          IW.Core.Repo
 
                          -- Database
