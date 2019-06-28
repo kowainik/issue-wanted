@@ -1,5 +1,6 @@
 module IW
        ( mkAppEnv
+       , mkGhciEnv
        , runServer
        , main
        ) where
@@ -22,6 +23,9 @@ mkAppEnv Config{..} = do
     -- pure configuration
     let envLogAction = mainLogAction cLogSeverity
     pure Env{..}
+
+mkGhciEnv :: IO AppEnv
+mkGhciEnv = loadConfig >>= mkAppEnv
 
 runServer :: AppEnv -> IO ()
 runServer env@Env{..} = run 8080 application
