@@ -3,11 +3,11 @@
 
 module IW.Config
        ( Config (..)
+       , configT
        , loadConfig
        ) where
 
 import Toml (TomlCodec, (.=))
-
 import qualified Toml
 
 
