@@ -1,5 +1,3 @@
-{-# LANGUAGE DeriveAnyClass #-}
-
 module IW.Core.SqlArray
     ( SqlArray (..)
     ) where
