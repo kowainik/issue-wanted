@@ -11,8 +11,6 @@ programmers of all skill levels to find Haskell projects to contribute to,
 increase the number of contributions to open-source Haskell projects, and
 encourage more programmers to become a part of the Haskell community.
 
-# Testing
-
 ## Prerequisites (what you need to have locally)
 
 Coming Soon
