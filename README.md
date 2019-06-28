@@ -13,7 +13,15 @@ encourage more programmers to become a part of the Haskell community.
 
 # Testing
 
-## Testing the Server
+## Prerequisites (what you need to have locally)
+
+Coming Soon
+
+## How to build
+
+To build the project, open up a terminal in the base folder and run `stack build`.
+
+## How to run server
 
 For testing the `issue-wanted` server follow these steps:
 
@@ -39,7 +47,7 @@ Issue-wanted endpoints available:
 
 Tip: If you stop running the server and then try to restart it, you may need to run the command `fuser -n tcp -k 8080` to free the port.
 
-## Testing the Database
+## How to test DB query functions
 
 For testing the database follow these steps:
 
@@ -50,3 +58,9 @@ For testing the database follow these steps:
 3. Run the command `:l Test` to load the database testing module
 
 You should now be able to test the insert and query functions in `issue-wanted/src/IW/Db` from the REPL.
+
+## How to run automatic tests locally
+
+1. In a separate terminal run `make postgres` (this command will run database in a Docker container)
+
+2. In the first terminal run `stack test` or `cabal new-test`
