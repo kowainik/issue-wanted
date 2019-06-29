@@ -72,8 +72,6 @@ library
                          -- Core Modules
                          IW.Core.Id
                          IW.Core.Issue
-                         IW.Core.RepoName
-                         IW.Core.RepoOwner
                          IW.Core.SqlArray
                          IW.Core.Repo
 
