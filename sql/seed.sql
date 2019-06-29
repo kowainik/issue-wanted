@@ -18,7 +18,7 @@ VALUES ( 'jgm'
        , ARRAY['Text', 'FFI']
        );
 
-INSERT INTO issues (number, title, body, url, owner, repo_name, labels)
+INSERT INTO issues (number, title, body, url, repo_owner, repo_name, labels)
 VALUES ( 342
        , 'Fix docs'
        , 'Docs need to be fixed.'
