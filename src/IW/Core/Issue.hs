@@ -15,8 +15,8 @@ data Issue = Issue
     , issueNumber    :: Int
     , issueTitle     :: Text
     , issueBody      :: Text
-    , issueRepoName  :: RepoName
     , issueRepoOwner :: RepoOwner
+    , issueRepoName  :: RepoName
     , issueUrl       :: Text
     , issueLabels    :: SqlArray Text
     } deriving stock (Generic, Show, Eq)

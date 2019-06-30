@@ -18,9 +18,9 @@ CREATE TABLE IF NOT EXISTS issues
 , number     INT    NOT NULL
 , title      TEXT   NOT NULL
 , body       TEXT
-, url        TEXT   NOT NULL
 , repo_owner TEXT   NOT NULL
 , repo_name  TEXT   NOT NULL
+, url        TEXT   NOT NULL
 , labels     TEXT   ARRAY
 );
 
