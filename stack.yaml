@@ -11,6 +11,9 @@ extra-deps:
   - torsor-0.1              # for co-log
   - typerep-map-0.3.2       # for co-log
 
+  # testing
+  - hedgehog-1.0
+
   - github-0.20
   - servant-0.16.0.1
   - servant-server-0.16

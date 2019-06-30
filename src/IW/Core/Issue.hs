@@ -20,7 +20,10 @@ data Issue = Issue
     , issueRepoName  :: RepoName
     , issueLabels    :: SqlArray Text
     } deriving stock (Generic, Show, Eq)
-      deriving anyclass (ToJSON, FromRow, ToRow)
+      deriving anyclass (ToJSON, FromRow)
+
+instance ToRow Issue where
+    toRow Issue{..} = toRow (issueNumber, issueTitle, issueBody, issueRepoOwner, issueRepoName, issueLabels)
 
 issueUrl :: Issue -> Text
 issueUrl Issue{..} = 
