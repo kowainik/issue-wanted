@@ -2,6 +2,8 @@
 
 module IW.Core.Repo
        ( Repo (..)
+       , RepoName (..)
+       , RepoOwner (..)
        ) where
 
 import IW.Core.Id (Id (..))

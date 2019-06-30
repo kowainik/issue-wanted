@@ -18,30 +18,30 @@ VALUES ( 'jgm'
        , ARRAY['Text', 'FFI']
        );
 
-INSERT INTO issues (number, title, body, url, repo_owner, repo_name, labels)
+INSERT INTO issues (number, title, body, repo_owner, repo_name, url, labels)
 VALUES ( 342
        , 'Fix docs'
        , 'Docs need to be fixed.'
-       , 'https://api.github.com/repos/jgm/pandoc/issues/342'
        , 'jgm'
        , 'pandoc'
+       , 'https://api.github.com/repos/jgm/pandoc/issues/342'
        , ARRAY['good first issue']
        )
        ,
        ( 20
        , 'Change increment function'
        , 'Increment function should increase by two instead of one.'
-       , 'https://api.github.com/repos/john117/test1/issues/20'
        , 'john117'
        , 'test1'
+       , 'https://api.github.com/repos/john117/test1/issues/20'
        , ARRAY[] :: TEXT[]
        )
        ,
        ( 3
        , 'Update config file'
        , 'Update the server configuration file.'
-       , 'https://api.github.com/repos/john117/test1/issues/3'
        , 'john117'
        , 'test1'
+       , 'https://api.github.com/repos/john117/test1/issues/3'
        , ARRAY['good first issue', 'help wanted']
        );
