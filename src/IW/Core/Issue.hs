@@ -17,7 +17,6 @@ data Issue = Issue
     , issueBody      :: Text
     , issueRepoOwner :: RepoOwner
     , issueRepoName  :: RepoName
-    , issueUrl       :: Text
     , issueLabels    :: SqlArray Text
     } deriving stock (Generic, Show, Eq)
       deriving anyclass (ToJSON, FromRow, ToRow)
