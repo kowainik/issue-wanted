@@ -2,6 +2,7 @@
 
 module IW.Core.Issue
        ( Issue (..)
+       , issueUrl
        ) where
   
 import IW.Core.Id (Id (..))
@@ -20,3 +21,11 @@ data Issue = Issue
     , issueLabels    :: SqlArray Text
     } deriving stock (Generic, Show, Eq)
       deriving anyclass (ToJSON, FromRow, ToRow)
+
+issueUrl :: Issue -> Text
+issueUrl Issue{..} = "https://github.com/" 
+                  <> unRepoOwner issueRepoOwner 
+                  <> "/" 
+                  <> unRepoName issueRepoName 
+                  <> "/issues/" 
+                  <> show issueNumber
