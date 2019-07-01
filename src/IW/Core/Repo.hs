@@ -32,7 +32,8 @@ data Repo = Repo
       deriving anyclass (ToJSON, FromRow, ToRow)
 
 repoUrl :: Repo -> Text
-repoUrl Repo{..} = "https://github.com/" 
-                <> unRepoOwner repoOwner 
-                <> "/" 
-                <> unRepoName repoName 
+repoUrl Repo{..} = 
+    "https://github.com/" 
+    <> unRepoOwner repoOwner 
+    <> "/" 
+    <> unRepoName repoName 

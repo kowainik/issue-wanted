@@ -23,9 +23,10 @@ data Issue = Issue
       deriving anyclass (ToJSON, FromRow, ToRow)
 
 issueUrl :: Issue -> Text
-issueUrl Issue{..} = "https://github.com/" 
-                  <> unRepoOwner issueRepoOwner 
-                  <> "/" 
-                  <> unRepoName issueRepoName 
-                  <> "/issues/" 
-                  <> show issueNumber
+issueUrl Issue{..} = 
+    "https://github.com/" 
+    <> unRepoOwner issueRepoOwner 
+    <> "/" 
+    <> unRepoName issueRepoName 
+    <> "/issues/" 
+    <> show issueNumber
