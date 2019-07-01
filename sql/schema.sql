@@ -38,3 +38,18 @@ ALTER TABLE ONLY repos
 ALTER TABLE ONLY issues
   ADD CONSTRAINT fk_repos FOREIGN KEY (repo_owner, repo_name) 
   REFERENCES repos (owner, name) ON DELETE CASCADE;
+
+--------------
+-- TRIGGERS --
+--------------
+
+CREATE OR REPLACE FUNCTION update_timestamp() 
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW; 
+END;
+$$ LANGUAGE 'plpgsql';
+
+CREATE TRIGGER update_issues_timestamp BEFORE UPDATE ON issues FOR EACH ROW EXECUTE PROCEDURE update_timestamp();
+CREATE TRIGGER update_repos_timestamp BEFORE UPDATE ON repos FOR EACH ROW EXECUTE PROCEDURE update_timestamp();

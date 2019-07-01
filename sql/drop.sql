@@ -2,4 +2,4 @@
 -- \i sql/drop.sql
 
 DROP TABLE IF EXISTS repos CASCADE;
-DROP TABLE IF EXISTS issues CASCADE;
+DROP TABLE IF EXISTS issues;
