@@ -13,7 +13,45 @@ encourage more programmers to become a part of the Haskell community.
 
 ## Prerequisites (what you need to have locally)
 
-Coming Soon
+For the project to build, you will need to have `libpq-dev` installed on you computer. You can install it by running the command `apt install libpq-dev`.
+
+You will also need to setup Postgres on your computer. Here are the instructions for doing so:
+
+Run the folowing commands with `<username>` replaced by a username of your choice.
+
+```
+$ sudo apt install postgresql postgresql-contrib
+$ sudo service postgres start
+$ sudo -u postgres psql
+postgres=# create database "issue-wanted";
+postgres=# create user <username>;
+postgres=# grant all privileges on database "issue-wanted" to <username>;
+```
+
+Modify the [`pg_hba.conf`](https://dba.stackexchange.com/questions/101280/how-to-handle-user-with-no-password-in-postgresql) file with the following lines.
+
+```
+local all <username>          trust
+host all <username> 0.0.0.0/0 trust
+```
+
+Where `<username>` is the same one you used above. 
+
+Next, in the `config.toml` file in the repository update the line `user=<username>` with the `<username>` from above.
+
+Add the line `listen_address = '127.0.0.1'` to the `/etc/postgresql/10/main/postgresql.conf` file.
+
+Finally, restart the database and intitalize it with the following commands.
+
+```
+$ sudo service postgres restart
+$ psql issue-wanted < sql/schema.sql
+$ psql issue-wanted < sql/seed.sql
+```
+
+Follow the instructions under `How to run server` and test the endpoints to see if everything is set up correctly.
+
+Refer to issue [#81](https://github.com/kowainik/issue-wanted/issues/81) if you're still having trouble.
 
 ## How to build
 
