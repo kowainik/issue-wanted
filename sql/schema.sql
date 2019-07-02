@@ -20,7 +20,6 @@ CREATE TABLE IF NOT EXISTS issues
 , body       TEXT
 , repo_owner TEXT   NOT NULL
 , repo_name  TEXT   NOT NULL
-, url        TEXT   NOT NULL
 , labels     TEXT   ARRAY
 );
 
