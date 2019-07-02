@@ -11,18 +11,20 @@ CREATE TABLE IF NOT EXISTS repos
 , name       TEXT      NOT NULL
 , descr      TEXT      NOT NULL
 , categories TEXT      ARRAY
-, created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-, updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+, created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
+, updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS issues
-( id         SERIAL PRIMARY KEY 
-, number     INT    NOT NULL
-, title      TEXT   NOT NULL
-, body       TEXT   NOT NULL
-, repo_owner TEXT   NOT NULL
-, repo_name  TEXT   NOT NULL
-, labels     TEXT   ARRAY
+( id         SERIAL    PRIMARY KEY 
+, number     INT       NOT NULL
+, title      TEXT      NOT NULL
+, body       TEXT      NOT NULL
+, repo_owner TEXT      NOT NULL
+, repo_name  TEXT      NOT NULL
+, labels     TEXT      ARRAY
+, created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
+, updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
 );
 
 -----------------------------
@@ -40,7 +42,7 @@ ALTER TABLE ONLY issues
 -- TRIGGERS --
 --------------
 
-CREATE OR REPLACE FUNCTION update_timestamp() 
+CREATE OR REPLACE FUNCTION update_updated_at() 
 RETURNS TRIGGER AS $$
 BEGIN
     NEW.updated_at = NOW();
@@ -48,5 +50,5 @@ BEGIN
 END;
 $$ LANGUAGE 'plpgsql';
 
-CREATE TRIGGER update_issues_timestamp BEFORE UPDATE ON issues FOR EACH ROW EXECUTE PROCEDURE update_timestamp();
-CREATE TRIGGER update_repos_timestamp BEFORE UPDATE ON repos FOR EACH ROW EXECUTE PROCEDURE update_timestamp();
+CREATE TRIGGER update_updated_at_repos BEFORE UPDATE ON repos FOR EACH ROW EXECUTE PROCEDURE update_updated_at();
+CREATE TRIGGER update_updated_at_issues BEFORE UPDATE ON issues FOR EACH ROW EXECUTE PROCEDURE update_updated_at();
