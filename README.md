@@ -49,7 +49,7 @@ You will also need to setup Postgres on your computer. Here are the instructions
    $ psql issue-wanted < sql/seed.sql
    ```
 
-Follow the instructions under `How to run server` and test the endpoints to see if everything is set up correctly.
+Follow the instructions under [`How to run server`](https://github.com/kowainik/issue-wanted/tree/rashadg1030/81-Document-Postgres-setup#how-to-run-server) and test the endpoints to see if everything is set up correctly.
 
 Refer to issue [#81](https://github.com/kowainik/issue-wanted/issues/81) if you're still having trouble.
 
