@@ -4,6 +4,7 @@ module IW.Core.Repo
        ( Repo (..)
        , RepoName (..)
        , RepoOwner (..)
+       , repoUrl
        ) where
 
 import IW.Core.Id (Id (..))
@@ -29,3 +30,10 @@ data Repo = Repo
     , repoCategories :: SqlArray Text
     } deriving stock (Generic, Show, Eq)
       deriving anyclass (ToJSON, FromRow, ToRow)
+
+repoUrl :: Repo -> Text
+repoUrl Repo{..} = 
+    "https://github.com/" 
+    <> unRepoOwner repoOwner 
+    <> "/" 
+    <> unRepoName repoName 
