@@ -13,41 +13,14 @@ encourage more programmers to become a part of the Haskell community.
 
 ## Prerequisites (what you need to have locally)
 
-For the project to build, you will need to have `libpq-dev` installed on you computer. You can install it by running the command `sudo apt install libpq-dev`.
+You will need to have the following installed on your system in order to build and test `issue-wanted`. Click on the links to learn how to install each one:
 
-You will also need to setup Postgres on your computer. Here are the instructions for doing so:
+1. [ghc](https://downloads.haskell.org/~ghc/6.8.3/docs/html/users_guide/installing-bin-distrib.html)
+2. [cabal](https://www.haskell.org/cabal/) or [stack](https://docs.haskellstack.org/en/stable/README/)
+3. [docker](https://docs.docker.com/v17.12/install/)
+4. libpq-dev (Run the command `sudo apt install libpq-dev` to install)
 
-1. Run the folowing commands with `<username>` replaced by a username of your choice.
-
-   ```
-   $ sudo apt install postgresql postgresql-contrib
-   $ sudo service postgres start
-   $ sudo -u postgres psql
-   postgres=# create database "issue-wanted";
-   postgres=# create user <username>;
-   postgres=# grant all privileges on database "issue-wanted" to <username>;
-   ```
-
-2. Modify the [`pg_hba.conf`](https://dba.stackexchange.com/questions/101280/how-to-handle-user-with-no-password-in-postgresql) file with the following lines.
-
-   ```
-   local all <username>          trust
-   host all <username> 0.0.0.0/0 trust
-   ```
-
-   Where `<username>` is the same one you used above. 
-
-3. Next, in the `config.toml` file in the repository update the line `user=<username>` with the `<username>` from above.
-
-4. Add the line `listen_address = '127.0.0.1'` to the `/etc/postgresql/10/main/postgresql.conf` file.
-
-5. Finally, restart the database and intitalize it with the following commands.
-
-   ```
-   $ sudo service postgres restart
-   $ psql issue-wanted < sql/schema.sql
-   $ psql issue-wanted < sql/seed.sql
-   ```
+With `docker` installed, open up a terminal (make sure your in the `issue-wanted` directory) and run the command `make postgres`. This will setup the database for you and you should be ready to go! 
 
 Follow the instructions under [`How to run server`](https://github.com/kowainik/issue-wanted/tree/rashadg1030/81-Document-Postgres-setup#how-to-run-server) and test the endpoints to see if everything is set up correctly.
 
