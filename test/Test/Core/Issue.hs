@@ -2,12 +2,13 @@
 
 module Test.Core.Issue where
 
-import IW.App (AppEnv)
+import IW.App (AppEnv, WithError)
 import IW.Core.Id (Id (..))
 import IW.Core.Issue (Issue (..))
 import IW.Core.Repo (RepoName (..), RepoOwner (..))
 import IW.Core.SqlArray (SqlArray (..))
 import IW.Effects.Log (runAppLogIO)
+import IW.Db (WithDb)
 import IW.Db.Functions (asSingleRow, query)
 
 import Database.PostgreSQL.Simple.Types ((:.) (..))
@@ -17,13 +18,15 @@ import qualified Hedgehog.Gen as Gen
 import qualified Hedgehog.Range as Range
 
 
+issueViaSql :: (WithDb env m, WithError m) => Issue -> m Issue
+issueViaSql issue = asSingleRow $ query
+    [sql| SELECT ?, ?, ?, ?, ?, ?, (? :: TEXT ARRAY) |]
+    (Only (issueId issue) :. issue)
+
 issueRoundtripProp :: AppEnv -> Property
 issueRoundtripProp env = property $ do
     generatedIssue <- forAll genIssue
-    parsedIssue <- liftIO 
-                $ runAppLogIO env  
-                $ asSingleRow
-                $ query [sql| SELECT ?, ?, ?, ?, ?, ?, (? :: TEXT ARRAY) |] (Only (issueId generatedIssue) :. generatedIssue)
+    parsedIssue <- liftIO $ runAppLogIO env $ issueViaSql generatedIssue 
     parsedIssue === Right generatedIssue
 
 testLabels :: [Text]

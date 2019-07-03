@@ -6,25 +6,25 @@
 -----------------
 
 CREATE TABLE IF NOT EXISTS repos
-( id         SERIAL    PRIMARY KEY  
-, owner      TEXT      NOT NULL       
-, name       TEXT      NOT NULL
-, descr      TEXT      NOT NULL
-, categories TEXT      ARRAY NOT NULL
-, created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
-, updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
+( id         SERIAL      PRIMARY KEY  
+, owner      TEXT        NOT NULL       
+, name       TEXT        NOT NULL
+, descr      TEXT        NOT NULL
+, categories TEXT ARRAY  NOT NULL
+, created_at TIMESTAMP   WITH TIME ZONE DEFAULT NOW() NOT NULL
+, updated_at TIMESTAMP   WITH TIME ZONE DEFAULT NOW() NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS issues
-( id         SERIAL    PRIMARY KEY 
-, number     INT       NOT NULL
-, title      TEXT      NOT NULL
-, body       TEXT      NOT NULL
-, repo_owner TEXT      NOT NULL
-, repo_name  TEXT      NOT NULL
-, labels     TEXT      ARRAY NOT NULL
-, created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
-, updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
+( id         SERIAL      PRIMARY KEY 
+, number     INT         NOT NULL
+, title      TEXT        NOT NULL
+, body       TEXT        NOT NULL
+, repo_owner TEXT        NOT NULL
+, repo_name  TEXT        NOT NULL
+, labels     TEXT ARRAY  NOT NULL
+, created_at TIMESTAMP   WITH TIME ZONE DEFAULT NOW() NOT NULL
+, updated_at TIMESTAMP   WITH TIME ZONE DEFAULT NOW() NOT NULL
 );
 
 -----------------------------
