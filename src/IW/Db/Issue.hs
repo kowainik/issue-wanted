@@ -3,7 +3,7 @@
 -- | SQL queries to work with the @issues@ table.
 
 module IW.Db.Issue
-       ( insertIssues
+       ( upsertIssues
        , getIssues
        , getIssueById
        , getIssuesByLabel
@@ -13,6 +13,7 @@ import IW.App (WithError)
 import IW.Core.Issue (Issue (..))
 import IW.Core.Id (Id (..))
 import IW.Db.Functions (WithDb, asSingleRow, executeMany, query, queryRaw)
+
 
 -- | Returns all issues in the database
 getIssues :: (WithDb env m) => m [Issue]
@@ -37,9 +38,11 @@ getIssuesByLabel label = query [sql|
     WHERE ? = ANY (labels)
 |] (Only label)
 
--- | Insert a list of issues into the database
-insertIssues :: (WithDb env m) => [Issue] -> m ()
-insertIssues issues = executeMany [sql|
+-- | Insert a list of issues into the database, but update on conflict
+upsertIssues :: (WithDb env m) => [Issue] -> m ()
+upsertIssues issues = executeMany [sql|
     INSERT INTO issues (repo_owner, repo_name, number, title, body, labels)
     VALUES (?, ?, ?, ?, ?, ?)
+    ON CONFLICT (repo_owner, repo_name, number) DO 
+    UPDATE SET title = EXCLUDED.title, body = EXCLUDED.body, labels = EXCLUDED.labels;
 |] issues
