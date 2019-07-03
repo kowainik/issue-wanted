@@ -13,7 +13,18 @@ encourage more programmers to become a part of the Haskell community.
 
 ## Prerequisites (what you need to have locally)
 
-Coming Soon
+You will need to have the following installed on your system in order to build and test `issue-wanted`. Click on the links to learn how to install each one:
+
+1. [ghc](https://www.haskell.org/ghcup/)
+2. [cabal](https://www.haskell.org/cabal/) or [stack](https://docs.haskellstack.org/en/stable/README/)
+3. [docker](https://docs.docker.com/v17.12/install/)
+4. libpq-dev (Run the command `sudo apt install libpq-dev` to install)
+
+With `docker` installed, open up a terminal (make sure your in the `issue-wanted` directory) and run the command `make postgres`. This will setup the database for you and you should be ready to go! 
+
+Follow the instructions under [`How to run server`](https://github.com/kowainik/issue-wanted/tree/rashadg1030/81-Document-Postgres-setup#how-to-run-server) and test the endpoints to see if everything is set up correctly.
+
+Refer to issue [#81](https://github.com/kowainik/issue-wanted/issues/81) if you're still having trouble.
 
 ## How to build
 
