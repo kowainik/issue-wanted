@@ -23,7 +23,7 @@ issueRoundtripProp env = property $ do
     parsedIssue <- liftIO 
                 $ runAppLogIO env  
                 $ asSingleRow
-                $ query [sql| SELECT ?, ?, ?, ?, ?, ?, ? |] (Only (issueId generatedIssue) :. generatedIssue)
+                $ query [sql| SELECT ?, ?, ?, ?, ?, ?, (? :: TEXT ARRAY) |] (Only (issueId generatedIssue) :. generatedIssue)
     parsedIssue === Right generatedIssue
 
 testLabels :: [Text]
