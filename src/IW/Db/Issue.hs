@@ -3,7 +3,8 @@
 -- | SQL queries to work with the @issues@ table.
 
 module IW.Db.Issue
-       ( getIssues
+       ( insertIssues
+       , getIssues
        , getIssueById
        , getIssuesByLabel
        ) where
@@ -11,7 +12,7 @@ module IW.Db.Issue
 import IW.App (WithError)
 import IW.Core.Issue (Issue (..))
 import IW.Core.Id (Id (..))
-import IW.Db.Functions (WithDb, asSingleRow, query, queryRaw)
+import IW.Db.Functions (WithDb, asSingleRow, executeMany, query, queryRaw)
 
 -- | Returns all issues in the database
 getIssues :: (WithDb env m) => m [Issue]
@@ -35,3 +36,10 @@ getIssuesByLabel label = query [sql|
     FROM issues 
     WHERE ? = ANY (labels)
 |] (Only label)
+
+-- | Insert a list of issues into the database
+insertIssues :: (WithDb env m) => [Issue] -> m ()
+insertIssues issues = executeMany [sql|
+    INSERT INTO issues (number, title, body, repo_owner, repo_name, url, labels)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+|] issues
