@@ -15,7 +15,7 @@ encourage more programmers to become a part of the Haskell community.
 
 You will need to have the following installed on your system in order to build and test `issue-wanted`. Click on the links to learn how to install each one:
 
-1. [ghc](https://downloads.haskell.org/~ghc/6.8.3/docs/html/users_guide/installing-bin-distrib.html)
+1. [ghc](https://www.haskell.org/ghcup/)
 2. [cabal](https://www.haskell.org/cabal/) or [stack](https://docs.haskellstack.org/en/stable/README/)
 3. [docker](https://docs.docker.com/v17.12/install/)
 4. libpq-dev (Run the command `sudo apt install libpq-dev` to install)
