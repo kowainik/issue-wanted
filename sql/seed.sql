@@ -18,27 +18,51 @@ VALUES ( 'jgm'
        , ARRAY['Text', 'FFI']
        );
 
-INSERT INTO issues (number, title, body, repo_owner, repo_name, labels)
-VALUES ( 342
+INSERT INTO issues (repo_owner, repo_name, number, title, body, labels)
+VALUES ( 'jgm'
+       , 'pandoc'
+       , 342
        , 'Fix docs'
        , 'Docs need to be fixed.'
-       , 'jgm'
-       , 'pandoc'
        , ARRAY['good first issue']
        )
        ,
-       ( 20
+       ( 'john117'
+       , 'test1'
+       , 20
        , 'Change increment function'
        , 'Increment function should increase by two instead of one.'
-       , 'john117'
-       , 'test1'
        , ARRAY[] :: TEXT[]
        )
        ,
-       ( 3
+       ( 'john117'
+       , 'test1'
+       , 3
        , 'Update config file'
        , 'Update the server configuration file.'
-       , 'john117'
-       , 'test1'
        , ARRAY['good first issue', 'help wanted']
        );
+
+-------------
+-- UPSERTS --
+-------------
+
+INSERT INTO repos (owner, name, descr, categories)
+VALUES ( 'john117'
+       , 'test1'
+       , 'An experimental repo'
+       , ARRAY['Text', 'FFI', 'NLP']
+       )
+ON CONFLICT (owner, name) DO 
+UPDATE SET descr = EXCLUDED.descr, categories = EXCLUDED.categories;
+
+INSERT INTO issues (repo_owner, repo_name, number, title, body, labels)
+VALUES ( 'jgm'
+       , 'pandoc'
+       , 342
+       , 'Fix docs'
+       , 'Docs need to be fixed. Especially the section on building the project.'
+       , ARRAY['good first issue', 'low hanging fruit', 'docs']
+       )
+ON CONFLICT (repo_owner, repo_name, number) DO 
+UPDATE SET title = EXCLUDED.title, body = EXCLUDED.body, labels = EXCLUDED.labels;
