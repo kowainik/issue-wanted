@@ -26,9 +26,6 @@ getIssuesSpec env = describe "getIssues function" $ do
     it "should return a list of length 1" $
         env & (length <$> getIssues) `equals` 1
 
--- When repo exists and issue doesn't exist, it should be inserted.
--- When repo exists and issue exists, it should be updated.
-
 upsertIssuesSpec :: AppEnv -> Spec
 upsertIssuesSpec env = before_ (runAppLogIO_ env prepareDb) $ do 
     describe "upsertIssues function" $ do
@@ -41,7 +38,12 @@ upsertIssuesSpec env = before_ (runAppLogIO_ env prepareDb) $ do
             env & ( do before <- getIssues
                        upsertIssues [validIssue]
                        return $ length before
-                  ) `equals_` (pred <$> length <$> getIssues)
+                  ) `equals_` (pred . length <$> getIssues)
+        it "should update the issue if the same issue exists" $
+            env & ( do before <- getIssues
+                       upsertIssues [updateIssue]
+                       return $ length before
+                  ) `equals_` (length <$> getIssues)
   where
     invalidIssue :: Issue
     invalidIssue = Issue 
@@ -63,4 +65,15 @@ upsertIssuesSpec env = before_ (runAppLogIO_ env prepareDb) $ do
         , issueTitle     = "Another test issue"
         , issueBody      = "Just another test issue"
         , issueLabels    = SqlArray ["help wanted"]
+        }
+
+    updateIssue :: Issue
+    updateIssue = Issue 
+        { issueId        = Id 2
+        , issueRepoOwner = RepoOwner "owner123"
+        , issueRepoName  = RepoName "repo123"
+        , issueNumber    = 123
+        , issueTitle     = "Update test issue"
+        , issueBody      = "Updated test issue"
+        , issueLabels    = SqlArray ["low hanging fruit"]
         }
