@@ -8,7 +8,7 @@
 INSERT INTO repos 
     (owner, name, descr, categories)
 VALUES 
-    ('test123', 'testRepo123', 'A test repo.', ARRAY['Testing'])
+    ('owner123', 'repo123', 'A test repo.', ARRAY['Testing'])
 ON CONFLICT ON CONSTRAINT unique_repos DO 
 UPDATE SET 
     descr = EXCLUDED.descr
@@ -19,7 +19,7 @@ INSERT INTO issues
 SELECT 
     repo_owner, repo_name, number, title, body, labels
 FROM ( VALUES 
-           ('test123', 'testRepo123', 1, 'This is a test issue', 'Use this issue for testing.', ARRAY['good first issue'])
+           ('owner123', 'repo123', 123, 'This is a test issue', 'Use this issue for testing.', ARRAY['good first issue'])
      )
 AS new (repo_owner, repo_name, number, title, body, labels)
 WHERE EXISTS (
