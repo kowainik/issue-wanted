@@ -12,7 +12,7 @@ import IW.Db (WithDb, getIssues, getIssuesByLabel)
 import IW.Server.Types (AppServer, ToApi)
 
 
-data IssueSite route = IssueSite
+newtype IssueSite route = IssueSite
     { issuesRoute :: route
         :- "issues"
         :> QueryParam "label" Text
