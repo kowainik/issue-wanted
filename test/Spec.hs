@@ -3,8 +3,6 @@ module Main where
 import Control.Exception (bracket)
 import Hedgehog (Group (..), checkParallel)
 import System.IO (hSetEncoding, utf8)
-import Test.Hspec (Spec, hspec)
-import Test.Hspec.Core.Spec (sequential)
 
 import IW (mkAppEnv)
 import IW.App (AppEnv, Env (..))
@@ -14,12 +12,17 @@ import IW.Effects.Log (runAppLogIO_)
 
 import Test.Common (joinSpecs)
 import Test.Core.Issue (issueRoundtripProp)
+import Test.Db (dbSpecs)
+import Test.Hspec (Spec, hspec)
+import Test.Hspec.Core.Spec (sequential)
 
 import qualified Data.Pool as Pool
 
 
 hspecTests :: AppEnv -> Spec
-hspecTests = sequential . joinSpecs "issue-wanted" []
+hspecTests = sequential . joinSpecs "issue-wanted" 
+    [ dbSpecs
+    ]
 
 hedgehogTests :: AppEnv -> Group
 hedgehogTests env = Group "Roundtrip properties" 
