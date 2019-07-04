@@ -3,10 +3,10 @@
 -- | SQL queries to work with the @issues@ table.
 
 module IW.Db.Issue
-       ( upsertIssues
-       , getIssues
+       ( getIssues
        , getIssueById
        , getIssuesByLabel
+       , upsertIssues
        ) where
 
 import IW.App (WithError)
@@ -42,7 +42,12 @@ getIssuesByLabel label = query [sql|
 upsertIssues :: (WithDb env m) => [Issue] -> m ()
 upsertIssues issues = executeMany [sql|
     INSERT INTO issues (repo_owner, repo_name, number, title, body, labels)
-    VALUES (?, ?, ?, ?, ?, ?)
-    ON CONFLICT (repo_owner, repo_name, number) DO 
+    SELECT repo_owner, repo_name, number, title, body, labels
+    FROM (VALUES (?, ?, ?, ?, ?, ?))
+    AS new (repo_owner, repo_name, number, title, body, labels)
+    WHERE EXISTS (
+        SELECT (owner, name) FROM repos WHERE (repos.owner, repos.name) = (new.repo_owner, new.repo_name)
+    )
+    ON CONFLICT ON CONSTRAINT unique_issues DO 
     UPDATE SET title = EXCLUDED.title, body = EXCLUDED.body, labels = EXCLUDED.labels;
 |] issues

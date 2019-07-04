@@ -24,7 +24,7 @@ FROM ( VALUES ('jgm','pandoc',342,'Fix docs','Docs need to be fixed.',ARRAY['goo
      )
 AS new (repo_owner, repo_name, number, title, body, labels)
 WHERE EXISTS (
-    SELECT * FROM repos WHERE (repos.owner, repos.name) = (new.repo_owner, new.repo_name)
+    SELECT (owner, name) FROM repos WHERE (repos.owner, repos.name) = (new.repo_owner, new.repo_name)
 )
 ON CONFLICT ON CONSTRAINT unique_issues DO 
 UPDATE SET title = EXCLUDED.title, body = EXCLUDED.body, labels = EXCLUDED.labels;
@@ -36,7 +36,7 @@ FROM ( VALUES ('john117', 'test1', 3, 'An experimental repo', 'Update the server
      )
 AS new (repo_owner, repo_name, number, title, body, labels)
 WHERE EXISTS (
-    SELECT * FROM repos WHERE (repos.owner, repos.name) = (new.repo_owner, new.repo_name)
+    SELECT (owner, name) FROM repos WHERE (repos.owner, repos.name) = (new.repo_owner, new.repo_name)
 )
 ON CONFLICT ON CONSTRAINT unique_issues DO 
 UPDATE SET title = EXCLUDED.title, body = EXCLUDED.body, labels = EXCLUDED.labels;
