@@ -1,6 +1,8 @@
 {-# LANGUAGE QuasiQuotes #-}
 
-module Test.Core.Issue where
+module Test.Core.Issue 
+       ( issueRoundtripProp
+       ) where
 
 import IW.App (AppEnv, WithError)
 import IW.Core.Id (Id (..))
@@ -63,7 +65,7 @@ genIssue = do
     genNumber = Gen.int (Range.constant 1 500)
 
     genTitle :: MonadGen m => m Text
-    genTitle = Gen.text (Range.constant 1 30) Gen.alpha
+    genTitle = Gen.text (Range.constant 1 30) Gen.alphaNum
 
     genBody :: MonadGen m => m Text 
     genBody = Gen.text (Range.constant 0 50) Gen.alphaNum
