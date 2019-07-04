@@ -40,18 +40,24 @@ testLabels =
 
 genIssue :: MonadGen m => m Issue
 genIssue = do
-    issueId <- genId
-    issueNumber <- genNumber
-    issueTitle <- genTitle
-    issueBody <- genBody
+    issueId        <- genId
     issueRepoOwner <- genRepoOwner
-    issueRepoName <- genRepoName
-    issueLabels <- genLabels
+    issueRepoName  <- genRepoName
+    issueNumber    <- genNumber
+    issueTitle     <- genTitle
+    issueBody      <- genBody
+    issueLabels    <- genLabels
 
     pure Issue{..} 
   where
     genId :: MonadGen m => m (Id Issue)
     genId = Id <$> Gen.int (Range.constant 1 500)
+
+    genRepoOwner :: MonadGen m => m RepoOwner
+    genRepoOwner = RepoOwner <$> Gen.text (Range.constant 1 20) Gen.alphaNum
+    
+    genRepoName :: MonadGen m => m RepoName
+    genRepoName = RepoName <$> Gen.text (Range.constant 1 20) Gen.alphaNum
 
     genNumber :: MonadGen m => m Int
     genNumber = Gen.int (Range.constant 1 500)
@@ -61,12 +67,6 @@ genIssue = do
 
     genBody :: MonadGen m => m Text 
     genBody = Gen.text (Range.constant 0 50) Gen.alphaNum
-
-    genRepoOwner :: MonadGen m => m RepoOwner
-    genRepoOwner = RepoOwner <$> Gen.text (Range.constant 1 20) Gen.alphaNum
-    
-    genRepoName :: MonadGen m => m RepoName
-    genRepoName = RepoName <$> Gen.text (Range.constant 1 20) Gen.alphaNum
 
     genLabels :: MonadGen m => m (SqlArray Text)
     genLabels = SqlArray <$> Gen.subsequence testLabels

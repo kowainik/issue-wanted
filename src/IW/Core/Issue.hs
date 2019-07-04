@@ -13,17 +13,17 @@ import IW.Core.Repo (RepoName (..), RepoOwner (..))
 -- | Data type representing a GitHub issue.
 data Issue = Issue
     { issueId        :: Id Issue
+    , issueRepoOwner :: RepoOwner
+    , issueRepoName  :: RepoName
     , issueNumber    :: Int
     , issueTitle     :: Text
     , issueBody      :: Text
-    , issueRepoOwner :: RepoOwner
-    , issueRepoName  :: RepoName
     , issueLabels    :: SqlArray Text
     } deriving stock (Generic, Show, Eq)
       deriving anyclass (ToJSON, FromRow)
 
 instance ToRow Issue where
-    toRow Issue{..} = toRow (issueNumber, issueTitle, issueBody, issueRepoOwner, issueRepoName, issueLabels)
+    toRow Issue{..} = toRow (issueRepoOwner, issueRepoName, issueNumber, issueTitle, issueBody, issueLabels)
 
 issueUrl :: Issue -> Text
 issueUrl Issue{..} = 
@@ -33,3 +33,4 @@ issueUrl Issue{..} =
     <> unRepoName issueRepoName 
     <> "/issues/" 
     <> show issueNumber
+    
