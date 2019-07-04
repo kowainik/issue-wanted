@@ -5,7 +5,6 @@ module Test.Core.Repo
        )where
 
 import IW.App (AppEnv, WithError)
-import IW.Core.Id (Id (..))
 import IW.Core.Repo (Repo (..))
 import IW.Core.SqlArray (SqlArray (..))
 import IW.Effects.Log (runAppLogIO)
@@ -18,7 +17,7 @@ import Hedgehog
 import qualified Hedgehog.Gen as Gen
 import qualified Hedgehog.Range as Range
 
-import Test.Gen (genRepoOwner, genRepoName)
+import Test.Gen (genId, genRepoOwner, genRepoName)
 
 
 repoViaSql :: (WithDb env m, WithError m) => Repo -> m Repo
@@ -51,9 +50,6 @@ genRepo = do
 
     pure Repo{..} 
   where
-    genId :: MonadGen m => m (Id Repo)
-    genId = Id <$> Gen.int (Range.constant 1 500)
-
     genDescr :: MonadGen m => m Text
     genDescr = Gen.text (Range.constant 0 300) Gen.alphaNum
 

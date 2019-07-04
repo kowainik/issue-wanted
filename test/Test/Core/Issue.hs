@@ -5,7 +5,6 @@ module Test.Core.Issue
        ) where
 
 import IW.App (AppEnv, WithError)
-import IW.Core.Id (Id (..))
 import IW.Core.Issue (Issue (..))
 import IW.Core.SqlArray (SqlArray (..))
 import IW.Effects.Log (runAppLogIO)
@@ -18,7 +17,7 @@ import Hedgehog
 import qualified Hedgehog.Gen as Gen
 import qualified Hedgehog.Range as Range
 
-import Test.Gen (genRepoOwner, genRepoName)
+import Test.Gen (genId, genRepoOwner, genRepoName)
 
 
 issueViaSql :: (WithDb env m, WithError m) => Issue -> m Issue
@@ -53,9 +52,6 @@ genIssue = do
 
     pure Issue{..} 
   where
-    genId :: MonadGen m => m (Id Issue)
-    genId = Id <$> Gen.int (Range.constant 1 500)
-
     genNumber :: MonadGen m => m Int
     genNumber = Gen.int (Range.constant 1 500)
 
