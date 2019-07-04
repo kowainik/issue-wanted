@@ -14,6 +14,7 @@ import IW.Effects.Log (runAppLogIO_)
 
 import Test.Common (joinSpecs)
 import Test.Core.Issue (issueRoundtripProp)
+import Test.Core.Repo (repoRoundtripProp)
 
 import qualified Data.Pool as Pool
 
@@ -23,7 +24,8 @@ hspecTests = sequential . joinSpecs "issue-wanted" []
 
 hedgehogTests :: AppEnv -> Group
 hedgehogTests env = Group "Roundtrip properties" 
-    [ issueRoundtripProp env `named` "fromRow . toRow ≡ id"
+    [ issueRoundtripProp env `named` "Issue: fromRow . toRow ≡ id"
+    , repoRoundtripProp env `named` "Repo: fromRow . toRow ≡ id" 
     ]
   where
     named :: a -> b -> (b, a)

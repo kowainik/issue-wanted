@@ -1,11 +1,11 @@
 {-# LANGUAGE QuasiQuotes #-}
 
-module Test.Core.Issue where
+module Test.Core.Issue 
+       ( issueRoundtripProp
+       ) where
 
 import IW.App (AppEnv, WithError)
-import IW.Core.Id (Id (..))
 import IW.Core.Issue (Issue (..))
-import IW.Core.Repo (RepoName (..), RepoOwner (..))
 import IW.Core.SqlArray (SqlArray (..))
 import IW.Effects.Log (runAppLogIO)
 import IW.Db (WithDb)
@@ -16,6 +16,8 @@ import Database.PostgreSQL.Simple.Types ((:.) (..))
 import Hedgehog
 import qualified Hedgehog.Gen as Gen
 import qualified Hedgehog.Range as Range
+
+import Test.Gen (genId, genRepoOwner, genRepoName)
 
 
 issueViaSql :: (WithDb env m, WithError m) => Issue -> m Issue
@@ -50,20 +52,11 @@ genIssue = do
 
     pure Issue{..} 
   where
-    genId :: MonadGen m => m (Id Issue)
-    genId = Id <$> Gen.int (Range.constant 1 500)
-
-    genRepoOwner :: MonadGen m => m RepoOwner
-    genRepoOwner = RepoOwner <$> Gen.text (Range.constant 1 20) Gen.alphaNum
-    
-    genRepoName :: MonadGen m => m RepoName
-    genRepoName = RepoName <$> Gen.text (Range.constant 1 20) Gen.alphaNum
-
     genNumber :: MonadGen m => m Int
     genNumber = Gen.int (Range.constant 1 500)
 
     genTitle :: MonadGen m => m Text
-    genTitle = Gen.text (Range.constant 1 30) Gen.alpha
+    genTitle = Gen.text (Range.constant 1 30) Gen.alphaNum
 
     genBody :: MonadGen m => m Text 
     genBody = Gen.text (Range.constant 0 50) Gen.alphaNum
