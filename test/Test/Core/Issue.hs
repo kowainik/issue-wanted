@@ -7,7 +7,6 @@ module Test.Core.Issue
 import IW.App (AppEnv, WithError)
 import IW.Core.Id (Id (..))
 import IW.Core.Issue (Issue (..))
-import IW.Core.Repo (RepoName (..), RepoOwner (..))
 import IW.Core.SqlArray (SqlArray (..))
 import IW.Effects.Log (runAppLogIO)
 import IW.Db (WithDb)
@@ -18,6 +17,8 @@ import Database.PostgreSQL.Simple.Types ((:.) (..))
 import Hedgehog
 import qualified Hedgehog.Gen as Gen
 import qualified Hedgehog.Range as Range
+
+import Test.Gen (genRepoOwner, genRepoName)
 
 
 issueViaSql :: (WithDb env m, WithError m) => Issue -> m Issue
@@ -54,12 +55,6 @@ genIssue = do
   where
     genId :: MonadGen m => m (Id Issue)
     genId = Id <$> Gen.int (Range.constant 1 500)
-
-    genRepoOwner :: MonadGen m => m RepoOwner
-    genRepoOwner = RepoOwner <$> Gen.text (Range.constant 1 20) Gen.alphaNum
-    
-    genRepoName :: MonadGen m => m RepoName
-    genRepoName = RepoName <$> Gen.text (Range.constant 1 20) Gen.alphaNum
 
     genNumber :: MonadGen m => m Int
     genNumber = Gen.int (Range.constant 1 500)
