@@ -32,10 +32,10 @@ CREATE TABLE IF NOT EXISTS issues
 -----------------------------
 
 ALTER TABLE ONLY repos
-  ADD UNIQUE (owner, name);
+  ADD CONSTRAINT unique_repos UNIQUE (owner, name);
 
 ALTER TABLE ONLY issues
-  ADD UNIQUE (repo_owner, repo_name, number);
+  ADD CONSTRAINT unique_issues UNIQUE (repo_owner, repo_name, number);
 
 ALTER TABLE ONLY issues
   ADD CONSTRAINT fk_repos FOREIGN KEY (repo_owner, repo_name) 
