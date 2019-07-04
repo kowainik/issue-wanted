@@ -22,12 +22,12 @@ dbSpecs = joinSpecs "DB"
     ]
 
 getIssuesSpec :: AppEnv -> Spec
-getIssuesSpec env = describe "getIssues function" $ do
+getIssuesSpec env = describe "getIssues function" $
     it "should return a list of length 1" $
         env & (length <$> getIssues) `equals` 1
 
 upsertIssuesSpec :: AppEnv -> Spec
-upsertIssuesSpec env = before_ (runAppLogIO_ env prepareDb) $ do 
+upsertIssuesSpec env = before_ (runAppLogIO_ env prepareDb) $
     describe "upsertIssues function" $ do
         it "should leave the issues table unaffected" $
             env & ( do before <- getIssues
