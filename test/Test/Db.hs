@@ -38,7 +38,7 @@ upsertIssuesSpec env = before_ (runAppLogIO_ env prepareDb) $
             env & ( do before <- getIssues
                        upsertIssues [validIssue]
                        return $ length before
-                  ) `equals_` (pred . length <$> getIssues)
+                  ) `equals_` (prec . length <$> getIssues)
         it "should update the issue if the same issue exists" $
             env & ( do before <- getIssues
                        upsertIssues [updateIssue]

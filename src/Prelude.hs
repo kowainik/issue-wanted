@@ -11,10 +11,12 @@ module Prelude
        , module Web
 
        , WithLog
+       , prec
        ) where
 
 -- Reexport
 import Relude
+import Relude.Extra.Enum (prec)
 
 import Control.Lens ((.~), (^.))
 
