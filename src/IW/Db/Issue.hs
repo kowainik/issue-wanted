@@ -44,7 +44,7 @@ upsertIssues issues = executeMany [sql|
     )
     ON CONFLICT ON CONSTRAINT unique_issues DO 
     UPDATE SET 
-        title = EXCLUDED.title
-      , body = EXCLUDED.body
+        title  = EXCLUDED.title
+      , body   = EXCLUDED.body
       , labels = EXCLUDED.labels;
 |] issues
