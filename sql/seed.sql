@@ -8,8 +8,7 @@
 INSERT INTO repos 
     (owner, name, descr, categories)
 VALUES 
-    ('jgm', 'pandoc', 'Universal markup converter', ARRAY['Text', 'Parser'])
-  , ('john117', 'test1', 'A test repo', ARRAY['Text', 'FFI'])
+    ('test123', 'testRepo123', 'A test repo.', ARRAY['Testing'])
 ON CONFLICT ON CONSTRAINT unique_repos DO 
 UPDATE SET 
     descr = EXCLUDED.descr
@@ -19,8 +18,8 @@ INSERT INTO issues
     (repo_owner, repo_name, number, title, body, labels)
 SELECT 
     repo_owner, repo_name, number, title, body, labels
-FROM ( VALUES ('jgm','pandoc',342,'Fix docs','Docs need to be fixed.',ARRAY['good first issue','low hanging fruit','docs'])
-            , ('john117', 'test1', 3, 'Update config file', 'Update the server configuration file.', ARRAY['good first issue', 'help wanted'])
+FROM ( VALUES 
+           ('test123', 'testRepo123', 1, 'This is a test issue', 'Use this issue for testing.', ARRAY['good first issue'])
      )
 AS new (repo_owner, repo_name, number, title, body, labels)
 WHERE EXISTS (
