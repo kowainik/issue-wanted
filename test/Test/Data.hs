@@ -1,4 +1,8 @@
-module Test.Data where
+module Test.Data
+       ( invalidIssue
+       , validIssue
+       , updateIssue
+       ) where
 
 import IW.Core.Id (Id (..))
 import IW.Core.Issue (Issue (..))

@@ -63,6 +63,6 @@ dbSpecs env = describe "Databse SQL query correctness" $ do
     issuesIncreased :: App a -> App Bool
     issuesIncreased action = beforeAfter issuesRowCount (>) action 
 
-    -- | Returns difference in rows of the issue table before and after an action
+    -- | Returns difference between rows of the issue table after and before an action
     issuesRowDifference :: App a -> App [Issue]
     issuesRowDifference action = beforeAfter getIssues (\\) action
