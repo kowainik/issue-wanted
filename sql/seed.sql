@@ -14,6 +14,7 @@ UPDATE SET
     descr = EXCLUDED.descr
   , categories = EXCLUDED.categories;
 
+/*
 INSERT INTO issues 
     (repo_owner, repo_name, number, title, body, labels)
 SELECT 
@@ -32,3 +33,4 @@ UPDATE SET
     title = EXCLUDED.title
   , body = EXCLUDED.body
   , labels = EXCLUDED.labels;
+*/
