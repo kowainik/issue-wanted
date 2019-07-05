@@ -14,12 +14,12 @@ dbSpecs :: AppEnv -> Spec
 dbSpecs env = describe "Databse SQL query correctness" $ do
     describe "Repo" $ do
         describe "upsertRepos" $ do
-            it "should leave the repos table unaffected" $
+            it "should leave the repos table unaffected" 
                 pending 
-            it "should update the repo if the same repo exists" $
+            it "should update the repo if the same repo exists"
                 pending
-        describe "getRepos" $ do
-            it "should return a list of issues with length 2" $
+        describe "getRepos" $
+            it "should return a list of issues with length 2"
                 pending
     describe "Issue" $ do
         describe "upsertIssues" $ do
@@ -31,7 +31,7 @@ dbSpecs env = describe "Databse SQL query correctness" $ do
                 env & (issuesUnaffected $ upsertIssues [invalidIssue]) `equals` True 
             it "should update the issue if the same issue exists" $
                 env & (issuesAffectedRows $ upsertIssues [updateIssue]) `equals` 0
-        describe "getIssues" $ do
+        describe "getIssues" $
             it "should return a list of issues with length 1" $
                 env & issuesRows `equals` 1
   where
