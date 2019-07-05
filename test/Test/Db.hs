@@ -50,7 +50,7 @@ dbSpecs env = describe "Databse SQL query correctness" $ do
     -- | Returns True if no rows in the issues table were affected after an action
     issuesUnaffected :: App () -> App Bool
     issuesUnaffected action = do
-        before <- issuesRows 
+        before <- getIssues 
         action
-        after <- issuesRows
+        after <- getIssues
         pure $ after == before
