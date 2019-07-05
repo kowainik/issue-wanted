@@ -79,6 +79,7 @@ library
                          IW.Db
                            IW.Db.Functions
                            IW.Db.Issue
+                           IW.Db.Repo
                            IW.Db.Schema
 
                          -- Effects

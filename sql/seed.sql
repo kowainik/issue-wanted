@@ -5,6 +5,7 @@
 -- UPSERTS --
 -------------
 
+/*
 INSERT INTO repos 
     (owner, name, descr, categories)
 VALUES 
@@ -13,6 +14,7 @@ ON CONFLICT ON CONSTRAINT unique_repos DO
 UPDATE SET 
     descr = EXCLUDED.descr
   , categories = EXCLUDED.categories;
+*/
 
 /*
 INSERT INTO issues 

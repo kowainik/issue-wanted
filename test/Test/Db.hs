@@ -4,12 +4,13 @@ module Test.Db
 
 import IW.App (AppEnv, App)
 import IW.Core.Issue (Issue)
-import IW.Db (getIssues, upsertIssues)
+import IW.Core.Repo (Repo)
+import IW.Db (getIssues, getRepos, upsertIssues, upsertRepos)
 
 import Test.Assert (equals, succeeds)
 import Test.Common (joinSpecs)
-import Test.Data (invalidIssue, updateIssue, validIssue)
-import Test.Hspec (Spec, describe, it, pending)
+import Test.Data (invalidIssue, updatedValidIssue, updatedValidRepo, validIssue, validRepo)   
+import Test.Hspec (Spec, describe, it)
 
 
 dbSpecs :: AppEnv -> Spec
@@ -39,15 +40,39 @@ repoSpecs = joinSpecs "Repo"
 
 upsertReposSpec :: AppEnv -> Spec
 upsertReposSpec env = describe "upsertRepos" $ do
-    it "should leave the repos table unaffected" 
-        pending 
-    it "should update the repo if the same repo exists"
-        pending
+    it "should do nothing when inserting an empty list" $ do
+        env & succeeds (upsertRepos [])
+        env & reposAffectedRows (upsertRepos []) `equals` 0
+    it "should insert repos" $ do
+        env & reposIncreased (upsertRepos [validRepo]) `equals` True
+    it "should update the issue if the same issue exists" $
+        env & reposRowDifference (upsertRepos [updatedValidRepo]) `equals` [updatedValidRepo]
 
 getReposSpec :: AppEnv -> Spec
 getReposSpec env = describe "getRepos" $
-    it "should return a list of repos with length 1"
-        pending
+    it "should return a list of repos with length 1" $ do
+        env & reposRowCount `equals` 1
+        env & reposUnaffected (getRepos) `equals` True 
+
+-- | Returns number of rows currently in the repos database
+reposRowCount :: App Int
+reposRowCount = length <$> getRepos
+
+-- | Returns the number of affected rows in the repo table after an action
+reposAffectedRows :: App a -> App Int
+reposAffectedRows action = beforeAfter reposRowCount (-) action 
+
+-- | Returns True if no rows in the repos table were affected after an action
+reposUnaffected :: App a -> App Bool
+reposUnaffected action = beforeAfter getRepos (==) action
+
+-- | Returns True if number of rows in the repos table increased after an action
+reposIncreased :: App a -> App Bool
+reposIncreased action = beforeAfter reposRowCount (>) action 
+
+-- | Returns difference between rows of the issue table after and before an action
+reposRowDifference :: App a -> App [Repo]
+reposRowDifference action = beforeAfter getRepos (\\) action
 
 ----------------
 -- ISSUE SPEC --
@@ -69,7 +94,7 @@ upsertIssuesSpec env = describe "upsertIssues" $ do
     it "should leave the issues table unaffected when there's no corresponding repo" $
         env & issuesUnaffected (upsertIssues [invalidIssue]) `equals` True 
     it "should update the issue if the same issue exists" $
-        env & issuesRowDifference (upsertIssues [updateIssue]) `equals` [updateIssue]
+        env & issuesRowDifference (upsertIssues [updatedValidIssue]) `equals` [updatedValidIssue]
 
 getIssuesSpec :: AppEnv -> Spec
 getIssuesSpec env = describe "getIssues" $
