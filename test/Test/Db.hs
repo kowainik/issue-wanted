@@ -3,6 +3,7 @@ module Test.Db
        ) where
 
 import IW.App (AppEnv, App)
+import IW.Core.Issue (Issue)
 import IW.Db (getIssues, upsertIssues)
 
 import Test.Assert (equals, succeeds)
@@ -26,17 +27,16 @@ dbSpecs env = describe "Databse SQL query correctness" $ do
             it "should do nothing when inserting an empty list" $ do
                 env & succeeds (upsertIssues [])
                 env & issuesAffectedRows (upsertIssues []) `equals` 0
-            it "should insert an issue if its repo exists" $ do
-                env & issuesAffectedRows (upsertIssues [validIssue]) `equals` 1
+            it "should insert issues if its repo exists" $ do
+                env & issuesIncreased (upsertIssues [validIssue]) `equals` True
             it "should leave the issues table unaffected when there's no corresponding repo" $
                 env & issuesUnaffected (upsertIssues [invalidIssue]) `equals` True 
             it "should update the issue if the same issue exists" $
-                env & issuesAffectedRows (upsertIssues [updateIssue]) `equals` 0
+                env & issuesRowDifference (upsertIssues [updateIssue]) `equals` [updateIssue]
         describe "getIssues" $
             it "should return a list of issues with length 1" $ do
-                env & issuesRows `equals` 1
+                env & issuesRowCount `equals` 1
                 env & issuesUnaffected (getIssues) `equals` True 
-
   where
     -- | Takes a getter function for getting values from the environment before and after an action, 
     -- a function for comparing those values, and the action
@@ -48,17 +48,21 @@ dbSpecs env = describe "Databse SQL query correctness" $ do
         pure $ after `comparison` before
 
     -- | Returns number of rows currently in the issues database
-    issuesRows :: App Int
-    issuesRows = length <$> getIssues
+    issuesRowCount :: App Int
+    issuesRowCount = length <$> getIssues
 
     -- | Returns the number of affected rows in the issue table after an action
     issuesAffectedRows :: App a -> App Int
-    issuesAffectedRows action = beforeAfter issuesRows (-) action 
+    issuesAffectedRows action = beforeAfter issuesRowCount (-) action 
 
     -- | Returns True if no rows in the issues table were affected after an action
     issuesUnaffected :: App a -> App Bool
     issuesUnaffected action = beforeAfter getIssues (==) action
 
-    -- | Returns True if number of rows in issues table increases after an action
-    issuesIncrease :: App a -> App Bool
-    issuesIncrease action = beforeAfter issuesRows (>) action 
+    -- | Returns True if number of rows in the issues table increased after an action
+    issuesIncreased :: App a -> App Bool
+    issuesIncreased action = beforeAfter issuesRowCount (>) action 
+
+    -- | Returns difference in rows of the issue table before and after an action
+    issuesRowDifference :: App a -> App [Issue]
+    issuesRowDifference action = beforeAfter getIssues (\\) action
