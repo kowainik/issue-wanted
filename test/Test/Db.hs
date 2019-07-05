@@ -43,9 +43,9 @@ upsertReposSpec env = describe "upsertRepos" $ do
     it "should do nothing when inserting an empty list" $ do
         env & succeeds (upsertRepos [])
         env & reposAffectedRows (upsertRepos []) `equals` 0
-    it "should insert repos" $ do
+    it "should insert repos if the repos are valid" $
         env & reposIncreased (upsertRepos [validRepo]) `equals` True
-    it "should update the issue if the same issue exists" $
+    it "should update the repo if the same repo already exists" $
         env & reposRowDifference (upsertRepos [updatedValidRepo]) `equals` [updatedValidRepo]
 
 getReposSpec :: AppEnv -> Spec
@@ -60,19 +60,19 @@ reposRowCount = length <$> getRepos
 
 -- | Returns the number of affected rows in the repo table after an action
 reposAffectedRows :: App a -> App Int
-reposAffectedRows action = beforeAfter reposRowCount (-) action 
+reposAffectedRows = beforeAfter reposRowCount (-) 
 
 -- | Returns True if no rows in the repos table were affected after an action
 reposUnaffected :: App a -> App Bool
-reposUnaffected action = beforeAfter getRepos (==) action
+reposUnaffected = beforeAfter getRepos (==)
 
 -- | Returns True if number of rows in the repos table increased after an action
 reposIncreased :: App a -> App Bool
-reposIncreased action = beforeAfter reposRowCount (>) action 
+reposIncreased = beforeAfter reposRowCount (>) 
 
 -- | Returns difference between rows of the issue table after and before an action
 reposRowDifference :: App a -> App [Repo]
-reposRowDifference action = beforeAfter getRepos (\\) action
+reposRowDifference = beforeAfter getRepos (\\)
 
 ----------------
 -- ISSUE SPEC --
@@ -89,11 +89,11 @@ upsertIssuesSpec env = describe "upsertIssues" $ do
     it "should do nothing when inserting an empty list" $ do
         env & succeeds (upsertIssues [])
         env & issuesAffectedRows (upsertIssues []) `equals` 0
-    it "should insert issues if its repo exists" $ do
+    it "should insert issues if its repo exists" $
         env & issuesIncreased (upsertIssues [validIssue]) `equals` True
     it "should leave the issues table unaffected when there's no corresponding repo" $
         env & issuesUnaffected (upsertIssues [invalidIssue]) `equals` True 
-    it "should update the issue if the same issue exists" $
+    it "should update the issue if the same issue already exists" $
         env & issuesRowDifference (upsertIssues [updatedValidIssue]) `equals` [updatedValidIssue]
 
 getIssuesSpec :: AppEnv -> Spec
@@ -108,16 +108,16 @@ issuesRowCount = length <$> getIssues
 
 -- | Returns the number of affected rows in the issue table after an action
 issuesAffectedRows :: App a -> App Int
-issuesAffectedRows action = beforeAfter issuesRowCount (-) action 
+issuesAffectedRows = beforeAfter issuesRowCount (-) 
 
 -- | Returns True if no rows in the issues table were affected after an action
 issuesUnaffected :: App a -> App Bool
-issuesUnaffected action = beforeAfter getIssues (==) action
+issuesUnaffected = beforeAfter getIssues (==)
 
 -- | Returns True if number of rows in the issues table increased after an action
 issuesIncreased :: App a -> App Bool
-issuesIncreased action = beforeAfter issuesRowCount (>) action 
+issuesIncreased = beforeAfter issuesRowCount (>) 
 
 -- | Returns difference between rows of the issue table after and before an action
 issuesRowDifference :: App a -> App [Issue]
-issuesRowDifference action = beforeAfter getIssues (\\) action
+issuesRowDifference = beforeAfter getIssues (\\)
