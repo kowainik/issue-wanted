@@ -26,20 +26,18 @@ dbSpecs env = describe "Databse SQL query correctness" $ do
             it "should do nothing when inserting an empty list" $
                 env & succeeds (upsertIssues [])
             it "should insert an issue if its repo exists" $
-                env & (issuesAffectedRows $ upsertIssues [validIssue]) `equals` 1
+                env & issuesAffectedRows (upsertIssues [validIssue]) `equals` 1
             it "should leave the issues table unaffected when there's no corresponding repo" $
-                env & (issuesUnaffected $ upsertIssues [invalidIssue]) `equals` True 
+                env & issuesUnaffected (upsertIssues [invalidIssue]) `equals` True 
             it "should update the issue if the same issue exists" $
-                env & (issuesAffectedRows $ upsertIssues [updateIssue]) `equals` 0
+                env & issuesAffectedRows (upsertIssues [updateIssue]) `equals` 0
         describe "getIssues" $
             it "should return a list of issues with length 1" $
                 env & issuesRows `equals` 1
   where
     -- | Returns number of rows currently in the issues database
     issuesRows :: App Int
-    issuesRows = do
-        issues <- getIssues
-        pure $ length issues
+    issuesRows = length <$> getIssues
 
     -- | Returns the number of affected rows in the issue table after an action
     issuesAffectedRows :: App () -> App Int
