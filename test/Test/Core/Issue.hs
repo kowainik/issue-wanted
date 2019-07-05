@@ -7,11 +7,10 @@ module Test.Core.Issue
 import IW.App (AppEnv, WithError)
 import IW.Core.Issue (Issue (..))
 import IW.Core.SqlArray (SqlArray (..))
+import IW.Core.WithId (WithId (..))
 import IW.Effects.Log (runAppLogIO)
 import IW.Db (WithDb)
 import IW.Db.Functions (asSingleRow, query)
-
-import Database.PostgreSQL.Simple.Types ((:.) (..))
 
 import Hedgehog
 import qualified Hedgehog.Gen as Gen
@@ -20,10 +19,8 @@ import qualified Hedgehog.Range as Range
 import Test.Gen (genId, genRepoOwner, genRepoName)
 
 
-issueViaSql :: (WithDb env m, WithError m) => Issue -> m Issue
-issueViaSql issue = asSingleRow $ query
-    [sql| SELECT ?, ?, ?, ?, ?, ?, (? :: TEXT ARRAY) |]
-    (Only (issueId issue) :. issue)
+issueViaSql :: (WithDb env m, WithError m) => WithId Issue -> m (WithId Issue)
+issueViaSql = asSingleRow . query [sql| SELECT ?, ?, ?, ?, ?, ?, (? :: TEXT ARRAY) |]
 
 issueRoundtripProp :: AppEnv -> Property
 issueRoundtripProp env = property $ do
@@ -40,7 +37,7 @@ testLabels =
     , "easy"
     ]
 
-genIssue :: MonadGen m => m Issue
+genIssue :: MonadGen m => m (WithId Issue)
 genIssue = do
     issueId        <- genId
     issueRepoOwner <- genRepoOwner
@@ -50,7 +47,7 @@ genIssue = do
     issueBody      <- genBody
     issueLabels    <- genLabels
 
-    pure Issue{..} 
+    pure $ WithId issueId Issue{..} 
   where
     genNumber :: MonadGen m => m Int
     genNumber = Gen.int (Range.constant 1 500)
