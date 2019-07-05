@@ -24,7 +24,7 @@ module Test.Assert
        , satisfies
        , succeeds
        , equals
-       , equals_
+       , returnsSame
        ) where
 
 import Test.Hspec (Expectation, expectationFailure, shouldBe, shouldSatisfy)
@@ -56,8 +56,8 @@ equals app v env = runAppAsIO env app >>= \case
     Left e  -> expectationFailure $ "Expected 'Success' but got: " <> show e
 
 -- | Checks whether two actions return the same result.
-equals_ :: (Show a, Eq a) => App a -> App a -> AppEnv -> Expectation
-equals_ app1 app2 env = do 
+returnsSame :: (Show a, Eq a) => App a -> App a -> AppEnv -> Expectation
+returnsSame app1 app2 env = do 
     result1 <- runAppAsIO env app1
     result2 <- runAppAsIO env app2
     result1 `shouldBe` result2 
