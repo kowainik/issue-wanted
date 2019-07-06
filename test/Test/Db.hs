@@ -42,7 +42,7 @@ upsertReposSpec :: AppEnv -> Spec
 upsertReposSpec env = describe "upsertRepos" $ do
     it "should do nothing when inserting an empty list" $ do
         env & succeeds (upsertRepos [])
-        env & reposAffectedRows (upsertRepos []) `equals` 0
+        env & reposAddedRows (upsertRepos []) `equals` 0
     it "should insert repos if the repos are valid" $
         env & reposIncreased (upsertRepos [validRepo]) `equals` True
     it "should update the repo if the same repo already exists" $
@@ -58,9 +58,9 @@ getReposSpec env = describe "getRepos" $
 reposRowCount :: App Int
 reposRowCount = length <$> getRepos
 
--- | Returns the number of affected rows in the repo table after an action
-reposAffectedRows :: App a -> App Int
-reposAffectedRows = beforeAfter reposRowCount (-) 
+-- | Returns the number of rows added to the repo table after an action
+reposAddedRows :: App a -> App Int
+reposAddedRows = beforeAfter reposRowCount (-) 
 
 -- | Returns True if no rows in the repos table were affected after an action
 reposUnaffected :: App a -> App Bool
@@ -88,7 +88,7 @@ upsertIssuesSpec :: AppEnv -> Spec
 upsertIssuesSpec env = describe "upsertIssues" $ do
     it "should do nothing when inserting an empty list" $ do
         env & succeeds (upsertIssues [])
-        env & issuesAffectedRows (upsertIssues []) `equals` 0
+        env & issuesAddedRows (upsertIssues []) `equals` 0
     it "should insert issues if its repo exists" $
         env & issuesIncreased (upsertIssues [validIssue]) `equals` True
     it "should leave the issues table unaffected when there's no corresponding repo" $
@@ -106,9 +106,9 @@ getIssuesSpec env = describe "getIssues" $
 issuesRowCount :: App Int
 issuesRowCount = length <$> getIssues
 
--- | Returns the number of affected rows in the issue table after an action
-issuesAffectedRows :: App a -> App Int
-issuesAffectedRows = beforeAfter issuesRowCount (-) 
+-- | Returns the number of rows added to the issue table after an action
+issuesAddedRows :: App a -> App Int
+issuesAddedRows = beforeAfter issuesRowCount (-) 
 
 -- | Returns True if no rows in the issues table were affected after an action
 issuesUnaffected :: App a -> App Bool
