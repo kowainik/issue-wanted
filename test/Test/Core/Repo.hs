@@ -2,7 +2,9 @@
 
 module Test.Core.Repo 
        ( repoRoundtripProp
-       )where
+       ) where
+
+import Hedgehog
 
 import IW.App (AppEnv, WithError)
 import IW.Core.Repo (Repo (..))
@@ -11,16 +13,14 @@ import IW.Core.WithId (WithId (..))
 import IW.Effects.Log (runAppLogIO)
 import IW.Db (WithDb)
 import IW.Db.Functions (asSingleRow, query)
+import Test.Gen (genId, genRepoOwner, genRepoName)
 
-import Hedgehog
 import qualified Hedgehog.Gen as Gen
 import qualified Hedgehog.Range as Range
 
-import Test.Gen (genId, genRepoOwner, genRepoName)
-
 
 repoViaSql :: (WithDb env m, WithError m) => WithId Repo -> m (WithId Repo)
-repoViaSql = asSingleRow . query [sql| SELECT ?, ?, ?, ?, ?, (? :: TEXT ARRAY) |]
+repoViaSql = asSingleRow . query [sql| SELECT ?, ?, ?, ?, (? :: TEXT ARRAY) |]
 
 repoRoundtripProp :: AppEnv -> Property
 repoRoundtripProp env = property $ do

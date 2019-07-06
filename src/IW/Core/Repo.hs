@@ -7,7 +7,6 @@ module IW.Core.Repo
        , repoUrl
        ) where
 
-import IW.Core.Id (Id (..))
 import IW.Core.SqlArray (SqlArray (..))
    
 
@@ -23,8 +22,7 @@ newtype RepoName = RepoName { unRepoName :: Text }
 
 -- | Data type representing a GitHub repository
 data Repo = Repo 
-    { repoId         :: !(Id Repo)
-    , repoOwner      :: !RepoOwner
+    { repoOwner      :: !RepoOwner
     , repoName       :: !RepoName
     , repoDescr      :: !Text
     , repoCategories :: !(SqlArray Text)

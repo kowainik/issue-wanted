@@ -4,6 +4,8 @@ module Test.Core.Issue
        ( issueRoundtripProp
        ) where
 
+import Hedgehog
+
 import IW.App (AppEnv, WithError)
 import IW.Core.Issue (Issue (..))
 import IW.Core.SqlArray (SqlArray (..))
@@ -11,12 +13,10 @@ import IW.Core.WithId (WithId (..))
 import IW.Effects.Log (runAppLogIO)
 import IW.Db (WithDb)
 import IW.Db.Functions (asSingleRow, query)
+import Test.Gen (genId, genRepoOwner, genRepoName)
 
-import Hedgehog
 import qualified Hedgehog.Gen as Gen
 import qualified Hedgehog.Range as Range
-
-import Test.Gen (genId, genRepoOwner, genRepoName)
 
 
 issueViaSql :: (WithDb env m, WithError m) => WithId Issue -> m (WithId Issue)

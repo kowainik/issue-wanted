@@ -9,18 +9,19 @@ module IW.Db.Issue
        ) where
 
 import IW.Core.Issue (Issue (..))
+import IW.Core.WithId (WithId)
 import IW.Db.Functions (WithDb, executeMany, query, queryRaw)
 
 
 -- | Returns all issues in the database
-getIssues :: (WithDb env m) => m [Issue]
+getIssues :: (WithDb env m) => m [WithId Issue]
 getIssues = queryRaw [sql|
     SELECT id, repo_owner, repo_name, number, title, body, labels
     FROM issues
 |]
 
 -- | Returns a list of issues filtered by label name
-getIssuesByLabel :: (WithDb env m) => Text -> m [Issue]
+getIssuesByLabel :: (WithDb env m) => Text -> m [WithId Issue]
 getIssuesByLabel label = query [sql|
     SELECT id, repo_owner, repo_name, number, title, body, labels
     FROM issues 

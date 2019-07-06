@@ -7,7 +7,9 @@ import Test.Hspec (Spec, describe, it)
 
 import IW.App (AppEnv, App)
 import IW.Core.Issue (Issue)
+import IW.Core.Id (Id (..))
 import IW.Core.Repo (Repo)
+import IW.Core.WithId (WithId (..))
 import IW.Db (getIssues, getRepos, upsertIssues, upsertRepos)
 import Test.Assert (equals, succeeds)
 import Test.Common (joinSpecs)
@@ -47,7 +49,7 @@ upsertReposSpec env = describe "upsertRepos" $ do
     it "should insert repos if the repos are valid" $
         env & reposIncreased (upsertRepos [validRepo]) `equals` True
     it "should update the repo if the same repo already exists" $
-        env & reposRowDifference (upsertRepos [updatedValidRepo]) `equals` [updatedValidRepo]
+        env & reposRowDifference (upsertRepos [updatedValidRepo]) `equals` [WithId (Id 1) updatedValidRepo]
 
 getReposSpec :: AppEnv -> Spec
 getReposSpec env = describe "getRepos" $
@@ -72,7 +74,7 @@ reposIncreased :: App a -> App Bool
 reposIncreased = beforeAfter reposRowCount (>) 
 
 -- | Returns difference between rows of the repos table after and before an action.
-reposRowDifference :: App a -> App [Repo]
+reposRowDifference :: App a -> App [WithId Repo]
 reposRowDifference = beforeAfter getRepos (\\)
 
 ----------------
@@ -95,7 +97,7 @@ upsertIssuesSpec env = describe "upsertIssues" $ do
     it "should leave the issues table unaffected when there's no corresponding repo" $
         env & issuesUnaffected (upsertIssues [invalidIssue]) `equals` True 
     it "should update the issue if the same issue already exists" $
-        env & issuesRowDifference (upsertIssues [updatedValidIssue]) `equals` [updatedValidIssue]
+        env & issuesRowDifference (upsertIssues [updatedValidIssue]) `equals` [WithId (Id 1) updatedValidIssue]
 
 getIssuesSpec :: AppEnv -> Spec
 getIssuesSpec env = describe "getIssues" $
@@ -120,5 +122,5 @@ issuesIncreased :: App a -> App Bool
 issuesIncreased = beforeAfter issuesRowCount (>) 
 
 -- | Returns difference between rows of the issue table after and before an action.
-issuesRowDifference :: App a -> App [Issue]
+issuesRowDifference :: App a -> App [WithId Issue]
 issuesRowDifference = beforeAfter getIssues (\\)

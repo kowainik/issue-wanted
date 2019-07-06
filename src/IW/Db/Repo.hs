@@ -8,11 +8,12 @@ module IW.Db.Repo
        ) where
 
 import IW.Core.Repo (Repo (..))
+import IW.Core.WithId (WithId)
 import IW.Db.Functions (WithDb, executeMany, queryRaw)
 
 
 -- | Returns all repos in the database
-getRepos :: (WithDb env m) => m [Repo]
+getRepos :: (WithDb env m) => m [WithId Repo]
 getRepos = queryRaw [sql|
     SELECT id, owner, name, descr, categories
     FROM repos
