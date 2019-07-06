@@ -1,6 +1,6 @@
 module Test.Gen where
 
-import Hedgehog
+import Hedgehog (MonadGen)
 
 import IW.Core.Id (Id (..))
 import IW.Core.Repo (RepoName (..), RepoOwner (..))

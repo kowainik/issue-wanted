@@ -4,7 +4,7 @@ module Test.Core.Issue
        ( issueRoundtripProp
        ) where
 
-import Hedgehog
+import Hedgehog (MonadGen, Property, forAll, property, (===))
 
 import IW.App (AppEnv, WithError)
 import IW.Core.Issue (Issue (..))

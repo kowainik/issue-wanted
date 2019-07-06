@@ -4,7 +4,7 @@ module Test.Core.Repo
        ( repoRoundtripProp
        ) where
 
-import Hedgehog
+import Hedgehog (MonadGen, Property, forAll, property, (===))
 
 import IW.App (AppEnv, WithError)
 import IW.Core.Repo (Repo (..))

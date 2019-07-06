@@ -31,9 +31,6 @@ beforeAfter getter comparison action = do
     after <- getter
     pure $ after `comparison` before
 
-tagWithId :: Int -> a -> WithId a
-tagWithId valId = WithId (Id valId)
-
 ---------------
 -- REPO SPEC --
 ---------------
@@ -52,7 +49,7 @@ upsertReposSpec env = describe "upsertRepos" $ do
     it "should insert repos if the repos are valid" $
         env & reposIncreased (upsertRepos [validRepo]) `equals` True
     it "should update the repo if the same repo already exists" $
-        env & reposRowDifference (upsertRepos [updatedValidRepo]) `equals` zipWith tagWithId [1..] [updatedValidRepo]
+        env & reposRowDifference (upsertRepos [updatedValidRepo]) `equals` [Id 1 `WithId` updatedValidRepo]
 
 getReposSpec :: AppEnv -> Spec
 getReposSpec env = describe "getRepos" $
@@ -100,7 +97,7 @@ upsertIssuesSpec env = describe "upsertIssues" $ do
     it "should leave the issues table unaffected when there's no corresponding repo" $
         env & issuesUnaffected (upsertIssues [invalidIssue]) `equals` True 
     it "should update the issue if the same issue already exists" $
-        env & issuesRowDifference (upsertIssues [updatedValidIssue]) `equals` zipWith tagWithId [1..] [updatedValidIssue]
+        env & issuesRowDifference (upsertIssues [updatedValidIssue]) `equals` [Id 1 `WithId` updatedValidIssue]
 
 getIssuesSpec :: AppEnv -> Spec
 getIssuesSpec env = describe "getIssues" $
