@@ -52,7 +52,7 @@ getReposSpec :: AppEnv -> Spec
 getReposSpec env = describe "getRepos" $
     it "should return a list of repos with length 1" $ do
         env & reposRowCount `equals` 1
-        env & reposUnaffected (getRepos) `equals` True 
+        env & reposUnaffected getRepos `equals` True 
 
 -- | Returns number of rows currently in the repos database
 reposRowCount :: App Int
@@ -100,7 +100,7 @@ getIssuesSpec :: AppEnv -> Spec
 getIssuesSpec env = describe "getIssues" $
     it "should return a list of issues with length 1" $ do
         env & issuesRowCount `equals` 1
-        env & issuesUnaffected (getIssues) `equals` True 
+        env & issuesUnaffected getIssues `equals` True 
 
 -- | Returns number of rows currently in the issues database
 issuesRowCount :: App Int

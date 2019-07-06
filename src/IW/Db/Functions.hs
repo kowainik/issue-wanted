@@ -78,6 +78,7 @@ executeMany
 executeMany q args = withPool $ \conn -> void $ Sql.executeMany conn q args
 {-# INLINE executeMany #-}
 
+-- | Executes a multi-row query that is expected to return results. 
 returning
     :: (WithDb env m, ToRow args, FromRow res)
     => Sql.Query
