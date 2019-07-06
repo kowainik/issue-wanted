@@ -11,16 +11,18 @@ import IW.App (AppEnv, Env (..))
 import IW.Config (loadConfig)
 import IW.Db (prepareDb)
 import IW.Effects.Log (runAppLogIO_)
-
 import Test.Common (joinSpecs)
 import Test.Core.Issue (issueRoundtripProp)
 import Test.Core.Repo (repoRoundtripProp)
+import Test.Db (dbSpecs)
 
 import qualified Data.Pool as Pool
 
 
 hspecTests :: AppEnv -> Spec
-hspecTests = sequential . joinSpecs "issue-wanted" []
+hspecTests = sequential . joinSpecs "issue-wanted" 
+    [ dbSpecs
+    ]
 
 hedgehogTests :: AppEnv -> Group
 hedgehogTests env = Group "Roundtrip properties" 

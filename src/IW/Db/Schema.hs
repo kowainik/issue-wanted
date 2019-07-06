@@ -15,9 +15,9 @@ import IW.Db.Functions (WithDb, executeRaw)
 prepareDb :: (WithDb env m) => m ()
 prepareDb = teardownDb >> setupDb
 
--- | Create tables from the @sql/schema.sql@ file and seed data.
+-- | Create tables from the @sql/schema.sql@ file.
 setupDb :: (WithDb env m) => m ()
-setupDb = executeFile "sql/schema.sql" >> executeFile "sql/seed.sql"
+setupDb = executeFile "sql/schema.sql"
 
 -- | Create tables from the @sql/schema.sql@ file.
 teardownDb :: (WithDb env m) => m ()

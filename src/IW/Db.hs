@@ -7,3 +7,4 @@ module IW.Db
 import IW.Db.Functions as Db
 import IW.Db.Schema as Db
 import IW.Db.Issue as Db
+import IW.Db.Repo as Db

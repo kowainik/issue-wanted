@@ -79,6 +79,7 @@ library
                          IW.Db
                            IW.Db.Functions
                            IW.Db.Issue
+                           IW.Db.Repo
                            IW.Db.Schema
 
                          -- Effects
@@ -128,6 +129,7 @@ test-suite issue-wanted-test
                        Test.Core.Issue
                        Test.Core.Repo
                        Test.Db
+                       Test.Data
                        Test.Gen
 
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
