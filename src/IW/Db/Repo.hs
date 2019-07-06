@@ -1,6 +1,6 @@
 {-# LANGUAGE QuasiQuotes #-}
 
--- | SQL queries to work with the @issues@ table.
+-- | SQL queries to work with the @repos@ table.
 
 module IW.Db.Repo
        ( getRepos
@@ -20,7 +20,7 @@ getRepos = queryRaw [sql|
 
 -- | Insert a list of repos into the database, but update on conflict
 upsertRepos :: (WithDb env m) => [Repo] -> m ()
-upsertRepos repos = executeMany [sql|
+upsertRepos = executeMany [sql|
     INSERT INTO repos 
         (owner, name, descr, categories)
     VALUES 
@@ -29,4 +29,4 @@ upsertRepos repos = executeMany [sql|
     UPDATE SET 
         descr = EXCLUDED.descr
       , categories = EXCLUDED.categories;
-|] repos
+|]

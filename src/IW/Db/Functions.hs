@@ -79,7 +79,7 @@ executeMany q args = withPool $ \conn -> void $ Sql.executeMany conn q args
 {-# INLINE executeMany #-}
 
 -- | Executes a multi-row query that is expected to return results. 
--- A @RETURN@ statement needs to be in the SQL query. 
+-- A @RETURNING@ statement needs to be in the SQL query. 
 returning
     :: (WithDb env m, ToRow args, FromRow res)
     => Sql.Query

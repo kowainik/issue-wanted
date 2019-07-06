@@ -3,19 +3,18 @@ module Main where
 import Control.Exception (bracket)
 import Hedgehog (Group (..), checkParallel)
 import System.IO (hSetEncoding, utf8)
+import Test.Hspec (Spec, hspec)
+import Test.Hspec.Core.Spec (sequential)
 
 import IW (mkAppEnv)
 import IW.App (AppEnv, Env (..))
 import IW.Config (loadConfig)
 import IW.Db (prepareDb)
 import IW.Effects.Log (runAppLogIO_)
-
 import Test.Common (joinSpecs)
 import Test.Core.Issue (issueRoundtripProp)
 import Test.Core.Repo (repoRoundtripProp)
 import Test.Db (dbSpecs)
-import Test.Hspec (Spec, hspec)
-import Test.Hspec.Core.Spec (sequential)
 
 import qualified Data.Pool as Pool
 

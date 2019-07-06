@@ -11,7 +11,6 @@ module Prelude
        , module Web
 
        , WithLog
-       , (\\)
        ) where
 
 -- Reexport
@@ -22,7 +21,6 @@ import Control.Lens ((.~), (^.))
 import Colog (pattern D, pattern E, pattern I, LogAction (..), Severity (..), pattern W, log)
 
 import Data.Aeson as Json (FromJSON (parseJSON), ToJSON (toJSON))
-import Data.List ((\\))
 
 import Database.PostgreSQL.Simple.FromField as Sql (FromField (fromField))
 import Database.PostgreSQL.Simple.FromRow as Sql (FromRow (fromRow), field)
