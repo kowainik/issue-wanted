@@ -32,7 +32,7 @@ beforeAfter getter comparison action = do
     pure $ after `comparison` before
 
 tagWithId :: Int -> a -> WithId a
-tagWithId valId val = WithId (Id valId) val
+tagWithId valId = WithId (Id valId)
 
 ---------------
 -- REPO SPEC --
