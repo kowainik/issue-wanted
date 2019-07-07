@@ -15,6 +15,7 @@ import Test.Common (joinSpecs)
 import Test.Core.Issue (issueRoundtripProp)
 import Test.Core.Repo (repoRoundtripProp)
 import Test.Db (dbSpecs)
+import Test.Sync (syncSpecs)
 
 import qualified Data.Pool as Pool
 
@@ -22,6 +23,7 @@ import qualified Data.Pool as Pool
 hspecTests :: AppEnv -> Spec
 hspecTests = sequential . joinSpecs "issue-wanted" 
     [ dbSpecs
+    , syncSpecs 
     ]
 
 hedgehogTests :: AppEnv -> Group

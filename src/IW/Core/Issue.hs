@@ -10,7 +10,7 @@ import IW.Core.SqlArray (SqlArray (..))
 import IW.Core.Repo (RepoName (..), RepoOwner (..))
 
 
--- | Wrapper for issue label names
+-- | Wrapper for issue label names.
 newtype Label = Label { unLabel :: Text }
     deriving stock   (Generic, Show)
     deriving newtype (Eq, Ord, FromField, ToField, FromJSON, ToJSON, FromHttpApiData)

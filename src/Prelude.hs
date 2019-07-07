@@ -11,10 +11,12 @@ module Prelude
        , module Web
 
        , WithLog
+       , typeName
        ) where
 
 -- Reexport
 import Relude
+import Relude.Extra.Type (typeName)
 
 import Control.Lens ((.~), (^.))
 
