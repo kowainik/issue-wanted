@@ -7,7 +7,7 @@ module Test.Core.Repo
 import Hedgehog (MonadGen, Property, forAll, property, (===))
 
 import IW.App (AppEnv, WithError)
-import IW.Core.Repo (Repo (..))
+import IW.Core.Repo (Repo (..), Category (..))
 import IW.Core.SqlArray (SqlArray (..))
 import IW.Core.WithId (WithId (..))
 import IW.Effects.Log (runAppLogIO)
@@ -28,8 +28,10 @@ repoRoundtripProp env = property $ do
     parsedRepo <- liftIO $ runAppLogIO env $ repoViaSql generatedRepo 
     parsedRepo === Right generatedRepo
 
-testCategories :: [Text]
-testCategories = 
+testCategories :: [Category]
+testCategories =
+    Category
+    <$> 
     [ "FFI"
     , "Text"
     , "Database"
@@ -50,5 +52,5 @@ genRepo = do
     genDescr :: MonadGen m => m Text
     genDescr = Gen.text (Range.constant 0 300) Gen.alphaNum
 
-    genCategories :: MonadGen m => m (SqlArray Text)
+    genCategories :: MonadGen m => m (SqlArray Category)
     genCategories = SqlArray <$> Gen.subsequence testCategories

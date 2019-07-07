@@ -10,7 +10,7 @@ module Test.Data
        ) where
 
 import IW.Core.Issue (Issue (..))
-import IW.Core.Repo (Repo (..), RepoName (..), RepoOwner (..))
+import IW.Core.Repo (Repo (..), RepoName (..), RepoOwner (..), Category (..))
 import IW.Core.SqlArray (SqlArray (..))
 
 
@@ -19,7 +19,7 @@ validRepo = Repo
     { repoOwner      = RepoOwner "owner123"
     , repoName       = RepoName "repo123"
     , repoDescr      = "A test repo."
-    , repoCategories = SqlArray ["Testing", "FFI"]
+    , repoCategories = SqlArray (Category <$> ["Testing", "FFI"])
     }
 
 updatedValidRepo :: Repo
@@ -27,7 +27,7 @@ updatedValidRepo = Repo
     { repoOwner      = RepoOwner "owner123"
     , repoName       = RepoName "repo123"
     , repoDescr      = "Updating test repo description."
-    , repoCategories = SqlArray ["Testing"]
+    , repoCategories = SqlArray [Category "Testing"]
     }
 
 invalidIssue :: Issue
