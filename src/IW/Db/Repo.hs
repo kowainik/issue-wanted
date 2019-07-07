@@ -4,12 +4,13 @@
 
 module IW.Db.Repo
        ( getRepos
+       , getReposByCategory
        , upsertRepos
        ) where
 
 import IW.Core.Repo (Repo (..))
 import IW.Core.WithId (WithId)
-import IW.Db.Functions (WithDb, executeMany, queryRaw)
+import IW.Db.Functions (WithDb, executeMany, query, queryRaw)
 
 
 -- | Returns all repos in the database
@@ -18,6 +19,14 @@ getRepos = queryRaw [sql|
     SELECT id, owner, name, descr, categories
     FROM repos
 |]
+
+-- | Returns a list of repos filtered by category name
+getReposByCategory :: (WithDb env m) => Text -> m [WithId Repo]
+getReposByCategory = query [sql|
+    SELECT id, owner, name, descr, categories
+    FROM repos
+    WHERE ? = ANY (categories)
+|] . Only
 
 -- | Insert a list of repos into the database, but update on conflict
 upsertRepos :: (WithDb env m) => [Repo] -> m ()

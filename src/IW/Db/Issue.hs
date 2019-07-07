@@ -22,15 +22,15 @@ getIssues = queryRaw [sql|
 
 -- | Returns a list of issues filtered by label name
 getIssuesByLabel :: (WithDb env m) => Text -> m [WithId Issue]
-getIssuesByLabel label = query [sql|
+getIssuesByLabel = query [sql|
     SELECT id, repo_owner, repo_name, number, title, body, labels
     FROM issues 
     WHERE ? = ANY (labels)
-|] (Only label)
+|] . Only
 
 -- | Insert a list of issues into the database, but update on conflict
 upsertIssues :: (WithDb env m) => [Issue] -> m ()
-upsertIssues issues = executeMany [sql|
+upsertIssues = executeMany [sql|
     INSERT INTO issues 
         (repo_owner, repo_name, number, title, body, labels)
     SELECT 
@@ -47,4 +47,4 @@ upsertIssues issues = executeMany [sql|
         title  = EXCLUDED.title
       , body   = EXCLUDED.body
       , labels = EXCLUDED.labels;
-|] issues
+|]
