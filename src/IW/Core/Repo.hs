@@ -27,10 +27,7 @@ data Repo = Repo
     , repoDescr      :: !Text
     , repoCategories :: !(SqlArray Text)
     } deriving stock (Generic, Show, Eq)
-      deriving anyclass (ToJSON, FromRow)
-
-instance ToRow Repo where
-    toRow Repo{..} = toRow (repoOwner, repoName, repoDescr, repoCategories)
+      deriving anyclass (ToJSON, FromRow, ToRow)
 
 repoUrl :: Repo -> Text
 repoUrl Repo{..} = 
