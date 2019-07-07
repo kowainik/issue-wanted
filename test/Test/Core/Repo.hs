@@ -29,9 +29,7 @@ repoRoundtripProp env = property $ do
     parsedRepo === Right generatedRepo
 
 testCategories :: [Category]
-testCategories =
-    Category
-    <$> 
+testCategories = Category <$> 
     [ "FFI"
     , "Text"
     , "Database"

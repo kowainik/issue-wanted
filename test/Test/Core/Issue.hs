@@ -29,9 +29,7 @@ issueRoundtripProp env = property $ do
     parsedIssue === Right generatedIssue
 
 testLabels :: [Label]
-testLabels = 
-    Label 
-    <$>
+testLabels = Label <$>
     [ "good first issue"
     , "help wanted"
     , "low hanging fruit"
