@@ -9,7 +9,7 @@ module Test.Data
        , updatedValidRepo
        ) where
 
-import IW.Core.Issue (Issue (..))
+import IW.Core.Issue (Issue (..), Label (..))
 import IW.Core.Repo (Repo (..), RepoName (..), RepoOwner (..), Category (..))
 import IW.Core.SqlArray (SqlArray (..))
 
@@ -37,7 +37,7 @@ invalidIssue = Issue
     , issueNumber    = 1
     , issueTitle     = "Not an issue"
     , issueBody      = ""
-    , issueLabels    = SqlArray ["help wanted"]
+    , issueLabels    = SqlArray [Label "help wanted"]
     }
 
 validIssue :: Issue
@@ -47,7 +47,7 @@ validIssue = Issue
     , issueNumber    = 123
     , issueTitle     = "Another test issue"
     , issueBody      = "Just another test issue"
-    , issueLabels    = SqlArray ["help wanted"]
+    , issueLabels    = SqlArray [Label "help wanted"]
     }
 
 updatedValidIssue :: Issue
@@ -57,5 +57,5 @@ updatedValidIssue = Issue
     , issueNumber    = 123
     , issueTitle     = "Update test issue"
     , issueBody      = "Updated test issue body"
-    , issueLabels    = SqlArray ["low hanging fruit"]
+    , issueLabels    = SqlArray [Label "low hanging fruit"]
     }

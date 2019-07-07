@@ -13,18 +13,18 @@ import IW.Core.SqlArray (SqlArray (..))
 
 -- | Wrapper for repository owner
 newtype RepoOwner = RepoOwner { unRepoOwner :: Text }
-    deriving stock   (Show, Generic)
-    deriving newtype (Eq, Ord, FromField, ToField, FromJSON, ToJSON, FromHttpApiData)
+    deriving stock   (Generic, Show)
+    deriving newtype (Eq, Ord, FromField, ToField, ToJSON, FromHttpApiData)
 
 -- | Wrapper for repository name
 newtype RepoName = RepoName { unRepoName :: Text }
-    deriving stock   (Show, Generic)
-    deriving newtype (Eq, Ord, FromField, ToField, FromJSON, ToJSON, FromHttpApiData)
+    deriving stock   (Generic, Show)
+    deriving newtype (Eq, Ord, FromField, ToField, ToJSON, FromHttpApiData)
 
--- | Wrapper for repository Hackage category name
+-- | Wrapper for repository Hackage category names
 newtype Category = Category { unCategory :: Text }
     deriving stock   (Generic, Show)
-    deriving newtype (Eq, Ord, FromField, ToField, FromJSON, ToJSON, FromHttpApiData)
+    deriving newtype (Eq, Ord, FromField, ToField, ToJSON, FromHttpApiData)
 
 -- | Data type representing a GitHub repository
 data Repo = Repo 
@@ -32,7 +32,7 @@ data Repo = Repo
     , repoName       :: !RepoName
     , repoDescr      :: !Text
     , repoCategories :: !(SqlArray Category)
-    } deriving stock    (Generic, Show, Eq)
+    } deriving stock    (Eq, Generic, Show)
       deriving anyclass (ToJSON, FromRow, ToRow)
 
 repoUrl :: Repo -> Text
