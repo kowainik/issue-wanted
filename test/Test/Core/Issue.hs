@@ -7,7 +7,7 @@ module Test.Core.Issue
 import Hedgehog (MonadGen, Property, forAll, property, (===))
 
 import IW.App (AppEnv, WithError)
-import IW.Core.Issue (Issue (..))
+import IW.Core.Issue (Issue (..), Label (..))
 import IW.Core.SqlArray (SqlArray (..))
 import IW.Core.WithId (WithId (..))
 import IW.Effects.Log (runAppLogIO)
@@ -28,8 +28,8 @@ issueRoundtripProp env = property $ do
     parsedIssue <- liftIO $ runAppLogIO env $ issueViaSql generatedIssue 
     parsedIssue === Right generatedIssue
 
-testLabels :: [Text]
-testLabels = 
+testLabels :: [Label]
+testLabels = Label <$>
     [ "good first issue"
     , "help wanted"
     , "low hanging fruit"
@@ -58,5 +58,5 @@ genIssue = do
     genBody :: MonadGen m => m Text 
     genBody = Gen.text (Range.constant 0 50) Gen.alphaNum
 
-    genLabels :: MonadGen m => m (SqlArray Text)
+    genLabels :: MonadGen m => m (SqlArray Label)
     genLabels = SqlArray <$> Gen.subsequence testLabels
