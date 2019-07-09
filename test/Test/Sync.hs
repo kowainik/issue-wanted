@@ -15,7 +15,7 @@ testGitHubIssueUrl :: GitHub.URL
 testGitHubIssueUrl = GitHub.URL "https://api.github.com/repos/owner123/repo123/issues/1"
 
 syncSpecs :: Spec
-syncSpecs = describe "GitHub sync correctness" $
+syncSpecs = describe "GitHub sync correctness"
     parseIssueUserDataSpec
 
 parseIssueUserDataSpec :: Spec
