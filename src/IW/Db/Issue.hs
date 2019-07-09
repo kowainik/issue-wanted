@@ -18,6 +18,7 @@ getIssues :: (WithDb env m) => m [WithId Issue]
 getIssues = queryRaw [sql|
     SELECT id, repo_owner, repo_name, number, title, body, labels
     FROM issues
+    LIMIT 100
 |]
 
 -- | Returns a list of issues filtered by label name
@@ -26,6 +27,7 @@ getIssuesByLabel = query [sql|
     SELECT id, repo_owner, repo_name, number, title, body, labels
     FROM issues 
     WHERE ? = ANY (labels)
+    LIMIT 100
 |] . Only
 
 -- | Insert a list of issues into the database, but update on conflict
