@@ -106,13 +106,9 @@ fromgitHubIssue githubIssue = do
 parseIssueUserData :: GitHub.URL -> Maybe (RepoOwner, RepoName)
 parseIssueUserData (URL url) =
     T.stripPrefix "https://api.github.com/repos/" url 
-    >>= stripGitSuffix 
     >>= splitOwnerAndName
   where
     splitOwnerAndName :: Text -> Maybe (RepoOwner, RepoName)
     splitOwnerAndName strippedUrl =
         let (owner, name) = fst . T.breakOn "/" . T.drop 1 <$> T.breakOn "/" strippedUrl 
         in guard (owner /= "" && name /= "") *> Just (RepoOwner owner, RepoName name)
-
-    stripGitSuffix :: Text -> Maybe Text
-    stripGitSuffix x = whenNothing (T.stripSuffix ".git" x) (Just x)
