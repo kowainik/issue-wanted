@@ -2,10 +2,8 @@ module Test.Sync
        ( syncSpecs
        ) where
 
-import IW.App (AppEnv)
 import IW.Core.Repo (RepoOwner (..), RepoName (..))
 import IW.Sync.Search (parseIssueUserData)
-import Test.Common (joinSpecs)
 import Test.Hspec (Spec, describe, it, shouldBe)
 
 import qualified GitHub  
