@@ -18,6 +18,7 @@ getRepos :: (WithDb env m) => m [WithId Repo]
 getRepos = queryRaw [sql|
     SELECT id, owner, name, descr, categories
     FROM repos
+    LIMIT 100
 |]
 
 -- | Returns a list of repos filtered by category name
@@ -26,6 +27,7 @@ getReposByCategory = query [sql|
     SELECT id, owner, name, descr, categories
     FROM repos
     WHERE ? = ANY (categories)
+    LIMIT 100
 |] . Only
 
 -- | Insert a list of repos into the database, but update on conflict
