@@ -22,4 +22,4 @@ parseIssueUserDataSpec :: Spec
 parseIssueUserDataSpec = describe "parseIssueUserData" $
     it "should return Just (RepoOwner owner123, RepoName repo123)" $ 
         parseIssueUserData testGitHubIssueUrl 
-        `shouldBe` Just (RepoOwner "owner123", RepoName "repo123")
+            `shouldBe` Just (RepoOwner "owner123", RepoName "repo123")

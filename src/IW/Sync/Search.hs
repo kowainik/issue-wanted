@@ -97,18 +97,21 @@ fromgitHubIssue githubIssue = do
         , issueBody   = fromMaybe "" $ GitHub.issueBody githubIssue
         , issueLabels = SqlArray 
               $ V.toList 
-              $ (\GitHub.IssueLabel{..} -> Label $ GitHub.untagName labelName) 
+              $ Label . GitHub.untagName . GitHub.labelName
               <$> GitHub.issueLabels githubIssue
         , ..
         }
 
--- | For parsing the @issueRepoOwner@ and @issueRepoName@ from the issue's URL.
+{- | For parsing the @issueRepoOwner@ and @issueRepoName@ from the issue's URL.
+Parsing the URL @https://api.github.com/repos/owner/name/issues/1@ should return 
+@Just (RepoOwner "owner", RepoName "name")@
+-}
 parseIssueUserData :: GitHub.URL -> Maybe (RepoOwner, RepoName)
 parseIssueUserData (URL url) =
     T.stripPrefix "https://api.github.com/repos/" url 
     >>= splitOwnerAndName
   where
     splitOwnerAndName :: Text -> Maybe (RepoOwner, RepoName)
-    splitOwnerAndName strippedUrl =
-        let (owner, name) = fst . T.breakOn "/" . T.drop 1 <$> T.breakOn "/" strippedUrl 
+    splitOwnerAndName strippedUrl = 
+        let owner:name:_ = T.splitOn "/" strippedUrl
         in guard (owner /= "" && name /= "") *> Just (RepoOwner owner, RepoName name)
