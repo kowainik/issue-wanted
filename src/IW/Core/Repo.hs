@@ -14,18 +14,18 @@ import IW.Core.Url (Url (..))
 
 -- | Wrapper for repository owner
 newtype RepoOwner = RepoOwner { unRepoOwner :: Text }
-    deriving stock   (Generic)
-    deriving newtype (Eq, Ord, Show, FromField, ToField, ToJSON, FromHttpApiData)
+    deriving stock   (Generic, Show)
+    deriving newtype (Eq, Ord, FromField, ToField, ToJSON, FromHttpApiData)
 
 -- | Wrapper for repository name
 newtype RepoName = RepoName { unRepoName :: Text }
-    deriving stock   (Generic)
-    deriving newtype (Eq, Ord, Show, FromField, ToField, ToJSON, FromHttpApiData)
+    deriving stock   (Generic, Show)
+    deriving newtype (Eq, Ord, FromField, ToField, ToJSON, FromHttpApiData)
 
 -- | Wrapper for repository Hackage category names
 newtype Category = Category { unCategory :: Text }
-    deriving stock   (Generic)
-    deriving newtype (Eq, Ord, Show, FromField, ToField, ToJSON, FromHttpApiData)
+    deriving stock   (Generic, Show)
+    deriving newtype (Eq, Ord, FromField, ToField, ToJSON, FromHttpApiData)
 
 -- | Data type representing a GitHub repository
 data Repo = Repo 

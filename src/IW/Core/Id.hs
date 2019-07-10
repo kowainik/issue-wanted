@@ -14,8 +14,8 @@ import Data.Type.Equality (type (==))
 -- | Wrapper for integer id. Contains phantom type parameter for increased
 -- type-safety.
 newtype Id a = Id { unId :: Int }
-    deriving stock (Generic)
-    deriving newtype (Eq, Ord, Show, FromField, ToField, FromJSON, ToJSON, FromHttpApiData)
+    deriving stock (Generic, Show)
+    deriving newtype (Eq, Ord, FromField, ToField, FromJSON, ToJSON, FromHttpApiData)
 
 -- | When we don't care about type of 'Id' but don't want to deal with type variables.
 type AnyId = Id ()

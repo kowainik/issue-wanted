@@ -1,6 +1,6 @@
 {- | This module provides functions used in fetching Haskell repos and
 issues from the GitHub API. Functions with the fetch- prefix such as 
-@fetchAllHaskellRepos@ can be used to make request to the GitHubAPI. 
+@fetchAllHaskellRepos@ can be used to make request to the GitHub API. 
 This module also exposes functions that map @github@ library types to our own,
 and a parser for extracting the @RepoOwner@ and @RepoName@ from a URL. 
 -}
