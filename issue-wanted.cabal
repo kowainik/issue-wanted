@@ -74,6 +74,7 @@ library
                          IW.Core.Issue
                          IW.Core.SqlArray
                          IW.Core.Repo
+                         IW.Core.Url
                          IW.Core.WithId
 
                          -- Database
