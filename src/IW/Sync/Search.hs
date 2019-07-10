@@ -1,8 +1,15 @@
+{- | This module provides functions used in fetching Haskell repos and
+issues from the GitHub API. Functions with the fetch- prefix such as 
+@fetchAllHaskellRepos@ can be used to make request to the GitHubAPI. 
+This module also exposes functions that map @github@ library types to our own,
+and a parser for extracting the @RepoOwner@ and @RepoName@ from a URL. 
+-}
+
 module IW.Sync.Search
        ( fetchAllHaskellRepos
        , fetchAllHaskellIssues
        , fetchHaskellIssuesByLabels
-       , fromgitHubIssue
+       , fromGitHubIssue
        , fromGitHubRepo
        , parseIssueUserData
        ) where
@@ -88,8 +95,8 @@ fromGitHubRepo githubRepo = Repo
     }
 
 -- | Convert a value of the @GitHub.Issue@ type to a value of our own @Issue@ type.
-fromgitHubIssue :: GitHub.Issue -> Maybe Issue
-fromgitHubIssue githubIssue = do
+fromGitHubIssue :: GitHub.Issue -> Maybe Issue
+fromGitHubIssue githubIssue = do
     (issueRepoOwner, issueRepoName) <- parseIssueUserData $ GitHub.issueUrl githubIssue
     pure Issue 
         { issueNumber = GitHub.unIssueNumber $ GitHub.issueNumber githubIssue
