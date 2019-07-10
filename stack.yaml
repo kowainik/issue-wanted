@@ -11,10 +11,15 @@ extra-deps:
   - torsor-0.1              # for co-log
   - typerep-map-0.3.2       # for co-log
 
+  # github
+  - github-0.22
+  - binary-instances-1
+  - binary-orphans-1.0.1
+  - time-compat-1.9.2.2
+  
   # testing
   - hedgehog-1.0
 
-  - github-0.20
   - servant-0.16.0.1
   - servant-server-0.16
   - tomland-1.0.0
