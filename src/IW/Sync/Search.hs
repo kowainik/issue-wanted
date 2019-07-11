@@ -1,6 +1,6 @@
 {- | This module provides functions used in fetching Haskell repos and
 issues from the GitHub API. Functions with the fetch- prefix such as 
-@fetchAllHaskellRepos@ can be used to make request to the GitHub API. 
+@fetchAllHaskellRepos@ can be used to make request to the GitHubAPI. 
 This module also exposes functions that map @github@ library types to our own,
 and a parser for extracting the @RepoOwner@ and @RepoName@ from a URL. 
 -}
@@ -119,6 +119,7 @@ parseIssueUserData (URL url) =
     >>= splitOwnerAndName
   where
     splitOwnerAndName :: Text -> Maybe (RepoOwner, RepoName)
-    splitOwnerAndName strippedUrl = 
-        let owner:name:_ = T.splitOn "/" strippedUrl
-        in guard (owner /= "" && name /= "") *> Just (RepoOwner owner, RepoName name)
+    splitOwnerAndName strippedUrl = do
+        owner:name:_ <- Just $ T.splitOn "/" strippedUrl 
+        guard $ owner /= "" && name /= ""
+        pure (RepoOwner owner, RepoName name)
