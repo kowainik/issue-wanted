@@ -1,5 +1,3 @@
-{-# LANGUAGE AllowAmbiguousTypes  #-}
-
 {- | This module contains the class definitiion of @MonadDownload@ and 
 an instance of @MonadDownload@ for the @App@ monad. Instances of 
 @MonadDownload@ have a @downloadFile@ action for downloading files from a given URL.

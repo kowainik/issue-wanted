@@ -9,7 +9,7 @@ import IW.Core.Repo (RepoOwner (..), RepoName (..))
 import IW.Core.Url (Url (..))
 import IW.Effects.Download (downloadFileImpl)
 import IW.Sync.Search (parseIssueUserData)
-import Test.Assert (succeeds, failsWith)
+import Test.Assert (equals, succeeds, failsWith)
 
 import qualified GitHub  
 
@@ -46,9 +46,17 @@ downloadFileSpec env = describe "downloadFile" $ do
        env & succeeds (downloadFileImpl issueWantedUrl)
     it "should fail with notFound error when passed a non-existent Url" $
        env & downloadFileImpl nonExistentUrl `failsWith` notFound 
+    it "should be equal to issueWantedMain when passed the issueWantedMainContent" $
+       env & downloadFileImpl issueWantedMainUrl `equals` issueWantedMainContent
 
 issueWantedUrl :: Url
 issueWantedUrl = Url "https://raw.githubusercontent.com/kowainik/issue-wanted/master/issue-wanted.cabal"
 
 nonExistentUrl :: Url
 nonExistentUrl = Url "https://raw.githubusercontent.com/blahblah/noexist123/master/noexist123.kabal"
+
+issueWantedMainUrl :: Url
+issueWantedMainUrl = Url "https://raw.githubusercontent.com/kowainik/issue-wanted/master/app/Main.hs"
+
+issueWantedMainContent :: ByteString
+issueWantedMainContent = "module Main where\n\nimport qualified IW\n\n\nmain :: IO ()\nmain = IW.main\n"
