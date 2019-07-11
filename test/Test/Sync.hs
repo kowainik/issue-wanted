@@ -10,7 +10,7 @@ import IW.Core.Url (Url (..))
 import IW.Effects.Download (downloadFileImpl)
 import IW.Effects.Cabal (getCabalCategoriesImpl, repoCabalUrl)
 import IW.Sync.Search (parseUserData)
-import Test.Assert (equals, succeeds, failsWith)
+import Test.Assert (equals, succeeds)
 
 import qualified GitHub
 

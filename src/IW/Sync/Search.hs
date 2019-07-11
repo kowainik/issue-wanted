@@ -15,7 +15,11 @@ module IW.Sync.Search
        ) where
 
 import GitHub (SearchResult (..), URL (..))
-import GitHub.Endpoints.Search (searchRepos, searchIssues)
+import GitHub.Data.RateLimit (RateLimit (..), Limits)
+import GitHub.Data.Request (query)
+import GitHub.Request (executeRequest')
+import GitHub.Endpoints.Search (searchIssues)
+import GitHub.Endpoints.RateLimit (rateLimit)
 
 import IW.App (WithError)
 import IW.Core.Issue (Issue (..), Label (..))
@@ -34,17 +38,10 @@ fetchAllHaskellRepos
        , WithError m
        , WithLog env m
        )
-    => m [GitHub.Repo]
-fetchAllHaskellRepos = liftGitHubSearchToApp searchHaskellRepos
-
--- | Convert a value of the @GitHub.Repo@ type to a value of our own @Repo@ type.
-fromGitHubRepo :: GitHub.Repo -> Repo
-fromGitHubRepo githubRepo = Repo
-    { repoOwner      = RepoOwner $ GitHub.untagName $ GitHub.simpleOwnerLogin $ GitHub.repoOwner githubRepo
-    , repoName       = RepoName  $ GitHub.untagName $ GitHub.repoName githubRepo
-    , repoDescr      = fromMaybe "" $ GitHub.repoDescription githubRepo
-    , repoCategories = SqlArray []
-    }
+    => Int
+    -> Int
+    -> m [GitHub.Repo]
+fetchAllHaskellRepos perPage page = liftGitHubSearchToApp (searchHaskellRepos perPage page)
 
 -- | Fetch all open issues with Haskell language and the labels passed in to the function.
 fetchHaskellIssuesByLabels
@@ -75,23 +72,57 @@ liftGitHubSearchToApp
        )
     => IO (Either GitHub.Error (SearchResult a))
     -> m [a]
-liftGitHubSearchToApp githubSearch = liftIO githubSearch >>= \case
+liftGitHubSearchToApp searchAction = liftIO searchAction >>= \case
     Left err -> throwError $ githubErrToAppErr err
     Right (SearchResult count vec) -> do
         log Info $ "Fetching total of " <> show count <> " " <> typeName @a <> "s..."
+        searchLimit <- getSearchRateLimit
+        log Info $ "Search rate limit information: " <> show searchLimit
         pure $ V.toList vec
 
--- | Search all repositories built with the Haskell language.
-searchHaskellRepos :: IO (Either GitHub.Error (SearchResult GitHub.Repo))
-searchHaskellRepos = searchRepos "language:haskell"
+getSearchRateLimit
+    :: forall m.
+       ( MonadIO m
+       , WithError m
+       )
+    => m Limits
+getSearchRateLimit = liftIO rateLimit >>= \case
+    Left err -> throwError $ githubErrToAppErr err
+    Right RateLimit{..} -> pure rateLimitSearch
 
--- | Construct a github search query from a list of labels.
-labelsToSearchQuery :: [Label] -> Text
-labelsToSearchQuery = foldMap (\Label{..} -> "label:\"" <> unLabel <> "\" ")
+githubSearch :: FromJSON a => [Text] -> [(ByteString, Maybe ByteString)] -> IO (Either GitHub.Error (SearchResult a))
+githubSearch paths queries = executeRequest' $ query paths queries
+
+{- | Search all repositories built with the Haskell language. Takes an @Int@ representing
+how many results will be returned per page, and another @Int@ that represents the page
+number to be returned.
+-}
+searchHaskellRepos :: Int -> Int -> IO (Either GitHub.Error (SearchResult GitHub.Repo))
+searchHaskellRepos perPage page = githubSearch paths queries
+  where
+    paths   = ["search", "repositories"]
+    queries =
+        [ ("q", Just "language:haskell")
+        , ("per_page", Just $ show perPage)
+        , ("page", Just $ show page)
+        ]
+
+-- | Convert a value of the @GitHub.Repo@ type to a value of our own @Repo@ type.
+fromGitHubRepo :: GitHub.Repo -> Repo
+fromGitHubRepo githubRepo = Repo
+    { repoOwner      = RepoOwner $ GitHub.untagName $ GitHub.simpleOwnerLogin $ GitHub.repoOwner githubRepo
+    , repoName       = RepoName $ GitHub.untagName $ GitHub.repoName githubRepo
+    , repoDescr      = fromMaybe "" $ GitHub.repoDescription githubRepo
+    , repoCategories = SqlArray []
+    }
 
 -- | Search for all open Haskell issues with the corresponding labels.
 searchHaskellIssuesByLabels :: [Label] -> IO (Either GitHub.Error (SearchResult GitHub.Issue))
 searchHaskellIssuesByLabels labels = searchIssues $ "language:haskell is:open " <> labelsToSearchQuery labels
+
+-- | Construct a github search query from a list of labels.
+labelsToSearchQuery :: [Label] -> Text
+labelsToSearchQuery = foldMap (\Label{..} -> "label:\"" <> unLabel <> "\" ")
 
 -- | Convert a value of the @GitHub.Issue@ type to a value of our own @Issue@ type.
 fromGitHubIssue :: GitHub.Issue -> Maybe Issue

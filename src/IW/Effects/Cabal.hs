@@ -13,7 +13,6 @@ module IW.Effects.Cabal
        , repoCabalUrl
        ) where
 
-import Data.Text (splitOn, strip)
 import Distribution.PackageDescription
 import Distribution.PackageDescription.Parsec (parseGenericPackageDescriptionMaybe)
 

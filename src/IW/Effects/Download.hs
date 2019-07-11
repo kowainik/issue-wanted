@@ -41,6 +41,7 @@ downloadFileImpl url@Url{..} = do
             log I $ "Successfully downloaded file from " <> unUrl
             pure $ toStrict body
         _   -> do
+<<<<<<< HEAD
             log E $ "Couldn't download file from " <> unUrl
             throwError $ urlDownloadFailedError url
 
@@ -48,3 +49,7 @@ downloadFileMaybe :: (MonadDownload m, WithError m) => Url -> m (Maybe ByteStrin
 downloadFileMaybe url = (Just <$> downloadFile url) `catchError` \case
     UrlDownloadFailed _ -> pure Nothing
     err -> throwError err
+=======
+            log W $ "Couldn't download file from " <> unUrl
+            pure ""
+>>>>>>> 8741353... [#104] Change fatal error logs to warnings
