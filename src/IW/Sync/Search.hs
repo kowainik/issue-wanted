@@ -119,6 +119,7 @@ parseIssueUserData (URL url) =
     >>= splitOwnerAndName
   where
     splitOwnerAndName :: Text -> Maybe (RepoOwner, RepoName)
-    splitOwnerAndName strippedUrl = 
-        let owner:name:_ = T.splitOn "/" strippedUrl
-        in guard (owner /= "" && name /= "") *> Just (RepoOwner owner, RepoName name)
+    splitOwnerAndName strippedUrl = do
+        owner:name:_ <- Just $ T.splitOn "/" strippedUrl 
+        guard $ owner /= "" && name /= ""
+        pure (RepoOwner owner, RepoName name)

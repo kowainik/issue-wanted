@@ -9,6 +9,7 @@ module IW.Core.Repo
        ) where
 
 import IW.Core.SqlArray (SqlArray (..))
+import IW.Core.Url (Url (..))
 
 
 -- | Wrapper for repository owner
@@ -35,9 +36,9 @@ data Repo = Repo
     } deriving stock    (Eq, Generic, Show)
       deriving anyclass (ToJSON, FromRow, ToRow)
 
-repoUrl :: Repo -> Text
-repoUrl Repo{..} = 
-    "https://github.com/" 
+repoUrl :: Repo -> Url
+repoUrl Repo{..} = Url
+    $ "https://github.com/" 
     <> unRepoOwner repoOwner 
     <> "/" 
     <> unRepoName repoName 
