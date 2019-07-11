@@ -30,7 +30,7 @@ downloadFileImpl :: WithDownload env m => Url -> m ByteString
 downloadFileImpl Url{..} = do
     man <- grab @Manager
     let req = fromString $ toString unUrl
-    log I $ "Attempting to download file from " <> unUrl <> "..."
+    log I $ "Attempting to download file from " <> unUrl <> " ..."
     response <- liftIO $ httpLbs req man
     let status = statusCode $ responseStatus response
     let body = responseBody response

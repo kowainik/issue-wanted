@@ -6,12 +6,14 @@ module IW.Db.Repo
        ( getRepos
        , getReposByCategories
        , upsertRepos
+       , updateRepoCategories
        ) where
 
 import IW.Core.Repo (Repo (..), Category (..))
 import IW.Core.SqlArray (SqlArray (..))
 import IW.Core.WithId (WithId)
-import IW.Db.Functions (WithDb, executeMany, query, queryRaw)
+import IW.Db.Functions (WithDb, executeMany, execute, query, queryRaw)
+import IW.Effects.Cabal (MonadCabal (..))
 
 
 -- | Returns all repos in the database.
@@ -43,3 +45,14 @@ upsertRepos = executeMany [sql|
         descr = EXCLUDED.descr
       , categories = EXCLUDED.categories;
 |]
+
+-- | Update a repo's categories field.
+updateRepoCategories :: (MonadCabal m, WithDb env m) => Repo -> m ()
+updateRepoCategories Repo{..} = do
+    categories <- getCabalCategories repoOwner repoName
+    execute [sql|
+        UPDATE repos
+        SET categories = ?
+        WHERE
+            (owner, name) == (?,?)
+    |] (SqlArray categories, repoOwner, repoName)

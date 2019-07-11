@@ -7,6 +7,7 @@ module IW.App.Monad
 
 import Control.Exception (catch, throwIO, try)
 import Control.Monad.Except (MonadError (..))
+import Control.Monad.IO.Unlift (MonadUnliftIO (..))
 import Relude.Extra.Bifunctor (firstF)
 
 import IW.App.Env (Env)
@@ -19,7 +20,7 @@ type AppEnv = Env App
 -- | Main application monad.
 newtype App a = App
     { unApp :: ReaderT AppEnv IO a
-    } deriving (Functor, Applicative, Monad, MonadIO, MonadReader AppEnv)
+    } deriving (Functor, Applicative, Monad, MonadIO, MonadReader AppEnv, MonadUnliftIO)
 
 instance MonadError AppError App where
     throwError :: AppError -> App a

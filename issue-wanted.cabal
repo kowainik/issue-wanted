@@ -96,8 +96,10 @@ library
 
                          -- Sync Worker
                          IW.Sync.Search
+                         IW.Sync.Update
 
   build-depends:       aeson >= 1.4
+                     , async ^>= 2.2.2
                      , bytestring ^>= 0.10
                      , Cabal ^>= 2.4.1.0
                      , case-insensitive ^>= 1.2
@@ -109,6 +111,7 @@ library
                      , http-client-tls ^>= 0.3.5.3
                      , http-types ^>= 0.12
                      , lens ^>= 4.17
+                     , lifted-async ^>= 0.10.0.4
                      , mtl ^>= 2.2.2
                      , postgresql-simple ^>= 0.6.1
                      , random ^>= 1.1
@@ -118,6 +121,8 @@ library
                      , text
                      , time >= 1.8 && < 1.10
                      , tomland ^>= 1.0.0
+                     , unliftio ^>= 0.2.12
+                     , unliftio-core ^>= 0.1.2.0
                      , unordered-containers
                      , vector ^>= 0.12.0.3
                      , warp ^>= 3.2

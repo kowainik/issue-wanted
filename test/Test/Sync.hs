@@ -9,7 +9,7 @@ import IW.Core.Repo (RepoOwner (..), RepoName (..), Category (..))
 import IW.Core.Url (Url (..))
 import IW.Effects.Download (downloadFileImpl)
 import IW.Effects.Cabal (getCabalCategoriesImpl, repoCabalUrl)
-import IW.Sync.Search (parseIssueUserData)
+import IW.Sync.Search (parseUserData)
 import Test.Assert (equals, succeeds, failsWith)
 
 import qualified GitHub
@@ -24,27 +24,34 @@ syncSpecs env = describe "GitHub sync correctness" $ do
 
 parseIssueUserDataSpec :: Spec
 parseIssueUserDataSpec = describe "parseIssueUserData" $ do
-    it "parsing testGitHubIssueUrl return Just (RepoOwner owner123, RepoName repo123)" $
-        parseIssueUserData testGitHubIssueUrl
+    it "parsing testGitHubUrl1 should return Just (RepoOwner owner123, RepoName repo123)" $
+        parseUserData testGitHubUrl1
             `shouldBe` Just (RepoOwner "owner123", RepoName "repo123")
-    it "parsing testBadGitHubIssueUrl1 should return Nothing" $
-        parseIssueUserData testBadGitHubIssueUrl1
+    it "parsing testGitHubUrl2 should return Just (RepoOwner owner123, RepoName repo123)" $
+        parseUserData testGitHubUrl2
+            `shouldBe` Just (RepoOwner "owner123", RepoName "repo123")
+    it "parsing testBadGitHubUrl1 return Nothing" $
+        parseUserData testBadGitHubUrl1
             `shouldBe` Nothing
-    it "parsing testBadGitHubIssueUrl2 return Nothing" $
-        parseIssueUserData testBadGitHubIssueUrl2
+    it "parsing testBadGitHubUrl2 return Nothing" $
+        parseUserData testBadGitHubUrl2
             `shouldBe` Nothing
 
--- | A @GitHub.Url@ with a valid format.
-testGitHubIssueUrl :: GitHub.URL
-testGitHubIssueUrl = GitHub.URL "https://api.github.com/repos/owner123/repo123/issues/1"
+-- | A @GitHub.Url@ for a repo with a valid format.
+testGitHubUrl1 :: GitHub.URL
+testGitHubUrl1 = GitHub.URL "https://api.github.com/repos/owner123/repo123"
 
--- | A @GitHub.Url@ with a an invalid directory in the path.
-testBadGitHubIssueUrl1 :: GitHub.URL
-testBadGitHubIssueUrl1 = GitHub.URL "https://api.github.com/randomWord/owner123/repo123/issues/1"
+-- | A @GitHub.Url@ for an issue with a valid format.
+testGitHubUrl2 :: GitHub.URL
+testGitHubUrl2 = GitHub.URL "https://api.github.com/repos/owner123/repo123/issues/1"
 
--- | A @GitHub.Url@ that uses @http@ instead of @https@.
-testBadGitHubIssueUrl2 :: GitHub.URL
-testBadGitHubIssueUrl2 = GitHub.URL "http://api.github.com/repos/owner123/repo123/issues/1"
+-- | An invalid @GitHub.Url@ that uses @http@ instead of @https@.
+testBadGitHubUrl1 :: GitHub.URL
+testBadGitHubUrl1 = GitHub.URL "http://api.github.com/repos/owner123/repo123/issues/1"
+
+-- | An invalid @GitHub.Url@ with an extra directory in the path.
+testBadGitHubUrl2 :: GitHub.URL
+testBadGitHubUrl2 = GitHub.URL "http://api.github.com/randomWord/repos/owner123/repo123"
 
 downloadFileSpec :: AppEnv -> Spec
 downloadFileSpec env = describe "downloadFile" $ do
@@ -56,6 +63,22 @@ downloadFileSpec env = describe "downloadFile" $ do
     it "should be equal to issueWantedMain when passed the issueWantedMainContent" $
        env & downloadFileImpl issueWantedMainUrl
             `equals` issueWantedMainContent
+
+-- | A @Url@ for the @issue-wanted@ @.cabal@ file.
+issueWantedCabalUrl :: Url
+issueWantedCabalUrl = Url "https://raw.githubusercontent.com/kowainik/issue-wanted/master/issue-wanted.cabal"
+
+-- | A @Url@ for a non-existent @.cabal@ file.
+nonExistentCabalUrl :: Url
+nonExistentCabalUrl = Url "https://raw.githubusercontent.com/blahblah/noexist123/master/noexist123.cabal"
+
+-- | A @Url@ for the @issue-wanted@ @Main.hs@ file.
+issueWantedMainUrl :: Url
+issueWantedMainUrl = Url "https://raw.githubusercontent.com/kowainik/issue-wanted/master/app/Main.hs"
+
+-- | The contents of the @issue-wanted@ @Main.hs@ file.
+issueWantedMainContent :: ByteString
+issueWantedMainContent = "module Main where\n\nimport qualified IW\n\n\nmain :: IO ()\nmain = IW.main\n"
 
 getCabalCategoriesSpec :: AppEnv -> Spec
 getCabalCategoriesSpec env = describe "getCabalCategories" $ do
@@ -90,22 +113,6 @@ nonExistentRepo = (RepoOwner "blahblah", RepoName "noexist123")
 -- but doesn't have a @.cabal@ file with a @category@ field.
 noCategoryFieldCabalFileRepo :: (RepoOwner, RepoName)
 noCategoryFieldCabalFileRepo = (RepoOwner "rashadg1030", RepoName "kiiboodoo-api")
-
--- | A @Url@ for the @issue-wanted@ @.cabal@ file.
-issueWantedCabalUrl :: Url
-issueWantedCabalUrl = Url "https://raw.githubusercontent.com/kowainik/issue-wanted/master/issue-wanted.cabal"
-
--- | A @Url@ for a non-existent @.cabal@ file.
-nonExistentCabalUrl :: Url
-nonExistentCabalUrl = Url "https://raw.githubusercontent.com/blahblah/noexist123/master/noexist123.cabal"
-
--- | A @Url@ for the @issue-wanted@ @Main.hs@ file.
-issueWantedMainUrl :: Url
-issueWantedMainUrl = Url "https://raw.githubusercontent.com/kowainik/issue-wanted/master/app/Main.hs"
-
--- | The contents of the @issue-wanted@ @Main.hs@ file.
-issueWantedMainContent :: ByteString
-issueWantedMainContent = "module Main where\n\nimport qualified IW\n\n\nmain :: IO ()\nmain = IW.main\n"
 
 -- | Represents the categories in @catgory@ field of the @issue-wanted@ @.cabal@ file.
 issueWantedCategories :: [Category]
