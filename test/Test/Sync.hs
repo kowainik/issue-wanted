@@ -2,16 +2,22 @@ module Test.Sync
        ( syncSpecs
        ) where
 
-import IW.Core.Repo (RepoOwner (..), RepoName (..))
-import IW.Sync.Search (parseIssueUserData)
 import Test.Hspec (Spec, describe, it, shouldBe)
+
+import IW.App (AppEnv, notFound)
+import IW.Core.Repo (RepoOwner (..), RepoName (..))
+import IW.Core.Url (Url (..))
+import IW.Effects.Download (downloadFileImpl)
+import IW.Sync.Search (parseIssueUserData)
+import Test.Assert (equals, succeeds, failsWith)
 
 import qualified GitHub  
 
 
-syncSpecs :: Spec
-syncSpecs = describe "GitHub sync correctness"
+syncSpecs :: AppEnv -> Spec
+syncSpecs env = describe "GitHub sync correctness" $ do
     parseIssueUserDataSpec
+    downloadFileSpec env 
 
 parseIssueUserDataSpec :: Spec
 parseIssueUserDataSpec = describe "parseIssueUserData" $ do
@@ -33,3 +39,24 @@ testBadGitHubIssueUrl1 = GitHub.URL "https://api.github.com/randomWord/owner123/
 
 testBadGitHubIssueUrl2 :: GitHub.URL
 testBadGitHubIssueUrl2 = GitHub.URL "api.github.com/repos/owner123/repo123/issues/1"
+
+downloadFileSpec :: AppEnv -> Spec
+downloadFileSpec env = describe "downloadFile" $ do
+    it "should succeed with 200 status code when passed a valid Url" $
+       env & succeeds (downloadFileImpl issueWantedUrl)
+    it "should fail with notFound error when passed a non-existent Url" $
+       env & downloadFileImpl nonExistentUrl `failsWith` notFound 
+    it "should be equal to issueWantedMain when passed the issueWantedMainContent" $
+       env & downloadFileImpl issueWantedMainUrl `equals` issueWantedMainContent
+
+issueWantedUrl :: Url
+issueWantedUrl = Url "https://raw.githubusercontent.com/kowainik/issue-wanted/master/issue-wanted.cabal"
+
+nonExistentUrl :: Url
+nonExistentUrl = Url "https://raw.githubusercontent.com/blahblah/noexist123/master/noexist123.kabal"
+
+issueWantedMainUrl :: Url
+issueWantedMainUrl = Url "https://raw.githubusercontent.com/kowainik/issue-wanted/master/app/Main.hs"
+
+issueWantedMainContent :: ByteString
+issueWantedMainContent = "module Main where\n\nimport qualified IW\n\n\nmain :: IO ()\nmain = IW.main\n"
