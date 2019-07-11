@@ -1,5 +1,8 @@
 module IW.Effects.Cabal
        ( getCabalCategories
+
+       -- * Internals
+       , getCabalCategoriesImpl
        ) where
 
 import Data.Text (splitOn, strip)
