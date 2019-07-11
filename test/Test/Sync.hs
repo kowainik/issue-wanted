@@ -5,6 +5,13 @@ module Test.Sync
 import Test.Hspec (Spec, describe, it, shouldBe)
 
 import IW.App (AppEnv, notFound)
+import IW.Core.Repo (RepoOwner (..), RepoName (..))
+import IW.Core.Url (Url (..))
+import IW.Effects.Download (downloadFileImpl)
+import IW.Sync.Search (parseIssueUserData)
+import Test.Assert (equals, succeeds, failsWith)
+
+import IW.App (AppEnv, notFound)
 import IW.Core.Repo (Repo (..), RepoOwner (..), RepoName (..), Category (..))
 import IW.Core.SqlArray (SqlArray (..))
 import IW.Core.Url (Url (..))
