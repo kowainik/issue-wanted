@@ -23,7 +23,7 @@ import qualified Data.Pool as Pool
 hspecTests :: AppEnv -> Spec
 hspecTests = sequential . joinSpecs "issue-wanted" 
     [ dbSpecs
-    , const syncSpecs 
+    , syncSpecs 
     ]
 
 hedgehogTests :: AppEnv -> Group

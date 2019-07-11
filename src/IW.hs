@@ -5,6 +5,7 @@ module IW
        , main
        ) where
 
+import Network.HTTP.Client.TLS (newTlsManager)
 import Network.Wai.Handler.Warp (run)
 import Servant.Server (serve)
 
@@ -19,6 +20,9 @@ mkAppEnv :: Config -> IO AppEnv
 mkAppEnv Config{..} = do
     -- IO configuration
     envDbPool <- initialisePool cDbCredentials
+
+    -- Http manager configuration
+    envManager <- newTlsManager
 
     -- pure configuration
     let envLogAction = mainLogAction cLogSeverity

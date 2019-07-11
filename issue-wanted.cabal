@@ -86,6 +86,7 @@ library
 
                          -- Effects
                          IW.Effects.Log
+                         IW.Effects.Download
 
                          -- Server
                          IW.Server
@@ -93,15 +94,19 @@ library
                            IW.Server.Types
                          
                          -- Sync Worker
+                         IW.Sync.Cabal
                          IW.Sync.Search  
-
+                         
   build-depends:       aeson >= 1.4
                      , bytestring ^>= 0.10
+                     , Cabal ^>= 2.4.1.0
                      , case-insensitive ^>= 1.2
                      , co-log ^>= 0.3.0
                      , containers >= 0.6
                      , github == 0.22
                      , http-api-data ^>= 0.4
+                     , http-client ^>= 0.5.14
+                     , http-client-tls ^>= 0.3.5.3
                      , http-types ^>= 0.12
                      , lens ^>= 4.17
                      , mtl ^>= 2.2.2
