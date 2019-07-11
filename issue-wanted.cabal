@@ -85,8 +85,9 @@ library
                            IW.Db.Schema
 
                          -- Effects
-                         IW.Effects.Log
+                         IW.Effects.Cabal
                          IW.Effects.Download
+                         IW.Effects.Log
 
                          -- Server
                          IW.Server
