@@ -3,6 +3,7 @@ module IW.Effects.Cabal
 
        -- * Internals
        , getCabalCategoriesImpl
+       , repoCabalUrl
        ) where
 
 import Data.Text (splitOn, strip)

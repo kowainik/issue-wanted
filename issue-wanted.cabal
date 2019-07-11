@@ -95,7 +95,6 @@ library
                            IW.Server.Types
                          
                          -- Sync Worker
-                         IW.Sync.Cabal
                          IW.Sync.Search  
                          
   build-depends:       aeson >= 1.4

@@ -5,11 +5,10 @@ module Test.Sync
 import Test.Hspec (Spec, describe, it, shouldBe)
 
 import IW.App (AppEnv, notFound)
-import IW.Core.Repo (Repo (..), RepoOwner (..), RepoName (..), Category (..))
-import IW.Core.SqlArray (SqlArray (..))
+import IW.Core.Repo (RepoOwner (..), RepoName (..), Category (..))
 import IW.Core.Url (Url (..))
 import IW.Effects.Download (downloadFileImpl)
-import IW.Sync.Cabal (fetchRepoCategories)
+import IW.Effects.Cabal (getCabalCategoriesImpl)
 import IW.Sync.Search (parseIssueUserData)
 import Test.Assert (equals, succeeds, failsWith)
 
@@ -20,7 +19,7 @@ syncSpecs :: AppEnv -> Spec
 syncSpecs env = describe "GitHub sync correctness" $ do
     parseIssueUserDataSpec
     downloadFileSpec env
-    fetchRepoCategoriesSpec env 
+    getCabalCategoriesSpec env 
 
 parseIssueUserDataSpec :: Spec
 parseIssueUserDataSpec = describe "parseIssueUserData" $ do
@@ -64,41 +63,23 @@ issueWantedMainUrl = Url "https://raw.githubusercontent.com/kowainik/issue-wante
 issueWantedMainContent :: ByteString
 issueWantedMainContent = "module Main where\n\nimport qualified IW\n\n\nmain :: IO ()\nmain = IW.main\n"
 
-fetchRepoCategoriesSpec :: AppEnv -> Spec
-fetchRepoCategoriesSpec env = describe "fetchRepoCategories" $ do
+getCabalCategoriesSpec :: AppEnv -> Spec
+getCabalCategoriesSpec env = describe "getCabalCategories" $ do
     it "should return issueWantedCategories when passed in a valid URL for the issue-wanted cabal file" $
-       env & fetchRepoCategories issueWantedRepo `equals` issueWantedCategories
+       env & (uncurry getCabalCategoriesImpl issueWantedRepo) `equals` issueWantedCategories
     it "should fail with notFound when passed in a repo that doesn't exist" $
-       env & fetchRepoCategories nonExistentRepo `failsWith` notFound
+       env & (uncurry getCabalCategoriesImpl nonExistentRepo) `failsWith` notFound
     it "should return SqlArray [] when passed in a repo that has a cabal file without a category field" $ 
-       env & fetchRepoCategories noCategoryFieldCabalFileRepo `equals` SqlArray []
+       env & (uncurry getCabalCategoriesImpl noCategoryFieldCabalFileRepo) `equals` []
 
-issueWantedRepo :: Repo
-issueWantedRepo = Repo
-    { repoOwner      = RepoOwner "kowainik"
-    , repoName       = RepoName "issue-wanted"
-    , repoDescr      = ""
-    , repoCategories = SqlArray []
-    }
+issueWantedRepo :: (RepoOwner, RepoName)
+issueWantedRepo = (RepoOwner "kowainik", RepoName "issue-wanted")
 
-issueWantedCategories :: SqlArray Category
-issueWantedCategories = SqlArray
-    [ Category "Web"
-    , Category "Application"
-    ]
+issueWantedCategories :: [Category]
+issueWantedCategories = [Category "Web", Category "Application"]
 
-nonExistentRepo :: Repo
-nonExistentRepo = Repo
-    { repoOwner      = RepoOwner "blahblah"
-    , repoName       = RepoName "noexist123"
-    , repoDescr      = ""
-    , repoCategories = SqlArray []
-    }
+nonExistentRepo :: (RepoOwner, RepoName)
+nonExistentRepo = (RepoOwner "blahblah", RepoName "noexist123")
 
-noCategoryFieldCabalFileRepo :: Repo
-noCategoryFieldCabalFileRepo = Repo
-    { repoOwner      = RepoOwner "rashadg1030"
-    , repoName       = RepoName "kiiboodoo-api"
-    , repoDescr      = ""
-    , repoCategories = SqlArray []
-    }
+noCategoryFieldCabalFileRepo :: (RepoOwner, RepoName)
+noCategoryFieldCabalFileRepo = (RepoOwner "rashadg1030", RepoName "kiiboodoo-api")
