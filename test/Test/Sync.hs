@@ -102,3 +102,4 @@ noCategoryFieldCabalFileRepo = Repo
     , repoDescr      = ""
     , repoCategories = SqlArray []
     }
+    
