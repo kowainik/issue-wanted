@@ -9,12 +9,11 @@ module IW.Effects.Cabal
 import Data.Text (splitOn, strip)
 import Distribution.PackageDescription
 import Distribution.PackageDescription.Parsec (parseGenericPackageDescriptionMaybe)
-import Network.HTTP.Client (Manager)
 
-import IW.App (App, Has, WithError)
+import IW.App (App)
 import IW.Core.Repo (RepoOwner (..), RepoName (..), Category (..))
 import IW.Core.Url (Url (..))
-import IW.Effects.Download (downloadFileImpl)
+import IW.Effects.Download (MonadDownload (..))
 
 
 class Monad m => MonadCabal m where
@@ -23,11 +22,9 @@ class Monad m => MonadCabal m where
 instance MonadCabal App where
     getCabalCategories = getCabalCategoriesImpl
 
-type WithCabal env m = (MonadIO m, MonadReader env m, WithError m, Has Manager env)
-
-getCabalCategoriesImpl :: WithCabal env m => RepoOwner -> RepoName -> m [Category]
+getCabalCategoriesImpl :: MonadDownload m => RepoOwner -> RepoName -> m [Category]
 getCabalCategoriesImpl repoOwner repoName = do
-    cabalFile <- downloadFileImpl $ repoCabalUrl repoOwner repoName 
+    cabalFile <- downloadFile $ repoCabalUrl repoOwner repoName 
     pure $ case parseGenericPackageDescriptionMaybe cabalFile of
         Nothing -> []
         Just genPkgDescr -> categoryNames genPkgDescr

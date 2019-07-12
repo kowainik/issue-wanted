@@ -48,23 +48,29 @@ downloadFileSpec env = describe "downloadFile" $ do
     it "should succeed with 200 status code when passed a valid Url" $
        env & succeeds (downloadFileImpl issueWantedUrl)
     it "should fail with notFound error when passed a non-existent Url" $
-       env & downloadFileImpl nonExistentUrl `failsWith` notFound 
+       env & downloadFileImpl nonExistentUrl 
+            `failsWith` notFound 
     it "should be equal to issueWantedMain when passed the issueWantedMainContent" $
-       env & downloadFileImpl issueWantedMainUrl `equals` issueWantedMainContent
+       env & downloadFileImpl issueWantedMainUrl 
+            `equals` issueWantedMainContent
 
 getCabalCategoriesSpec :: AppEnv -> Spec
 getCabalCategoriesSpec env = describe "getCabalCategories" $ do
     it "should return issueWantedCategories when passed in a valid URL for the issue-wanted cabal file" $
-       env & (uncurry getCabalCategoriesImpl issueWantedRepo) `equals` issueWantedCategories
+       env & uncurry getCabalCategoriesImpl issueWantedRepo 
+            `equals` issueWantedCategories
     it "should fail with notFound when passed in a repo that doesn't exist" $
-       env & (uncurry getCabalCategoriesImpl nonExistentRepo) `failsWith` notFound
+       env & uncurry getCabalCategoriesImpl nonExistentRepo 
+            `failsWith` notFound
     it "should return SqlArray [] when passed in a repo that has a cabal file without a category field" $ 
-       env & (uncurry getCabalCategoriesImpl noCategoryFieldCabalFileRepo) `equals` []
+       env & uncurry getCabalCategoriesImpl noCategoryFieldCabalFileRepo 
+            `equals` []
 
 repoCabalUrlSpec :: Spec
-repoCabalUrlSpec = describe "repoCabalUrl" $ do
+repoCabalUrlSpec = describe "repoCabalUrl" $
     it "should equal issueWantedUrl when passed in issueWantedRepo" $
-        uncurry repoCabalUrl issueWantedRepo `shouldBe` issueWantedUrl
+        uncurry repoCabalUrl issueWantedRepo 
+            `shouldBe` issueWantedUrl
         
 issueWantedUrl :: Url
 issueWantedUrl = Url "https://raw.githubusercontent.com/kowainik/issue-wanted/master/issue-wanted.cabal"
