@@ -17,7 +17,7 @@ import IW.App (App, Has, WithError, grab, throwError, notFound)
 import IW.Core.Url (Url (..))
 
 
--- | Describes a monad that can download files from a given URL.
+-- | Describes a monad that can download files from a given @Url@.
 class Monad m => MonadDownload m where
     downloadFile :: Url -> m ByteString
 

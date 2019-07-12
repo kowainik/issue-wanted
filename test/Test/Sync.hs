@@ -34,19 +34,22 @@ parseIssueUserDataSpec = describe "parseIssueUserData" $ do
         parseIssueUserData testBadGitHubIssueUrl2
             `shouldBe` Nothing
 
+-- | A @GitHub.Url@ with a valid format.
 testGitHubIssueUrl :: GitHub.URL
 testGitHubIssueUrl = GitHub.URL "https://api.github.com/repos/owner123/repo123/issues/1"
 
+-- | A @GitHub.Url@ with a an invalid directory in the path.
 testBadGitHubIssueUrl1 :: GitHub.URL
 testBadGitHubIssueUrl1 = GitHub.URL "https://api.github.com/randomWord/owner123/repo123/issues/1"
 
+-- | A @GitHub.Url@ that uses @http@ instead of @https@.
 testBadGitHubIssueUrl2 :: GitHub.URL
-testBadGitHubIssueUrl2 = GitHub.URL "api.github.com/repos/owner123/repo123/issues/1"
+testBadGitHubIssueUrl2 = GitHub.URL "http://api.github.com/repos/owner123/repo123/issues/1"
 
 downloadFileSpec :: AppEnv -> Spec
 downloadFileSpec env = describe "downloadFile" $ do
     it "should succeed with 200 status code when passed a valid Url" $
-       env & succeeds (downloadFileImpl issueWantedUrl)
+       env & succeeds (downloadFileImpl issueWantedCabalUrl
     it "should fail with notFound error when passed a non-existent Url" $
        env & downloadFileImpl nonExistentUrl
             `failsWith` notFound
@@ -67,31 +70,43 @@ getCabalCategoriesSpec env = describe "getCabalCategories" $ do
             `equals` []
 
 repoCabalUrlSpec :: Spec
-repoCabalUrlSpec = describe "repoCabalUrl" $
-    it "should equal issueWantedUrl when passed in issueWantedRepo" $
+repoCabalUrlSpec = describe "repoCabalUrl" $ do
+    it "should equal issueWantedCabalUrl when passed in issueWantedRepo" $
         uncurry repoCabalUrl issueWantedRepo
-            `shouldBe` issueWantedUrl
+            `shouldBe` issueWantedCabalUrl
+    it "should equal nonExistentCabalUrl when passed in nonExistentRepo" $
+        uncurry repoCabalUrl nonExistentRepo
+            `shouldBe` nonExistentCabalUrl
 
-issueWantedUrl :: Url
-issueWantedUrl = Url "https://raw.githubusercontent.com/kowainik/issue-wanted/master/issue-wanted.cabal"
-
-nonExistentUrl :: Url
-nonExistentUrl = Url "https://raw.githubusercontent.com/blahblah/noexist123/master/noexist123.kabal"
-
-issueWantedMainUrl :: Url
-issueWantedMainUrl = Url "https://raw.githubusercontent.com/kowainik/issue-wanted/master/app/Main.hs"
-
-issueWantedMainContent :: ByteString
-issueWantedMainContent = "module Main where\n\nimport qualified IW\n\n\nmain :: IO ()\nmain = IW.main\n"
-
+-- | A tuple of @Repo@ data for the @issue-wanted@ project.
 issueWantedRepo :: (RepoOwner, RepoName)
 issueWantedRepo = (RepoOwner "kowainik", RepoName "issue-wanted")
 
-issueWantedCategories :: [Category]
-issueWantedCategories = [Category "Web", Category "Application"]
-
+-- | A tuple of @Repo@ data for a repository doesn't exist.
 nonExistentRepo :: (RepoOwner, RepoName)
 nonExistentRepo = (RepoOwner "blahblah", RepoName "noexist123")
 
+-- | A tuple of @Repo@ data for a repository that does exist,
+-- but doesn't have a @.cabal@ file with a @category@ field.
 noCategoryFieldCabalFileRepo :: (RepoOwner, RepoName)
 noCategoryFieldCabalFileRepo = (RepoOwner "rashadg1030", RepoName "kiiboodoo-api")
+
+-- | A @Url@ for the @issue-wanted@ @.cabal@ file.
+issueWantedCabalUrl :: Url
+issueWantedCabalUrl = Url "https://raw.githubusercontent.com/kowainik/issue-wanted/master/issue-wanted.cabal"
+
+-- | A @Url@ for a non-existent @.cabal@ file.
+nonExistentCabalUrl :: Url
+nonExistentCabalUrl = Url "https://raw.githubusercontent.com/blahblah/noexist123/master/noexist123.cabal"
+
+-- | A @Url@ for the @issue-wanted@ @Main.hs@ file.
+issueWantedMainUrl :: Url
+issueWantedMainUrl = Url "https://raw.githubusercontent.com/kowainik/issue-wanted/master/app/Main.hs"
+
+-- | The contents of the @issue-wanted@ @Main.hs@ file.
+issueWantedMainContent :: ByteString
+issueWantedMainContent = "module Main where\n\nimport qualified IW\n\n\nmain :: IO ()\nmain = IW.main\n"
+
+-- | Represents the categories in @catgory@ field of the @issue-wanted@ @.cabal@ file.
+issueWantedCategories :: [Category]
+issueWantedCategories = [Category "Web", Category "Application"]
