@@ -33,22 +33,21 @@ getCabalCategoriesImpl repoOwner repoName = do
         Just genPkgDescr -> categoryNames genPkgDescr
 
 repoCabalUrl :: RepoOwner -> RepoName -> Url
-repoCabalUrl (RepoOwner rO) (RepoName rN) = Url $
+repoCabalUrl (RepoOwner repoOwner) (RepoName repoName) = Url $
     "https://raw.githubusercontent.com/" 
-    <> rO
+    <> repoOwner 
     <> "/" 
-    <> rN
+    <> repoName
     <> "/master/"
-    <> rN
+    <> repoName
     <> ".cabal" 
 
 categoryNames :: GenericPackageDescription -> [Category]
 categoryNames genPkgDescr = Category . strip <$> splitCategories genPkgDescr
   where
     splitCategories :: GenericPackageDescription -> [Text]
-    splitCategories = splitOn' . toText . category . packageDescription
+    splitCategories = splitOnNonEmptyText "," . toText . category . packageDescription
 
-    splitOn' :: Text -> [Text]
-    splitOn' = \case 
-        ""   -> []
-        text -> splitOn "," text
+    splitOnNonEmptyText :: Text -> Text -> [Text]
+    splitOnNonEmptyText _ ""       = []
+    splitOnNonEmptyText delim text = splitOn delim text

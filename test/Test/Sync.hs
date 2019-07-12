@@ -8,7 +8,7 @@ import IW.App (AppEnv, notFound)
 import IW.Core.Repo (RepoOwner (..), RepoName (..), Category (..))
 import IW.Core.Url (Url (..))
 import IW.Effects.Download (downloadFileImpl)
-import IW.Effects.Cabal (getCabalCategoriesImpl)
+import IW.Effects.Cabal (getCabalCategoriesImpl, repoCabalUrl)
 import IW.Sync.Search (parseIssueUserData)
 import Test.Assert (equals, succeeds, failsWith)
 
@@ -19,7 +19,8 @@ syncSpecs :: AppEnv -> Spec
 syncSpecs env = describe "GitHub sync correctness" $ do
     parseIssueUserDataSpec
     downloadFileSpec env
-    getCabalCategoriesSpec env 
+    getCabalCategoriesSpec env
+    repoCabalUrlSpec
 
 parseIssueUserDataSpec :: Spec
 parseIssueUserDataSpec = describe "parseIssueUserData" $ do
@@ -51,6 +52,20 @@ downloadFileSpec env = describe "downloadFile" $ do
     it "should be equal to issueWantedMain when passed the issueWantedMainContent" $
        env & downloadFileImpl issueWantedMainUrl `equals` issueWantedMainContent
 
+getCabalCategoriesSpec :: AppEnv -> Spec
+getCabalCategoriesSpec env = describe "getCabalCategories" $ do
+    it "should return issueWantedCategories when passed in a valid URL for the issue-wanted cabal file" $
+       env & (uncurry getCabalCategoriesImpl issueWantedRepo) `equals` issueWantedCategories
+    it "should fail with notFound when passed in a repo that doesn't exist" $
+       env & (uncurry getCabalCategoriesImpl nonExistentRepo) `failsWith` notFound
+    it "should return SqlArray [] when passed in a repo that has a cabal file without a category field" $ 
+       env & (uncurry getCabalCategoriesImpl noCategoryFieldCabalFileRepo) `equals` []
+
+repoCabalUrlSpec :: Spec
+repoCabalUrlSpec = describe "repoCabalUrl" $ do
+    it "should equal issueWantedUrl when passed in issueWantedRepo" $
+        uncurry repoCabalUrl issueWantedRepo `shouldBe` issueWantedUrl
+        
 issueWantedUrl :: Url
 issueWantedUrl = Url "https://raw.githubusercontent.com/kowainik/issue-wanted/master/issue-wanted.cabal"
 
@@ -62,15 +77,6 @@ issueWantedMainUrl = Url "https://raw.githubusercontent.com/kowainik/issue-wante
 
 issueWantedMainContent :: ByteString
 issueWantedMainContent = "module Main where\n\nimport qualified IW\n\n\nmain :: IO ()\nmain = IW.main\n"
-
-getCabalCategoriesSpec :: AppEnv -> Spec
-getCabalCategoriesSpec env = describe "getCabalCategories" $ do
-    it "should return issueWantedCategories when passed in a valid URL for the issue-wanted cabal file" $
-       env & (uncurry getCabalCategoriesImpl issueWantedRepo) `equals` issueWantedCategories
-    it "should fail with notFound when passed in a repo that doesn't exist" $
-       env & (uncurry getCabalCategoriesImpl nonExistentRepo) `failsWith` notFound
-    it "should return SqlArray [] when passed in a repo that has a cabal file without a category field" $ 
-       env & (uncurry getCabalCategoriesImpl noCategoryFieldCabalFileRepo) `equals` []
 
 issueWantedRepo :: (RepoOwner, RepoName)
 issueWantedRepo = (RepoOwner "kowainik", RepoName "issue-wanted")
