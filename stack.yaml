@@ -16,7 +16,7 @@ extra-deps:
   - binary-instances-1
   - binary-orphans-1.0.1
   - time-compat-1.9.2.2
-  
+
   # testing
   - hedgehog-1.0
 

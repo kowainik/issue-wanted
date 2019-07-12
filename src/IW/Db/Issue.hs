@@ -4,16 +4,17 @@
 
 module IW.Db.Issue
        ( getIssues
-       , getIssuesByLabel
+       , getIssuesByLabels
        , upsertIssues
        ) where
 
-import IW.Core.Issue (Issue (..))
+import IW.Core.Issue (Issue (..), Label (..))
+import IW.Core.SqlArray (SqlArray (..))
 import IW.Core.WithId (WithId)
 import IW.Db.Functions (WithDb, executeMany, query, queryRaw)
 
 
--- | Returns all issues in the database
+-- | Returns all issues in the database.
 getIssues :: (WithDb env m) => m [WithId Issue]
 getIssues = queryRaw [sql|
     SELECT id, repo_owner, repo_name, number, title, body, labels
@@ -21,16 +22,16 @@ getIssues = queryRaw [sql|
     LIMIT 100
 |]
 
--- | Returns a list of issues filtered by label name
-getIssuesByLabel :: (WithDb env m) => Text -> m [WithId Issue]
-getIssuesByLabel = query [sql|
+-- | Returns all issues with at least one label in the given list.
+getIssuesByLabels :: (WithDb env m) => [Label] -> m [WithId Issue]
+getIssuesByLabels = query [sql|
     SELECT id, repo_owner, repo_name, number, title, body, labels
     FROM issues
-    WHERE ? = ANY (labels)
+    WHERE ? && labels
     LIMIT 100
-|] . Only
+|] . Only . SqlArray
 
--- | Insert a list of issues into the database, but update on conflict
+-- | Insert a list of issues into the database, but update on conflict.
 upsertIssues :: (WithDb env m) => [Issue] -> m ()
 upsertIssues = executeMany [sql|
     INSERT INTO issues
