@@ -49,9 +49,9 @@ testBadGitHubIssueUrl2 = GitHub.URL "http://api.github.com/repos/owner123/repo12
 downloadFileSpec :: AppEnv -> Spec
 downloadFileSpec env = describe "downloadFile" $ do
     it "should succeed with 200 status code when passed a valid Url" $
-       env & succeeds (downloadFileImpl issueWantedCabalUrl
+       env & succeeds (downloadFileImpl issueWantedCabalUrl)
     it "should fail with notFound error when passed a non-existent Url" $
-       env & downloadFileImpl nonExistentUrl
+       env & downloadFileImpl nonExistentCabalUrl
             `failsWith` notFound
     it "should be equal to issueWantedMain when passed the issueWantedMainContent" $
        env & downloadFileImpl issueWantedMainUrl
