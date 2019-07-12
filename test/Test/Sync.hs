@@ -12,7 +12,7 @@ import IW.Effects.Cabal (getCabalCategoriesImpl, repoCabalUrl)
 import IW.Sync.Search (parseIssueUserData)
 import Test.Assert (equals, succeeds, failsWith)
 
-import qualified GitHub  
+import qualified GitHub
 
 
 syncSpecs :: AppEnv -> Spec
@@ -24,10 +24,10 @@ syncSpecs env = describe "GitHub sync correctness" $ do
 
 parseIssueUserDataSpec :: Spec
 parseIssueUserDataSpec = describe "parseIssueUserData" $ do
-    it "parsing testGitHubIssueUrl return Just (RepoOwner owner123, RepoName repo123)" $ 
-        parseIssueUserData testGitHubIssueUrl 
+    it "parsing testGitHubIssueUrl return Just (RepoOwner owner123, RepoName repo123)" $
+        parseIssueUserData testGitHubIssueUrl
             `shouldBe` Just (RepoOwner "owner123", RepoName "repo123")
-    it "parsing testBadGitHubIssueUrl1 should return Nothing" $ 
+    it "parsing testBadGitHubIssueUrl1 should return Nothing" $
         parseIssueUserData testBadGitHubIssueUrl1
             `shouldBe` Nothing
     it "parsing testBadGitHubIssueUrl2 return Nothing" $
@@ -48,30 +48,30 @@ downloadFileSpec env = describe "downloadFile" $ do
     it "should succeed with 200 status code when passed a valid Url" $
        env & succeeds (downloadFileImpl issueWantedUrl)
     it "should fail with notFound error when passed a non-existent Url" $
-       env & downloadFileImpl nonExistentUrl 
-            `failsWith` notFound 
+       env & downloadFileImpl nonExistentUrl
+            `failsWith` notFound
     it "should be equal to issueWantedMain when passed the issueWantedMainContent" $
-       env & downloadFileImpl issueWantedMainUrl 
+       env & downloadFileImpl issueWantedMainUrl
             `equals` issueWantedMainContent
 
 getCabalCategoriesSpec :: AppEnv -> Spec
 getCabalCategoriesSpec env = describe "getCabalCategories" $ do
     it "should return issueWantedCategories when passed in a valid URL for the issue-wanted cabal file" $
-       env & uncurry getCabalCategoriesImpl issueWantedRepo 
+       env & uncurry getCabalCategoriesImpl issueWantedRepo
             `equals` issueWantedCategories
     it "should fail with notFound when passed in a repo that doesn't exist" $
-       env & uncurry getCabalCategoriesImpl nonExistentRepo 
+       env & uncurry getCabalCategoriesImpl nonExistentRepo
             `failsWith` notFound
-    it "should return SqlArray [] when passed in a repo that has a cabal file without a category field" $ 
-       env & uncurry getCabalCategoriesImpl noCategoryFieldCabalFileRepo 
+    it "should return SqlArray [] when passed in a repo that has a cabal file without a category field" $
+       env & uncurry getCabalCategoriesImpl noCategoryFieldCabalFileRepo
             `equals` []
 
 repoCabalUrlSpec :: Spec
 repoCabalUrlSpec = describe "repoCabalUrl" $
     it "should equal issueWantedUrl when passed in issueWantedRepo" $
-        uncurry repoCabalUrl issueWantedRepo 
+        uncurry repoCabalUrl issueWantedRepo
             `shouldBe` issueWantedUrl
-        
+
 issueWantedUrl :: Url
 issueWantedUrl = Url "https://raw.githubusercontent.com/kowainik/issue-wanted/master/issue-wanted.cabal"
 

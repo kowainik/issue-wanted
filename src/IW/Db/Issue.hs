@@ -25,7 +25,7 @@ getIssues = queryRaw [sql|
 getIssuesByLabel :: (WithDb env m) => Text -> m [WithId Issue]
 getIssuesByLabel = query [sql|
     SELECT id, repo_owner, repo_name, number, title, body, labels
-    FROM issues 
+    FROM issues
     WHERE ? = ANY (labels)
     LIMIT 100
 |] . Only
@@ -33,19 +33,19 @@ getIssuesByLabel = query [sql|
 -- | Insert a list of issues into the database, but update on conflict
 upsertIssues :: (WithDb env m) => [Issue] -> m ()
 upsertIssues = executeMany [sql|
-    INSERT INTO issues 
+    INSERT INTO issues
         (repo_owner, repo_name, number, title, body, labels)
-    SELECT 
+    SELECT
         repo_owner, repo_name, number, title, body, labels
-    FROM (VALUES (?, ?, ?, ?, ?, ?)) AS 
+    FROM (VALUES (?, ?, ?, ?, ?, ?)) AS
         new (repo_owner, repo_name, number, title, body, labels)
-    WHERE EXISTS ( 
-        SELECT (owner, name) 
-        FROM repos 
+    WHERE EXISTS (
+        SELECT (owner, name)
+        FROM repos
         WHERE (repos.owner, repos.name) = (new.repo_owner, new.repo_name)
     )
-    ON CONFLICT ON CONSTRAINT unique_issues DO 
-    UPDATE SET 
+    ON CONFLICT ON CONSTRAINT unique_issues DO
+    UPDATE SET
         title  = EXCLUDED.title
       , body   = EXCLUDED.body
       , labels = EXCLUDED.labels;

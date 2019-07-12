@@ -33,12 +33,12 @@ getReposByCategory = query [sql|
 -- | Insert a list of repos into the database, but update on conflict
 upsertRepos :: (WithDb env m) => [Repo] -> m ()
 upsertRepos = executeMany [sql|
-    INSERT INTO repos 
+    INSERT INTO repos
         (owner, name, descr, categories)
-    VALUES 
+    VALUES
         (?, ?, ?, ?)
-    ON CONFLICT ON CONSTRAINT unique_repos DO 
-    UPDATE SET 
+    ON CONFLICT ON CONSTRAINT unique_repos DO
+    UPDATE SET
         descr = EXCLUDED.descr
       , categories = EXCLUDED.categories;
 |]

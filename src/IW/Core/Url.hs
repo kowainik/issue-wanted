@@ -3,7 +3,7 @@ module IW.Core.Url
        ) where
 
 
-newtype Url = Url 
-    { unUrl :: Text 
+newtype Url = Url
+    { unUrl :: Text
     } deriving stock   (Generic)
       deriving newtype (Eq, Ord, Show)

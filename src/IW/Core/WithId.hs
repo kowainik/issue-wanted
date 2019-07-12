@@ -4,7 +4,7 @@
 because types with an @Id a@ can be sorted and updated more effeciently.
 -}
 
-module IW.Core.WithId 
+module IW.Core.WithId
        ( WithId (..)
        ) where
 
@@ -20,13 +20,13 @@ data WithId a = WithId
     , withIdVal :: !a
     } deriving stock (Generic, Show, Eq)
       deriving anyclass (ToJSON)
-    
+
 instance FromRow a => FromRow (WithId a) where
     fromRow :: RowParser (WithId a)
     fromRow = WithId <$> field <*> fromRow
     {-# INLINE fromRow #-}
 
 instance ToRow a => ToRow (WithId a) where
-    toRow :: WithId a -> [Action] 
-    toRow WithId{..} = toRow (Only withIdId :. withIdVal)  
+    toRow :: WithId a -> [Action]
+    toRow WithId{..} = toRow (Only withIdId :. withIdVal)
     {-# INLINE toRow #-}

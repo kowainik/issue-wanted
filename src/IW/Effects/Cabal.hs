@@ -24,20 +24,20 @@ instance MonadCabal App where
 
 getCabalCategoriesImpl :: MonadDownload m => RepoOwner -> RepoName -> m [Category]
 getCabalCategoriesImpl repoOwner repoName = do
-    cabalFile <- downloadFile $ repoCabalUrl repoOwner repoName 
+    cabalFile <- downloadFile $ repoCabalUrl repoOwner repoName
     pure $ case parseGenericPackageDescriptionMaybe cabalFile of
         Nothing -> []
         Just genPkgDescr -> categoryNames genPkgDescr
 
 repoCabalUrl :: RepoOwner -> RepoName -> Url
 repoCabalUrl (RepoOwner repoOwner) (RepoName repoName) = Url $
-    "https://raw.githubusercontent.com/" 
-    <> repoOwner 
-    <> "/" 
+    "https://raw.githubusercontent.com/"
+    <> repoOwner
+    <> "/"
     <> repoName
     <> "/master/"
     <> repoName
-    <> ".cabal" 
+    <> ".cabal"
 
 categoryNames :: GenericPackageDescription -> [Category]
 categoryNames genPkgDescr = Category . strip <$> splitCategories genPkgDescr
