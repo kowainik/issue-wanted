@@ -1,7 +1,8 @@
 {- | This module contains the class definitiion of @MonadCabal@ and
-an instance of @MonadCabald@ for the @App@ monad. Instances of
+an instance of @MonadCabal@ for the @App@ monad. Instances of
 @MonadCabal@ have a @getCabalCategories@ action that returns @[Category]@
-given a @RepoOwner@ and @RepoName@.
+given a @RepoOwner@ and @RepoName@. It does so by downloading a @.cabal@ file
+and parsing the @category@ field of the file.
 -}
 
 module IW.Effects.Cabal
