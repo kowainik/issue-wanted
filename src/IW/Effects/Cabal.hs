@@ -30,12 +30,25 @@ class Monad m => MonadCabal m where
 instance MonadCabal App where
     getCabalCategories = getCabalCategoriesImpl
 
-getCabalCategoriesImpl :: MonadDownload m => RepoOwner -> RepoName -> m [Category]
+type WithCabal env m = (MonadDownload m, WithLog env m)
+
+{- | This function may throw anyone of the errors inherited by the use of @downloadFile@
+defined in @IW.Effects.Download@. We are using @parseGenericPackageDescriptionMaybe@
+which will return @Nothing@ on an unsuccessful parse.
+-}
+getCabalCategoriesImpl :: WithCabal env m => RepoOwner -> RepoName -> m [Category]
 getCabalCategoriesImpl repoOwner repoName = do
     cabalFile <- downloadFile $ repoCabalUrl repoOwner repoName
-    pure $ case parseGenericPackageDescriptionMaybe cabalFile of
-        Nothing -> []
-        Just genPkgDescr -> categoryNames genPkgDescr
+    case parseGenericPackageDescriptionMaybe cabalFile of
+        Nothing -> do
+            log E $ "Couldn't parse file downloaded from " <> textUrl
+            pure []
+        Just genPkgDescr -> do
+            log I $ "Successfully parsed file downloaded from " <> textUrl
+            pure $ categoryNames genPkgDescr
+  where
+    textUrl :: Text
+    textUrl = unUrl $ repoCabalUrl repoOwner repoName
 
 -- | This function returns a @Url@ for downloading a @Repo@'s @.cabal@ file.
 repoCabalUrl :: RepoOwner -> RepoName -> Url

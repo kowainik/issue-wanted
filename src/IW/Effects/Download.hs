@@ -24,13 +24,18 @@ class Monad m => MonadDownload m where
 instance MonadDownload App where
     downloadFile = downloadFileImpl
 
-type WithDownload env m = (MonadIO m, MonadReader env m, WithError m, Has Manager env)
+type WithDownload env m = (MonadIO m, MonadReader env m, WithError m, WithLog env m, Has Manager env)
 
 downloadFileImpl :: WithDownload env m => Url -> m ByteString
 downloadFileImpl Url{..} = do
     man <- grab @Manager
     let req = fromString $ toString unUrl
+    log I $ "Attempting to download file from " <> unUrl <> "..."
     response <- liftIO $ httpLbs req man
     case statusCode $ responseStatus response of
-        200 -> pure $ toStrict $ responseBody response
-        _   -> throwError notFound
+        200 -> do
+            log I $ "Successfully downloaded file from " <> unUrl
+            pure $ toStrict $ responseBody response
+        _   -> do
+            log E $ "Couldn't download file from " <> unUrl
+            throwError notFound
