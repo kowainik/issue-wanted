@@ -38,7 +38,7 @@ which will return @Nothing@ on an unsuccessful parse.
 -}
 getCabalCategoriesImpl :: WithCabal env m => RepoOwner -> RepoName -> m [Category]
 getCabalCategoriesImpl repoOwner repoName = do
-    cabalFile <- downloadFile $ cabalUrl
+    cabalFile <- downloadFile cabalUrl
     case parseGenericPackageDescriptionMaybe cabalFile of
         Nothing -> do
             log E $ "Couldn't parse file downloaded from " <> unUrl cabalUrl
