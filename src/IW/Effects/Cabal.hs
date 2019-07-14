@@ -6,7 +6,7 @@ and parsing the @category@ field of the file.
 -}
 
 module IW.Effects.Cabal
-       ( getCabalCategories
+       ( MonadCabal (..)
 
        -- * Internals
        , getCabalCategoriesImpl
@@ -38,17 +38,17 @@ which will return @Nothing@ on an unsuccessful parse.
 -}
 getCabalCategoriesImpl :: WithCabal env m => RepoOwner -> RepoName -> m [Category]
 getCabalCategoriesImpl repoOwner repoName = do
-    cabalFile <- downloadFile $ repoCabalUrl repoOwner repoName
+    cabalFile <- downloadFile $ cabalUrl
     case parseGenericPackageDescriptionMaybe cabalFile of
         Nothing -> do
-            log E $ "Couldn't parse file downloaded from " <> textUrl
+            log E $ "Couldn't parse file downloaded from " <> unUrl cabalUrl
             pure []
         Just genPkgDescr -> do
-            log I $ "Successfully parsed file downloaded from " <> textUrl
+            log I $ "Successfully parsed file downloaded from " <> unUrl cabalUrl
             pure $ categoryNames genPkgDescr
   where
-    textUrl :: Text
-    textUrl = unUrl $ repoCabalUrl repoOwner repoName
+    cabalUrl :: Url
+    cabalUrl = repoCabalUrl repoOwner repoName
 
 -- | This function returns a @Url@ for downloading a @Repo@'s @.cabal@ file.
 repoCabalUrl :: RepoOwner -> RepoName -> Url

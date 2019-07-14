@@ -32,10 +32,13 @@ downloadFileImpl Url{..} = do
     let req = fromString $ toString unUrl
     log I $ "Attempting to download file from " <> unUrl <> "..."
     response <- liftIO $ httpLbs req man
-    case statusCode $ responseStatus response of
+    let status = statusCode $ responseStatus response
+    let body = responseBody response
+    log D $ "Recieved a status code of " <> show status <> " from " <> unUrl
+    case status of
         200 -> do
             log I $ "Successfully downloaded file from " <> unUrl
-            pure $ toStrict $ responseBody response
+            pure $ toStrict body
         _   -> do
-            log E $ "Couldn't download file from " <> unUrl
+            log W $ "Couldn't download file from " <> unUrl
             throwError notFound
