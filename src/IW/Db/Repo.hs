@@ -54,5 +54,5 @@ updateRepoCategories Repo{..} = do
         UPDATE repos
         SET categories = ?
         WHERE
-            (owner, name) == (?,?)
+            (owner, name) = (?, ?)
     |] (SqlArray categories, repoOwner, repoName)
