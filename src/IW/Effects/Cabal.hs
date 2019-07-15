@@ -13,7 +13,6 @@ module IW.Effects.Cabal
        , repoCabalUrl
        ) where
 
-import Data.Text (splitOn, strip)
 import Distribution.PackageDescription
 import Distribution.PackageDescription.Parsec (parseGenericPackageDescriptionMaybe)
 
@@ -41,7 +40,7 @@ getCabalCategoriesImpl repoOwner repoName = do
     cabalFile <- downloadFile cabalUrl
     case parseGenericPackageDescriptionMaybe cabalFile of
         Nothing -> do
-            log E $ "Couldn't parse file downloaded from " <> unUrl cabalUrl
+            log W $ "Couldn't parse file downloaded from " <> unUrl cabalUrl
             pure []
         Just genPkgDescr -> do
             log I $ "Successfully parsed file downloaded from " <> unUrl cabalUrl
@@ -63,13 +62,7 @@ repoCabalUrl (RepoOwner repoOwner) (RepoName repoName) = Url $
 
 -- | Parses a comma separated @Text@ value to @[Category]@.
 categoryNames :: GenericPackageDescription -> [Category]
-categoryNames genPkgDescr = Category . strip <$> splitCategories genPkgDescr
+categoryNames genPkgDescr = Category <$> splitCategories genPkgDescr
   where
     splitCategories :: GenericPackageDescription -> [Text]
-    splitCategories = splitOnNonEmptyText "," . toText . category . packageDescription
-
-    -- | A variation of @splitOn@ that returns @[]@ instead of @[""]@
-    -- if the text to be split is empty.
-    splitOnNonEmptyText :: Text -> Text -> [Text]
-    splitOnNonEmptyText _ ""       = []
-    splitOnNonEmptyText delim text = splitOn delim text
+    splitCategories = splitAndStrip "," . toText . category . packageDescription

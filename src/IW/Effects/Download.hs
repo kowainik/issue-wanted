@@ -13,7 +13,7 @@ module IW.Effects.Download
 import Network.HTTP.Client (Manager, Response (..), httpLbs)
 import Network.HTTP.Types (Status (..))
 
-import IW.App (App, Has, WithError, grab, throwError, notFound)
+import IW.App (App, Has, WithError, grab)
 import IW.Core.Url (Url (..))
 
 
@@ -41,4 +41,4 @@ downloadFileImpl Url{..} = do
             pure $ toStrict body
         _   -> do
             log W $ "Couldn't download file from " <> unUrl
-            throwError notFound
+            pure ""
