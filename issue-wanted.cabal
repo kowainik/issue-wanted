@@ -85,19 +85,21 @@ library
                            IW.Db.Schema
 
                          -- Effects
-                         IW.Effects.Log
+                         IW.Effects.Cabal
                          IW.Effects.Download
+                         IW.Effects.Log
 
                          -- Server
                          IW.Server
                            IW.Server.Issue
                            IW.Server.Types
-                         
+
                          -- Sync Worker
-                         IW.Sync.Search  
+                         IW.Sync.Search
 
   build-depends:       aeson >= 1.4
                      , bytestring ^>= 0.10
+                     , Cabal ^>= 2.4.1.0
                      , case-insensitive ^>= 1.2
                      , co-log ^>= 0.3.0
                      , containers >= 0.6

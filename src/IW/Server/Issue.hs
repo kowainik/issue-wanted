@@ -27,11 +27,11 @@ issueServer = IssueSite
     { issuesRoute = issuesHandler
     }
 
-issuesHandler 
+issuesHandler
     :: ( WithDb env m
        )
     => Maybe Text
     -> m [WithId Issue]
 issuesHandler maybeLabel = case maybeLabel of
     Nothing    -> getIssues
-    Just label -> getIssuesByLabel label 
+    Just label -> getIssuesByLabel label

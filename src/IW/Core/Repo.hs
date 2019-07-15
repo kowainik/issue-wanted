@@ -28,7 +28,7 @@ newtype Category = Category { unCategory :: Text }
     deriving newtype (Eq, Ord, FromField, ToField, ToJSON, FromHttpApiData)
 
 -- | Data type representing a GitHub repository
-data Repo = Repo 
+data Repo = Repo
     { repoOwner      :: !RepoOwner
     , repoName       :: !RepoName
     , repoDescr      :: !Text
@@ -38,7 +38,7 @@ data Repo = Repo
 
 repoUrl :: Repo -> Url
 repoUrl Repo{..} = Url
-    $ "https://github.com/" 
-    <> unRepoOwner repoOwner 
-    <> "/" 
-    <> unRepoName repoName 
+    $ "https://github.com/"
+    <> unRepoOwner repoOwner
+    <> "/"
+    <> unRepoName repoName

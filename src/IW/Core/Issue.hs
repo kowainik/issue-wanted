@@ -5,7 +5,7 @@ module IW.Core.Issue
        , Label (..)
        , issueUrl
        ) where
-  
+
 import IW.Core.SqlArray (SqlArray (..))
 import IW.Core.Repo (RepoName (..), RepoOwner (..))
 import IW.Core.Url (Url (..))
@@ -28,11 +28,10 @@ data Issue = Issue
       deriving anyclass (ToJSON, FromRow, ToRow)
 
 issueUrl :: Issue -> Url
-issueUrl Issue{..} = Url  
-    $ "https://github.com/" 
-    <> unRepoOwner issueRepoOwner 
-    <> "/" 
-    <> unRepoName issueRepoName 
-    <> "/issues/" 
+issueUrl Issue{..} = Url
+    $ "https://github.com/"
+    <> unRepoOwner issueRepoOwner
+    <> "/"
+    <> unRepoName issueRepoName
+    <> "/issues/"
     <> show issueNumber
- 
