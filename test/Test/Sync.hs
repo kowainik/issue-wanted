@@ -59,7 +59,7 @@ downloadFileSpec env = describe "downloadFile" $ do
        env & succeeds (downloadFileImpl issueWantedCabalUrl)
     it "should fail with notFound error when passed a non-existent Url" $
        env & downloadFileImpl nonExistentCabalUrl
-            `failsWith` notFound
+            `equals` ""
     it "should be equal to issueWantedMain when passed the issueWantedMainContent" $
        env & downloadFileImpl issueWantedMainUrl
             `equals` issueWantedMainContent
@@ -85,10 +85,10 @@ getCabalCategoriesSpec env = describe "getCabalCategories" $ do
     it "should return issueWantedCategories when passed in a valid URL for the issue-wanted cabal file" $
        env & uncurry getCabalCategoriesImpl issueWantedRepo
             `equals` issueWantedCategories
-    it "should fail with notFound when passed in a repo that doesn't exist" $
+    it "should return [] when passed in a repo that doesn't exist" $
        env & uncurry getCabalCategoriesImpl nonExistentRepo
-            `failsWith` notFound
-    it "should return SqlArray [] when passed in a repo that has a cabal file without a category field" $
+            `equals` []
+    it "should return [] when passed in a repo that has a cabal file without a category field" $
        env & uncurry getCabalCategoriesImpl noCategoryFieldCabalFileRepo
             `equals` []
 
