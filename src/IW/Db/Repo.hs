@@ -53,6 +53,6 @@ updateRepoCategories Repo{..} = do
     execute [sql|
         UPDATE repos
         SET categories = ?
-        WHERE
-            (owner, name) = (?, ?)
+        WHERE owner = ?
+        AND   name  = ?
     |] (SqlArray categories, repoOwner, repoName)

@@ -111,7 +111,6 @@ library
                      , http-client-tls ^>= 0.3.5.3
                      , http-types ^>= 0.12
                      , lens ^>= 4.17
-                     , lifted-async ^>= 0.10.0.4
                      , mtl ^>= 2.2.2
                      , postgresql-simple ^>= 0.6.1
                      , random ^>= 1.1
