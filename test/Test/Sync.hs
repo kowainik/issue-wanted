@@ -4,7 +4,7 @@ module Test.Sync
 
 import Test.Hspec (Spec, describe, it, shouldBe)
 
-import IW.App (AppEnv, notFound)
+import IW.App (AppEnv, urlDownloadFailedError)
 import IW.Core.Repo (RepoOwner (..), RepoName (..), Category (..))
 import IW.Core.Url (Url (..))
 import IW.Effects.Download (downloadFileImpl)
@@ -57,10 +57,10 @@ downloadFileSpec :: AppEnv -> Spec
 downloadFileSpec env = describe "downloadFile" $ do
     it "should succeed with 200 status code when passed a valid Url" $
        env & succeeds (downloadFileImpl issueWantedCabalUrl)
-    it "should fail with notFound error when passed a non-existent Url" $
+    it "should fail with UrlDownloadFailed error when passed a non-existent Url" $
        env & downloadFileImpl nonExistentCabalUrl
-            `equals` ""
-    it "should be equal to issueWantedMain when passed the issueWantedMainContent" $
+            `failsWith` urlDownloadFailedError nonExistentCabalUrl
+    it "should be equal to issueWantedMainContent when passed the issueWantedMainUrl" $
        env & downloadFileImpl issueWantedMainUrl
             `equals` issueWantedMainContent
 
