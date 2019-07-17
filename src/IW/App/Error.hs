@@ -56,6 +56,7 @@ throwError = E.throwError . AppError (toSourcePosition callStack)
 -- | Specialized version of 'E.catchError'.
 catchError :: WithError m => m a -> (AppErrorType -> m a) -> m a
 catchError action handler = action `E.catchError` (handler . appErrorType)
+{-# INLINE catchError #-}
 
 newtype SourcePosition = SourcePosition Text
     deriving newtype (Show, Eq)

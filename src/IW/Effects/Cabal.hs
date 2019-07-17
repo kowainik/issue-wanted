@@ -36,7 +36,12 @@ type WithCabal env m = (MonadDownload m, WithLog env m, WithError m)
 defined in @IW.Effects.Download@. We are using @parseGenericPackageDescriptionMaybe@
 which will return @Nothing@ on an unsuccessful parse.
 -}
-getCabalCategoriesImpl :: WithCabal env m => RepoOwner -> RepoName -> m [Category]
+getCabalCategoriesImpl
+    :: forall env m.
+       WithCabal env m
+    => RepoOwner
+    -> RepoName
+    -> m [Category]
 getCabalCategoriesImpl repoOwner repoName = do
     cabalFile <- downloadFile cabalUrl `catchError` urlDownloadFailedHandler
     case parseGenericPackageDescriptionMaybe cabalFile of
@@ -51,7 +56,7 @@ getCabalCategoriesImpl repoOwner repoName = do
     cabalUrl = repoCabalUrl repoOwner repoName
 
     urlDownloadFailedHandler :: AppErrorType -> m ByteString
-    urlDownloadFailedHandler = undefined
+    urlDownloadFailedHandler _ = pure ""
 
 -- | This function returns a @Url@ for downloading a @Repo@'s @.cabal@ file.
 repoCabalUrl :: RepoOwner -> RepoName -> Url
