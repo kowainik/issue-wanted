@@ -17,7 +17,7 @@ import Data.Text (splitOn, strip)
 import Distribution.PackageDescription
 import Distribution.PackageDescription.Parsec (parseGenericPackageDescriptionMaybe)
 
-import IW.App (App)
+import IW.App (App (..), AppErrorType, WithError, catchError)
 import IW.Core.Repo (RepoOwner (..), RepoName (..), Category (..))
 import IW.Core.Url (Url (..))
 import IW.Effects.Download (MonadDownload (..))
@@ -30,7 +30,7 @@ class Monad m => MonadCabal m where
 instance MonadCabal App where
     getCabalCategories = getCabalCategoriesImpl
 
-type WithCabal env m = (MonadDownload m, WithLog env m)
+type WithCabal env m = (MonadDownload m, WithLog env m, WithError m)
 
 {- | This function may throw anyone of the errors inherited by the use of @downloadFile@
 defined in @IW.Effects.Download@. We are using @parseGenericPackageDescriptionMaybe@
@@ -38,7 +38,7 @@ which will return @Nothing@ on an unsuccessful parse.
 -}
 getCabalCategoriesImpl :: WithCabal env m => RepoOwner -> RepoName -> m [Category]
 getCabalCategoriesImpl repoOwner repoName = do
-    cabalFile <- downloadFile cabalUrl
+    cabalFile <- downloadFile cabalUrl `catchError` urlDownloadFailedHandler
     case parseGenericPackageDescriptionMaybe cabalFile of
         Nothing -> do
             log W $ "Couldn't parse file downloaded from " <> unUrl cabalUrl
@@ -49,6 +49,9 @@ getCabalCategoriesImpl repoOwner repoName = do
   where
     cabalUrl :: Url
     cabalUrl = repoCabalUrl repoOwner repoName
+
+    urlDownloadFailedHandler :: AppErrorType -> m ByteString
+    urlDownloadFailedHandler = undefined
 
 -- | This function returns a @Url@ for downloading a @Repo@'s @.cabal@ file.
 repoCabalUrl :: RepoOwner -> RepoName -> Url

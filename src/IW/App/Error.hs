@@ -7,6 +7,7 @@ module IW.App.Error
        , WithError
        , githubErrToAppErr
        , throwError
+       , catchError
        , toHttpError
 
          -- * Error checks
@@ -22,6 +23,7 @@ module IW.App.Error
        , missingHeader
        , headerDecodeError
        , dbError
+       , urlDownloadFailedError
 
          -- * Error throwing helpers
        , throwOnNothing
@@ -38,7 +40,7 @@ import Servant.Server (err401, err404, err417, err500, errBody)
 
 import IW.Core.Url (Url (..))
 
-import qualified Control.Monad.Except as E (throwError)
+import qualified Control.Monad.Except as E (throwError, catchError)
 import qualified GitHub
 import qualified Servant.Server as Servant (ServerError)
 
@@ -46,10 +48,14 @@ import qualified Servant.Server as Servant (ServerError)
 -- | Type alias for errors.
 type WithError m = (MonadError AppError m, HasCallStack)
 
--- | Specialized version of 'E.throwError'
+-- | Specialized version of 'E.throwError'.
 throwError :: WithError m => AppErrorType -> m a
 throwError = E.throwError . AppError (toSourcePosition callStack)
 {-# INLINE throwError #-}
+
+-- | Specialized version of 'E.catchError'.
+catchError :: WithError m => m a -> (AppErrorType -> m a) -> m a
+catchError action handler = action `E.catchError` (handler . appErrorType)
 
 newtype SourcePosition = SourcePosition Text
     deriving newtype (Show, Eq)
@@ -191,6 +197,9 @@ headerDecodeError = InternalError . HeaderDecodeError
 
 dbError :: Text -> AppErrorType
 dbError = InternalError . DbError
+
+urlDownloadFailedError :: Url -> AppErrorType
+urlDownloadFailedError = UrlDownloadFailed
 
 ----------------------------------------------------------------------------
 -- Helpers

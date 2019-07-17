@@ -13,7 +13,7 @@ module IW.Effects.Download
 import Network.HTTP.Client (Manager, Response (..), httpLbs)
 import Network.HTTP.Types (Status (..))
 
-import IW.App (App, Has, WithError, grab, throwError)
+import IW.App (App, Has, WithError, grab, throwError, urlDownloadFailedError)
 import IW.Core.Url (Url (..))
 
 
@@ -27,7 +27,7 @@ instance MonadDownload App where
 type WithDownload env m = (MonadIO m, MonadReader env m, WithError m, WithLog env m, Has Manager env)
 
 downloadFileImpl :: WithDownload env m => Url -> m ByteString
-downloadFileImpl Url{..} = do
+downloadFileImpl url@Url{..} = do
     man <- grab @Manager
     let req = fromString $ toString unUrl
     log I $ "Attempting to download file from " <> unUrl <> " ..."
@@ -41,4 +41,4 @@ downloadFileImpl Url{..} = do
             pure $ toStrict body
         _   -> do
             log E $ "Couldn't download file from " <> unUrl
-            throwError
+            throwError $ urlDownloadFailedError url
