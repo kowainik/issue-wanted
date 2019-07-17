@@ -1,5 +1,10 @@
+{- | This module contains functions that are used for updating the database.
+It combines functionality from @IW.Sync.Search@ and @IW.Db@ to fetch the latest
+data and insert it into the database.
+-}
+
 module IW.Sync.Update
-       (fetchAndUpsertRepos
+       ( fetchAndUpsertRepos
        ) where
 
 import Control.Monad.IO.Unlift (MonadUnliftIO)
@@ -11,7 +16,8 @@ import IW.Db (WithDb, upsertRepos, updateRepoCategories)
 import IW.Effects.Cabal (MonadCabal (..), getCabalCategories)
 import IW.Sync.Search (fetchAllHaskellRepos, fromGitHubRepo)
 
-
+-- | This function fetches the latest repos from the GitHub API, parses their @.cabal@ files,
+-- and upserts them into the database.
 fetchAndUpsertRepos
     :: forall env m.
        ( MonadCabal m
