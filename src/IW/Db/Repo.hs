@@ -16,7 +16,7 @@ import IW.Db.Functions (WithDb, executeMany, execute, query, queryRaw)
 
 
 -- | Returns all repos in the database.
-getRepos :: (WithDb env m) => m [WithId Repo]
+getRepos :: WithDb env m => m [WithId Repo]
 getRepos = queryRaw [sql|
     SELECT id, owner, name, descr, categories
     FROM repos
@@ -24,7 +24,7 @@ getRepos = queryRaw [sql|
 |]
 
 -- | Returns all repos with at least one category in the given list.
-getReposByCategories :: (WithDb env m) => [Category] -> m [WithId Repo]
+getReposByCategories :: WithDb env m => [Category] -> m [WithId Repo]
 getReposByCategories = query [sql|
     SELECT id, owner, name, descr, categories
     FROM repos
@@ -33,7 +33,7 @@ getReposByCategories = query [sql|
 |] . Only . SqlArray
 
 -- | Insert a list of repos into the database, but update on conflict.
-upsertRepos :: (WithDb env m) => [Repo] -> m ()
+upsertRepos :: WithDb env m => [Repo] -> m ()
 upsertRepos = executeMany [sql|
     INSERT INTO repos
         (owner, name, descr, categories)
@@ -47,8 +47,7 @@ upsertRepos = executeMany [sql|
 
 -- | Update a repo's categories field.
 updateRepoCategories
-    :: ( WithDb env m
-       )
+    :: WithDb env m
     => RepoOwner
     -> RepoName
     -> [Category]
