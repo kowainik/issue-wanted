@@ -1,3 +1,5 @@
+{-# LANGUAGE BlockArguments #-}
+
 {- | This module contains the class definitiion of @MonadCabal@ and
 an instance of @MonadCabal@ for the @App@ monad. Instances of
 @MonadCabal@ have a @getCabalCategories@ action that returns @[Category]@
@@ -43,20 +45,21 @@ getCabalCategoriesImpl
     -> RepoName
     -> m [Category]
 getCabalCategoriesImpl repoOwner repoName = do
-    cabalFile <- downloadFile cabalUrl `catchError` urlDownloadFailedHandler
-    case parseGenericPackageDescriptionMaybe cabalFile of
-        Nothing -> do
-            log W $ "Couldn't parse file downloaded from " <> unUrl cabalUrl
-            pure []
-        Just genPkgDescr -> do
-            log I $ "Successfully parsed file downloaded from " <> unUrl cabalUrl
-            pure $ categoryNames genPkgDescr
+    { cabalFile <- downloadFile cabalUrl;
+      case parseGenericPackageDescriptionMaybe cabalFile of
+          Nothing -> do
+              log W $ "Couldn't parse file downloaded from " <> unUrl cabalUrl
+              pure []
+          Just genPkgDescr -> do
+              log I $ "Successfully parsed file downloaded from " <> unUrl cabalUrl
+              pure $ categoryNames genPkgDescr
+    } `catchError` handler
   where
     cabalUrl :: Url
     cabalUrl = repoCabalUrl repoOwner repoName
 
-    urlDownloadFailedHandler :: AppErrorType -> m ByteString
-    urlDownloadFailedHandler _ = pure ""
+    handler :: AppErrorType -> m [Category]
+    handler _ = pure []
 
 -- | This function returns a @Url@ for downloading a @Repo@'s @.cabal@ file.
 repoCabalUrl :: RepoOwner -> RepoName -> Url
