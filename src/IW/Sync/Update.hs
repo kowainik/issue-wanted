@@ -16,6 +16,7 @@ import IW.Db (WithDb, upsertRepos, updateRepoCategories)
 import IW.Effects.Cabal (MonadCabal (..), getCabalCategories)
 import IW.Sync.Search (fetchAllHaskellRepos, fromGitHubRepo)
 
+
 -- | This function fetches the latest repos from the GitHub API, parses their @.cabal@ files,
 -- and upserts them into the database.
 fetchAndUpsertRepos
