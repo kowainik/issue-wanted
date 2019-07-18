@@ -12,7 +12,6 @@ module Prelude
 
        , WithLog
        , typeName
-       , splitAndStrip
        ) where
 
 -- Reexport
@@ -24,8 +23,6 @@ import Control.Lens ((.~), (^.))
 import Colog (pattern D, pattern E, pattern I, LogAction (..), Severity (..), pattern W, log)
 
 import Data.Aeson as Json (FromJSON (parseJSON), ToJSON (toJSON))
-
-import Data.Text (splitOn, strip)
 
 import Database.PostgreSQL.Simple.FromField as Sql (FromField (fromField))
 import Database.PostgreSQL.Simple.FromRow as Sql (FromRow (fromRow), field)
@@ -45,12 +42,3 @@ import qualified Colog (Message, WithLog)
 
 -- | 'Colog.WithLog' alias specialized to 'Message' data type.
 type WithLog env m = Colog.WithLog env Colog.Message m
-
-{- | This function takes a delimeter and a delimeter seperated value,
-and returns a list of @Text@ values stripped of excess whitespace.
-Note that it returns an empty list when an empty delimeter seperated value is
-passed in. This prevents the value @[""]@ from being returned.
--}
-splitAndStrip :: Text -> Text -> [Text]
-splitAndStrip _ ""       = []
-splitAndStrip delim text = strip <$> splitOn delim text

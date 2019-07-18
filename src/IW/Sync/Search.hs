@@ -11,7 +11,7 @@ module IW.Sync.Search
        , fetchHaskellIssuesByLabels
        , fromGitHubIssue
        , fromGitHubRepo
-       , parseIssueUserData
+       , parseUserData
        ) where
 
 import GitHub (SearchResult (..), URL (..))
@@ -21,7 +21,6 @@ import IW.App (WithError)
 import IW.Core.Issue (Issue (..), Label (..))
 import IW.Core.Repo (Repo (..), RepoOwner (..), RepoName (..))
 import IW.Core.SqlArray (SqlArray (..))
-import IW.Db (WithDb)
 import IW.App.Error (githubErrToAppErr, throwError)
 
 import qualified GitHub
@@ -31,16 +30,25 @@ import qualified Data.Vector as V
 
 -- | Fetch all repositories built with the Haskell language.
 fetchAllHaskellRepos
-    :: ( WithDb env m
+    :: ( MonadIO m
        , WithError m
        , WithLog env m
        )
     => m [GitHub.Repo]
 fetchAllHaskellRepos = liftGitHubSearchToApp searchHaskellRepos
 
+-- | Convert a value of the @GitHub.Repo@ type to a value of our own @Repo@ type.
+fromGitHubRepo :: GitHub.Repo -> Repo
+fromGitHubRepo githubRepo = Repo
+    { repoOwner      = RepoOwner $ GitHub.untagName $ GitHub.simpleOwnerLogin $ GitHub.repoOwner githubRepo
+    , repoName       = RepoName  $ GitHub.untagName $ GitHub.repoName githubRepo
+    , repoDescr      = fromMaybe "" $ GitHub.repoDescription githubRepo
+    , repoCategories = SqlArray []
+    }
+
 -- | Fetch all open issues with Haskell language and the labels passed in to the function.
 fetchHaskellIssuesByLabels
-    :: ( WithDb env m
+    :: ( MonadIO m
        , WithError m
        , WithLog env m
        )
@@ -50,7 +58,7 @@ fetchHaskellIssuesByLabels = liftGitHubSearchToApp . searchHaskellIssuesByLabels
 
 -- | Fetch all open issues with Haskell language.
 fetchAllHaskellIssues
-    :: ( WithDb env m
+    :: ( MonadIO m
        , WithError m
        , WithLog env m
        )
@@ -60,7 +68,7 @@ fetchAllHaskellIssues = fetchHaskellIssuesByLabels []
 -- | Lift a github search action to work within our monad stack.
 liftGitHubSearchToApp
     :: forall a env m.
-       ( WithDb env m
+       ( MonadIO m
        , WithError m
        , WithLog env m
        , Typeable a
@@ -85,19 +93,10 @@ labelsToSearchQuery = foldMap (\Label{..} -> "label:\"" <> unLabel <> "\" ")
 searchHaskellIssuesByLabels :: [Label] -> IO (Either GitHub.Error (SearchResult GitHub.Issue))
 searchHaskellIssuesByLabels labels = searchIssues $ "language:haskell is:open " <> labelsToSearchQuery labels
 
--- | Convert a value of the @GitHub.Repo@ type to a value of our own @Repo@ type.
-fromGitHubRepo :: GitHub.Repo -> Repo
-fromGitHubRepo githubRepo = Repo
-    { repoOwner      = RepoOwner $ GitHub.untagName $ GitHub.simpleOwnerLogin $ GitHub.repoOwner githubRepo
-    , repoName       = RepoName  $ GitHub.untagName $ GitHub.repoName githubRepo
-    , repoDescr      = fromMaybe "" $ GitHub.repoDescription githubRepo
-    , repoCategories = SqlArray []
-    }
-
 -- | Convert a value of the @GitHub.Issue@ type to a value of our own @Issue@ type.
 fromGitHubIssue :: GitHub.Issue -> Maybe Issue
 fromGitHubIssue githubIssue = do
-    (issueRepoOwner, issueRepoName) <- parseIssueUserData $ GitHub.issueUrl githubIssue
+    (issueRepoOwner, issueRepoName) <- parseUserData $ GitHub.issueUrl githubIssue
     pure Issue
         { issueNumber = GitHub.unIssueNumber $ GitHub.issueNumber githubIssue
         , issueTitle  = GitHub.issueTitle githubIssue
@@ -109,12 +108,12 @@ fromGitHubIssue githubIssue = do
         , ..
         }
 
-{- | For parsing the @issueRepoOwner@ and @issueRepoName@ from the issue's URL.
+{- | For parsing the @RepoOwner@ and @RepoName@ from a GitHub URL.
 Parsing the URL @https://api.github.com/repos/owner/name/issues/1@ should return
-@Just (RepoOwner "owner", RepoName "name")@
+@Just (RepoOwner "owner", RepoName "name")@.
 -}
-parseIssueUserData :: GitHub.URL -> Maybe (RepoOwner, RepoName)
-parseIssueUserData (URL url) =
+parseUserData :: GitHub.URL -> Maybe (RepoOwner, RepoName)
+parseUserData (URL url) =
     T.stripPrefix "https://api.github.com/repos/" url
     >>= splitOwnerAndName
   where

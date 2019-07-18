@@ -23,3 +23,5 @@ extra-deps:
   - servant-0.16.0.1
   - servant-server-0.16
   - tomland-1.0.0
+  - unliftio-0.2.12
+  - unliftio-core-0.1.2.0

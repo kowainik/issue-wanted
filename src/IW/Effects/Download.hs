@@ -5,6 +5,7 @@ an instance of @MonadDownload@ for the @App@ monad. Instances of
 
 module IW.Effects.Download
        ( MonadDownload (..)
+       , downloadFileMaybe
 
        -- * Internals
        , downloadFileImpl
@@ -13,7 +14,7 @@ module IW.Effects.Download
 import Network.HTTP.Client (Manager, Response (..), httpLbs)
 import Network.HTTP.Types (Status (..))
 
-import IW.App (App, Has, WithError, grab, throwError, notFound)
+import IW.App (App, AppErrorType (..), Has, WithError, grab, throwError, catchError, urlDownloadFailedError)
 import IW.Core.Url (Url (..))
 
 
@@ -27,10 +28,10 @@ instance MonadDownload App where
 type WithDownload env m = (MonadIO m, MonadReader env m, WithError m, WithLog env m, Has Manager env)
 
 downloadFileImpl :: WithDownload env m => Url -> m ByteString
-downloadFileImpl Url{..} = do
+downloadFileImpl url@Url{..} = do
     man <- grab @Manager
     let req = fromString $ toString unUrl
-    log I $ "Attempting to download file from " <> unUrl <> "..."
+    log I $ "Attempting to download file from " <> unUrl <> " ..."
     response <- liftIO $ httpLbs req man
     let status = statusCode $ responseStatus response
     let body = responseBody response
@@ -40,5 +41,10 @@ downloadFileImpl Url{..} = do
             log I $ "Successfully downloaded file from " <> unUrl
             pure $ toStrict body
         _   -> do
-            log W $ "Couldn't download file from " <> unUrl
-            throwError notFound
+            log E $ "Couldn't download file from " <> unUrl
+            throwError $ urlDownloadFailedError url
+
+downloadFileMaybe :: (MonadDownload m, WithError m) => Url -> m (Maybe ByteString)
+downloadFileMaybe url = (Just <$> downloadFile url) `catchError` \case
+    UrlDownloadFailed _ -> pure Nothing
+    err -> throwError err
