@@ -5,6 +5,7 @@ an instance of @MonadDownload@ for the @App@ monad. Instances of
 
 module IW.Effects.Download
        ( MonadDownload (..)
+       , downloadFileMaybe
 
        -- * Internals
        , downloadFileImpl
@@ -13,7 +14,7 @@ module IW.Effects.Download
 import Network.HTTP.Client (Manager, Response (..), httpLbs)
 import Network.HTTP.Types (Status (..))
 
-import IW.App (App, Has, WithError, grab, throwError, urlDownloadFailedError)
+import IW.App (App, AppErrorType (..), Has, WithError, grab, throwError, catchError, urlDownloadFailedError)
 import IW.Core.Url (Url (..))
 
 
@@ -42,3 +43,8 @@ downloadFileImpl url@Url{..} = do
         _   -> do
             log E $ "Couldn't download file from " <> unUrl
             throwError $ urlDownloadFailedError url
+
+downloadFileMaybe :: (MonadDownload m, WithError m) => Url -> m (Maybe ByteString)
+downloadFileMaybe url = (Just <$> downloadFile url) `catchError` \case
+    UrlDownloadFailed _ -> pure Nothing
+    err -> throwError err

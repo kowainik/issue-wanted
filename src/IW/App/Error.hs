@@ -2,7 +2,7 @@
 
 module IW.App.Error
        ( AppError (..)
-       , AppErrorType
+       , AppErrorType (..)
        , AppException (..)
        , WithError
        , githubErrToAppErr

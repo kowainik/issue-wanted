@@ -1,5 +1,3 @@
-{-# LANGUAGE BlockArguments #-}
-
 {- | This module contains the class definitiion of @MonadCabal@ and
 an instance of @MonadCabal@ for the @App@ monad. Instances of
 @MonadCabal@ have a @getCabalCategories@ action that returns @[Category]@
@@ -19,10 +17,10 @@ import Data.Text (splitOn, strip)
 import Distribution.PackageDescription
 import Distribution.PackageDescription.Parsec (parseGenericPackageDescriptionMaybe)
 
-import IW.App (App (..), AppErrorType, WithError, catchError)
+import IW.App (App (..), WithError)
 import IW.Core.Repo (RepoOwner (..), RepoName (..), Category (..))
 import IW.Core.Url (Url (..))
-import IW.Effects.Download (MonadDownload (..))
+import IW.Effects.Download (MonadDownload (..), downloadFileMaybe)
 
 
 -- | Describes a monad that returns @[Category]@ given a @RepoOwner@ and @RepoName@.
@@ -45,21 +43,17 @@ getCabalCategoriesImpl
     -> RepoName
     -> m [Category]
 getCabalCategoriesImpl repoOwner repoName = do
-    { cabalFile <- downloadFile cabalUrl;
-      case parseGenericPackageDescriptionMaybe cabalFile of
-          Nothing -> do
-              log W $ "Couldn't parse file downloaded from " <> unUrl cabalUrl
-              pure []
-          Just genPkgDescr -> do
-              log I $ "Successfully parsed file downloaded from " <> unUrl cabalUrl
-              pure $ categoryNames genPkgDescr
-    } `catchError` handler
+    maybeCabalFile <- downloadFileMaybe cabalUrl
+    case maybeCabalFile >>= parseGenericPackageDescriptionMaybe of
+        Nothing -> do
+            log W $ "Couldn't parse file downloaded from " <> unUrl cabalUrl
+            pure []
+        Just genPkgDescr -> do
+            log I $ "Successfully parsed file downloaded from " <> unUrl cabalUrl
+            pure $ categoryNames genPkgDescr
   where
     cabalUrl :: Url
     cabalUrl = repoCabalUrl repoOwner repoName
-
-    handler :: AppErrorType -> m [Category]
-    handler _ = pure []
 
 -- | This function returns a @Url@ for downloading a @Repo@'s @.cabal@ file.
 repoCabalUrl :: RepoOwner -> RepoName -> Url
