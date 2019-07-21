@@ -9,10 +9,11 @@ module IW.Db.Repo
        , updateRepoCategories
        ) where
 
+import IW.App (WithError)
 import IW.Core.Repo (Repo, RepoOwner, RepoName, Category)
 import IW.Core.SqlArray (SqlArray (..))
 import IW.Core.WithId (WithId)
-import IW.Db.Functions (WithDb, executeMany, execute, query, queryRaw)
+import IW.Db.Functions (WithDb, executeMany, executeNamed, queryNamed, queryRaw)
 
 
 -- | Returns all repos in the database.
@@ -24,13 +25,13 @@ getRepos = queryRaw [sql|
 |]
 
 -- | Returns all repos with at least one category in the given list.
-getReposByCategories :: WithDb env m => [Category] -> m [WithId Repo]
-getReposByCategories = query [sql|
+getReposByCategories :: (WithDb env m, WithError m) => [Category] -> m [WithId Repo]
+getReposByCategories categories = queryNamed [sql|
     SELECT id, owner, name, descr, categories
     FROM repos
-    WHERE ? && categories
+    WHERE categories && ?categories
     LIMIT 100
-|] . Only . SqlArray
+|] [ "categories" =? SqlArray categories ]
 
 -- | Insert a list of repos into the database, but update on conflict.
 upsertRepos :: WithDb env m => [Repo] -> m ()
@@ -47,14 +48,19 @@ upsertRepos = executeMany [sql|
 
 -- | Update a repo's categories field.
 updateRepoCategories
-    :: WithDb env m
+    :: ( WithDb env m
+       , WithError m
+       )
     => RepoOwner
     -> RepoName
     -> [Category]
     -> m ()
-updateRepoCategories repoOwner repoName categories = execute [sql|
+updateRepoCategories repoOwner repoName categories = void $ executeNamed [sql|
     UPDATE repos
-    SET categories = ?
-    WHERE owner = ?
-      AND name = ?
-|] (SqlArray categories, repoOwner, repoName)
+    SET categories = ?categories
+    WHERE owner = ?owner
+      AND name = ?name
+|] [ "categories" =? SqlArray categories
+   , "owner" =? repoOwner
+   , "name" =? repoName
+   ]

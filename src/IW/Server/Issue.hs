@@ -7,6 +7,7 @@ module IW.Server.Issue
        , issuesHandler
        ) where
 
+import IW.App (WithError)
 import IW.Core.Issue (Issue (..), Label (..))
 import IW.Core.WithId (WithId (..))
 import IW.Db (WithDb, getIssuesByLabels)
@@ -29,6 +30,7 @@ issueServer = IssueSite
 
 issuesHandler
     :: ( WithDb env m
+       , WithError m
        )
     => [Label]
     -> m [WithId Issue]

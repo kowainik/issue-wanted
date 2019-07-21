@@ -30,6 +30,7 @@ import Database.PostgreSQL.Simple.SqlQQ as Sql (sql)
 import Database.PostgreSQL.Simple.ToField as Sql (ToField (toField))
 import Database.PostgreSQL.Simple.ToRow as Sql (ToRow (toRow))
 import Database.PostgreSQL.Simple.Types as Sql (Only (..))
+import PgNamed as Sql ((=?))
 
 import Servant.API as Web ((:>), Capture, Get, Header, Header', JSON, NoContent (NoContent), Post,
                            QueryFlag, QueryParam, QueryParam', ReqBody)
