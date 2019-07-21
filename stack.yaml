@@ -20,6 +20,7 @@ extra-deps:
   # testing
   - hedgehog-1.0
 
+  - postgresql-simple-named-0.0.0.0
   - servant-0.16.0.1
   - servant-server-0.16
   - tomland-1.0.0

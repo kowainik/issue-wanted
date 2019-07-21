@@ -23,6 +23,7 @@ module IW.App.Error
        , missingHeader
        , headerDecodeError
        , dbError
+       , dbNamedError
        , urlDownloadFailedError
 
          -- * Error throwing helpers
@@ -36,6 +37,7 @@ import Control.Monad.Except (MonadError)
 import Data.CaseInsensitive (foldedCase)
 import GHC.Stack (SrcLoc (SrcLoc, srcLocModule, srcLocStartLine))
 import Network.HTTP.Types.Header (HeaderName)
+import PgNamed (PgNamedError)
 import Servant.Server (err401, err404, err417, err500, errBody)
 
 import IW.Core.Url (Url (..))
@@ -121,6 +123,8 @@ data IError
     | HeaderDecodeError Text
     -- | Data base specific errors
     | DbError Text
+    -- | Data base named parameters errors.
+    | DbNamedError PgNamedError
     deriving (Show, Eq)
 
 {- | Errors from the @github@ library search functions that can be thrown.
@@ -155,6 +159,7 @@ toHttpError (AppError _callStack errorType) = case errorType of
         MissingHeader name     -> err401 { errBody = toLazy $ "Header not found: " <> foldedCase name }
         HeaderDecodeError name -> err401 { errBody = encodeUtf8 $ "Unable to decode header: " <> name }
         DbError e              -> err500 { errBody = encodeUtf8 e }
+        DbNamedError e         -> err500 { errBody = show e }
     GitHubError err -> err500 { errBody = show err }
     UrlDownloadFailed url -> err500 { errBody = encodeUtf8 $ "Couldn't download file from " <> unUrl url }
 
@@ -198,6 +203,9 @@ headerDecodeError = InternalError . HeaderDecodeError
 
 dbError :: Text -> AppErrorType
 dbError = InternalError . DbError
+
+dbNamedError :: PgNamedError -> AppErrorType
+dbNamedError = InternalError . DbNamedError
 
 urlDownloadFailedError :: Url -> AppErrorType
 urlDownloadFailedError = UrlDownloadFailed
