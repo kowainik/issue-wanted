@@ -6,8 +6,10 @@ module IW.Db.Functions
 
          -- * Sql functions
        , query
+       , queryNamed
        , queryRaw
        , execute
+       , executeNamed
        , executeRaw
        , executeMany
        , returning
@@ -17,11 +19,14 @@ module IW.Db.Functions
        , singleRowError
        ) where
 
+import PgNamed (NamedParam, PgNamedError)
+
 import IW.App.Env (DbPool, Has, grab)
-import IW.App.Error (AppErrorType, WithError, dbError, throwOnNothingM)
+import IW.App.Error (AppErrorType, WithError, dbError, dbNamedError, throwError, throwOnNothingM)
 
 import qualified Data.Pool as Pool
 import qualified Database.PostgreSQL.Simple as Sql
+import qualified PgNamed as Sql
 
 
 -- | Constraint for monadic actions that wants access to database.
@@ -51,9 +56,19 @@ query
 query q args = withPool $ \conn -> Sql.query conn q args
 {-# INLINE query #-}
 
+-- | Performs a query with named parameters and returns a list of rows.
+queryNamed
+    :: (WithError m, WithDb env m, FromRow res)
+    => Sql.Query
+    -> [NamedParam]
+    -> m [res]
+queryNamed q params = withPool (\conn -> runExceptT $ Sql.queryNamed conn q params)
+    >>= liftDbError
+{-# INLINE queryNamed #-}
+
 -- | Executes a query without arguments that is not expected to return results.
 executeRaw
-    :: (WithDb env m)
+    :: WithDb env m
     => Sql.Query
     -> m ()
 executeRaw q = withPool $ \conn -> void $ Sql.execute_ conn q
@@ -78,6 +93,16 @@ executeMany
 executeMany q args = withPool $ \conn -> void $ Sql.executeMany conn q args
 {-# INLINE executeMany #-}
 
+-- | Executes a query with named parameters, returning the number of rows affected.
+executeNamed
+    :: (WithError m, WithDb env m)
+    => Sql.Query
+    -> [NamedParam]
+    -> m Int64
+executeNamed q params = withPool (\conn -> runExceptT $ Sql.executeNamed conn q params)
+    >>= liftDbError
+{-# INLINE executeNamed #-}
+
 -- | Executes a multi-row query that is expected to return results.
 -- A @RETURNING@ statement needs to be in the SQL query.
 returning
@@ -101,10 +126,15 @@ withPool f = do
 
 -- | Helper function working with results from a database when you expect
 -- only one row to be returned.
-asSingleRow :: (WithError m) => m [a] -> m a
+asSingleRow :: WithError m => m [a] -> m a
 asSingleRow res = withFrozenCallStack $ throwOnNothingM
     singleRowError
     (viaNonEmpty head <$> res)
+
+-- | Lift database named parameters errors.
+liftDbError :: WithError m => Either PgNamedError a -> m a
+liftDbError = either (throwError . dbNamedError) pure
+{-# INLINE liftDbError #-}
 
 singleRowError :: AppErrorType
 singleRowError = dbError "Expected a single row, but got none"
