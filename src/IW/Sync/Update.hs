@@ -55,7 +55,6 @@ fetchAndUpsertReposByDate recent interval page = do
     if | resCount == 100 -> fetchAndUpsertReposByDate recent interval (page + 1)
        | resCount < 100  -> fetchAndUpsertReposByDate nextRecent interval 1
        | otherwise       -> log E $ "More than 100 results returned on page"
-
   where
     older :: Day
     older = (negate interval) `addDays` recent
