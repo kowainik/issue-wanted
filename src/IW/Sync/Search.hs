@@ -6,7 +6,7 @@ and a parser for extracting the @RepoOwner@ and @RepoName@ from a URL.
 -}
 
 module IW.Sync.Search
-       ( fetchAllHaskellRepos
+       ( fetchHaskellReposByDate
        , fetchAllHaskellIssues
        , fetchHaskellIssuesByLabels
        , fromGitHubIssue
@@ -14,6 +14,8 @@ module IW.Sync.Search
        , parseUserData
        ) where
 
+import Data.Time (Day (..))
+import Data.Time.Format (formatTime, defaultTimeLocale, iso8601DateFormat)
 import GitHub (SearchResult (..), URL (..))
 import GitHub.Data.RateLimit (RateLimit (..), Limits)
 import GitHub.Data.Request (query)
@@ -32,16 +34,17 @@ import qualified Data.Text as T
 import qualified Data.Vector as V
 
 
--- | Fetch all repositories built with the Haskell language.
-fetchAllHaskellRepos
+-- | Fetch all repositories built with the Haskell language by page within a date range.
+fetchHaskellReposByDate
     :: ( MonadIO m
        , WithError m
        , WithLog env m
        )
-    => Int
+    => Day
+    -> Day
     -> Int
     -> m [GitHub.Repo]
-fetchAllHaskellRepos perPage page = liftGitHubSearchToApp (searchHaskellRepos perPage page)
+fetchHaskellReposByDate from to page = liftGitHubSearchToApp $ searchHaskellReposByDate from to page
 
 -- | Fetch all open issues with Haskell language and the labels passed in to the function.
 fetchHaskellIssuesByLabels
@@ -93,19 +96,28 @@ getSearchRateLimit = liftIO rateLimit >>= \case
 githubSearch :: FromJSON a => [Text] -> [(ByteString, Maybe ByteString)] -> IO (Either GitHub.Error (SearchResult a))
 githubSearch paths queries = executeRequest' $ query paths queries
 
-{- | Search all repositories built with the Haskell language. Takes an @Int@ representing
-how many results will be returned per page, and another @Int@ that represents the page
-number to be returned.
--}
-searchHaskellRepos :: Int -> Int -> IO (Either GitHub.Error (SearchResult GitHub.Repo))
-searchHaskellRepos perPage page = githubSearch paths queries
+-- | Search all repositories built with the Haskell language by page number within a date range.
+searchHaskellReposByDate :: Day -> Day -> Int -> IO (Either GitHub.Error (SearchResult GitHub.Repo))
+searchHaskellReposByDate from to page = githubSearch paths queries
   where
-    paths   = ["search", "repositories"]
+    paths :: [Text]
+    paths = ["search", "repositories"]
+
+    queries :: [(ByteString, Maybe ByteString)]
     queries =
-        [ ("q", Just "language:haskell")
-        , ("per_page", Just $ show perPage)
+        [ ("q", Just searchString)
+        , ("per_page", Just "100")
         , ("page", Just $ show page)
         ]
+
+    searchString :: ByteString
+    searchString = "language:haskell created:" <> dateRange
+
+    dateRange :: ByteString
+    dateRange = julianDayToIsoBS from <> ".." <> julianDayToIsoBS to
+
+    julianDayToIsoBS :: Day -> ByteString
+    julianDayToIsoBS = fromString . formatTime defaultTimeLocale (iso8601DateFormat Nothing)
 
 -- | Convert a value of the @GitHub.Repo@ type to a value of our own @Repo@ type.
 fromGitHubRepo :: GitHub.Repo -> Repo
