@@ -6,7 +6,7 @@ data and insert it into the database.
 -}
 
 module IW.Sync.Update
-       ( fetchAndUpsertReposByDate
+       ( syncReposByDate
        ) where
 
 import Control.Monad.IO.Unlift (MonadUnliftIO)
@@ -20,21 +20,9 @@ import IW.Effects.Cabal (MonadCabal (..), getCabalCategories)
 import IW.Sync.Search (fetchHaskellReposByDate, fromGitHubRepo)
 
 
--- syncRepos
---     :: forall env m.
---        ( MonadCabal m
---        , MonadUnliftIO m
---        , WithDb env m
---        , WithLog env m
---        , WithError m
---        )
---     => m ()
--- syncRepos = do
-
-
 -- | This function fetches repos from the GitHub API within a specified date range,
 -- parses their @.cabal@ files, and upserts them into the database.
-fetchAndUpsertReposByDate
+syncReposByDate
     :: forall env m.
        ( MonadCabal m
        , MonadUnliftIO m
@@ -46,14 +34,14 @@ fetchAndUpsertReposByDate
     -> Integer -- ^ Interval of days before most recent day
     -> Int     -- ^ Page
     -> m ()
-fetchAndUpsertReposByDate recent interval page = do
+syncReposByDate recent interval page = do
     gitHubRepos <- fetchHaskellReposByDate older recent page
     let resCount = length gitHubRepos
     let repos = map fromGitHubRepo gitHubRepos
     upsertRepos repos
-    mapConcurrently_ fetchAndUpdateCategories repos
-    if | resCount == 100 -> fetchAndUpsertReposByDate recent interval (page + 1)
-       | resCount < 100  -> fetchAndUpsertReposByDate nextRecent interval 1
+    mapConcurrently_ syncCategories repos
+    if | resCount == 100 -> syncReposByDate recent interval (page + 1)
+       | resCount < 100  -> syncReposByDate nextRecent interval 1
        | otherwise       -> log E $ "More than 100 results returned on page"
   where
     older :: Day
@@ -62,7 +50,7 @@ fetchAndUpsertReposByDate recent interval page = do
     nextRecent :: Day
     nextRecent = (-1) `addDays` older
 
-    fetchAndUpdateCategories :: Repo -> m ()
-    fetchAndUpdateCategories Repo{..} = do
+    syncCategories :: Repo -> m ()
+    syncCategories Repo{..} = do
         categories <- getCabalCategories repoOwner repoName
         updateRepoCategories repoOwner repoName categories
