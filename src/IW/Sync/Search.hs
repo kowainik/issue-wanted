@@ -14,13 +14,13 @@ module IW.Sync.Search
        , parseUserData
        ) where
 
+import Data.Text (strip)
 import Data.Time (Day (..))
 import Data.Time.Format (formatTime, defaultTimeLocale, iso8601DateFormat)
 import GitHub (SearchResult (..), URL (..))
 import GitHub.Data.RateLimit (RateLimit (..), Limits)
 import GitHub.Data.Request (query)
 import GitHub.Request (executeRequest')
-import GitHub.Endpoints.Search (searchIssues)
 import GitHub.Endpoints.RateLimit (rateLimit)
 
 import IW.App (WithError)
@@ -34,54 +34,43 @@ import qualified Data.Text as T
 import qualified Data.Vector as V
 
 
--- | Fetch all repositories built with the Haskell language by page within a date range.
-fetchHaskellReposByDate
-    :: ( MonadIO m
-       , WithError m
-       , WithLog env m
-       )
-    => Day
-    -> Day
-    -> Int
-    -> m [GitHub.Repo]
-fetchHaskellReposByDate from to page = liftGitHubSearchToApp $ searchHaskellReposByDate from to page
-
--- | Fetch all open issues with Haskell language and the labels passed in to the function.
-fetchHaskellIssuesByLabels
-    :: ( MonadIO m
-       , WithError m
-       , WithLog env m
-       )
-    => [Label]
-    -> m [GitHub.Issue]
-fetchHaskellIssuesByLabels = liftGitHubSearchToApp . searchHaskellIssuesByLabels
-
--- | Fetch all open issues with Haskell language.
-fetchAllHaskellIssues
-    :: ( MonadIO m
-       , WithError m
-       , WithLog env m
-       )
-    => m [GitHub.Issue]
-fetchAllHaskellIssues = fetchHaskellIssuesByLabels []
-
--- | Lift a github search action to work within our monad stack.
-liftGitHubSearchToApp
+githubSearch
     :: forall a env m.
        ( MonadIO m
        , WithError m
        , WithLog env m
+       , FromJSON a
        , Typeable a
        )
-    => IO (Either GitHub.Error (SearchResult a))
+    => [Text] -- ^ Paths
+    -> Text   -- ^ Query String
+    -> Day    -- ^ From day
+    -> Day    -- ^ To day
+    -> Int    -- ^ Page
     -> m [a]
-liftGitHubSearchToApp searchAction = liftIO searchAction >>= \case
+githubSearch paths queryString from to page = liftIO (executeRequest' $ query paths queries) >>= \case
     Left err -> throwError $ githubErrToAppErr err
     Right (SearchResult count vec) -> do
-        log Info $ "Fetching total of " <> show count <> " " <> typeName @a <> "s..."
+        log Info $ "Query executed with the following paths and query parameters: " <> show paths <> " " <> show queries
+        log Info $ "Fetched total of " <> show count <> " " <> typeName @a <> "s..."
         searchLimit <- getSearchRateLimit
         log Info $ "Search rate limit information: " <> show searchLimit
         pure $ V.toList vec
+  where
+    queries :: [(ByteString, Maybe ByteString)]
+    queries = pagination <> [("q", Just $ encodeUtf8 $ strip queryString <> " " <> dateRange from to)]
+
+    pagination :: [(ByteString, Maybe ByteString)]
+    pagination =
+        [ ("per_page", Just "100")
+        , ("page", Just $ show page)
+        ]
+
+    dateRange :: Day -> Day -> Text
+    dateRange from' to' = "created:" <> julianDayToIso from' <> ".." <> julianDayToIso to'
+
+    julianDayToIso :: Day -> Text
+    julianDayToIso = fromString . formatTime defaultTimeLocale (iso8601DateFormat Nothing)
 
 getSearchRateLimit
     :: forall m.
@@ -93,31 +82,60 @@ getSearchRateLimit = liftIO rateLimit >>= \case
     Left err -> throwError $ githubErrToAppErr err
     Right RateLimit{..} -> pure rateLimitSearch
 
-githubSearch :: FromJSON a => [Text] -> [(ByteString, Maybe ByteString)] -> IO (Either GitHub.Error (SearchResult a))
-githubSearch paths queries = executeRequest' $ query paths queries
-
--- | Search all repositories built with the Haskell language by page number within a date range.
-searchHaskellReposByDate :: Day -> Day -> Int -> IO (Either GitHub.Error (SearchResult GitHub.Repo))
-searchHaskellReposByDate from to page = githubSearch paths queries
+-- | Fetch all repositories built with the Haskell language by page within a date range.
+fetchHaskellReposByDate
+    :: forall env m.
+       ( MonadIO m
+       , WithError m
+       , WithLog env m
+       )
+    => Day
+    -> Day
+    -> Int
+    -> m [GitHub.Repo]
+fetchHaskellReposByDate from to page = githubSearch paths queryString from to page
   where
     paths :: [Text]
     paths = ["search", "repositories"]
 
-    queries :: [(ByteString, Maybe ByteString)]
-    queries =
-        [ ("q", Just searchString)
-        , ("per_page", Just "100")
-        , ("page", Just $ show page)
-        ]
+    queryString :: Text
+    queryString = "language:haskell"
 
-    searchString :: ByteString
-    searchString = "language:haskell created:" <> dateRange
+-- | Fetch all open issues with Haskell language and the labels passed in to the function.
+fetchHaskellIssuesByLabels
+    :: forall env m.
+       ( MonadIO m
+       , WithError m
+       , WithLog env m
+       )
+    => [Label]
+    -> Day
+    -> Day
+    -> Int
+    -> m [GitHub.Issue]
+fetchHaskellIssuesByLabels labels from to page = githubSearch paths queryString from to page
+  where
+    paths :: [Text]
+    paths = ["search", "issues"]
 
-    dateRange :: ByteString
-    dateRange = julianDayToIsoBS from <> ".." <> julianDayToIsoBS to
+    queryString :: Text
+    queryString = "language:haskell" <> " " <> labelsToSearchQuery labels
 
-    julianDayToIsoBS :: Day -> ByteString
-    julianDayToIsoBS = fromString . formatTime defaultTimeLocale (iso8601DateFormat Nothing)
+    -- | Construct a github search query from a list of labels.
+    labelsToSearchQuery :: [Label] -> Text
+    labelsToSearchQuery = foldMap (\Label{..} -> "label:\"" <> unLabel <> "\" ")
+
+-- | Fetch all open issues with Haskell language.
+fetchAllHaskellIssues
+    :: ( MonadIO m
+       , WithError m
+       , WithLog env m
+       )
+    => Day
+    -> Day
+    -> Int
+    -> m [GitHub.Issue]
+fetchAllHaskellIssues = fetchHaskellIssuesByLabels []
 
 -- | Convert a value of the @GitHub.Repo@ type to a value of our own @Repo@ type.
 fromGitHubRepo :: GitHub.Repo -> Repo
@@ -127,14 +145,6 @@ fromGitHubRepo githubRepo = Repo
     , repoDescr      = fromMaybe "" $ GitHub.repoDescription githubRepo
     , repoCategories = SqlArray []
     }
-
--- | Search for all open Haskell issues with the corresponding labels.
-searchHaskellIssuesByLabels :: [Label] -> IO (Either GitHub.Error (SearchResult GitHub.Issue))
-searchHaskellIssuesByLabels labels = searchIssues $ "language:haskell is:open " <> labelsToSearchQuery labels
-
--- | Construct a github search query from a list of labels.
-labelsToSearchQuery :: [Label] -> Text
-labelsToSearchQuery = foldMap (\Label{..} -> "label:\"" <> unLabel <> "\" ")
 
 -- | Convert a value of the @GitHub.Issue@ type to a value of our own @Issue@ type.
 fromGitHubIssue :: GitHub.Issue -> Maybe Issue
