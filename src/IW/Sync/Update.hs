@@ -41,8 +41,10 @@ syncRepos oldest recent interval page =
     else
         do
             resCount <- syncReposByDate intervalStart recent page
-            if | resCount < 100  -> syncRepos oldest nextRecent interval 1
-               | otherwise       -> syncRepos oldest recent interval (page + 1)
+            if resCount < 100 then
+                syncRepos oldest nextRecent interval 1
+            else
+                syncRepos oldest recent interval (page + 1)
   where
     intervalStart :: Day
     intervalStart = (negate interval) `addDays` recent
