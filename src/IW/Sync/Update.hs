@@ -40,7 +40,8 @@ syncReposByDate recent interval page = do
     let repos = map fromGitHubRepo gitHubRepos
     upsertRepos repos
     mapConcurrently_ syncCategories repos
-    if | resCount == 100 -> syncReposByDate recent interval (page + 1)
+    if | recent == (ModifiedJulianDay 58484) -> log I $ "Earliest day reached."
+       | resCount == 100 -> syncReposByDate recent interval (page + 1)
        | resCount < 100  -> syncReposByDate nextRecent interval 1
        | otherwise       -> log E $ "More than 100 results returned on page"
   where
