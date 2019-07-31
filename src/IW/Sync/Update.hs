@@ -6,7 +6,7 @@ data and insert it into the database.
 -}
 
 module IW.Sync.Update
-       ( syncReposByDate
+       ( syncRepos
        ) where
 
 import Control.Monad.IO.Unlift (MonadUnliftIO)
@@ -22,7 +22,7 @@ import IW.Sync.Search (fetchHaskellReposByDate, fromGitHubRepo)
 
 -- | This function fetches repos from the GitHub API within a specified date range,
 -- parses their @.cabal@ files, and upserts them into the database.
-syncReposByDate
+syncRepos
     :: forall env m.
        ( MonadCabal m
        , MonadUnliftIO m
@@ -35,14 +35,14 @@ syncReposByDate
     -> Integer -- ^ Interval of days before most recent day
     -> Int     -- ^ Page
     -> m ()
-syncReposByDate oldest recent interval page =
+syncRepos oldest recent interval page =
     if recent == oldest then
         log I $ "Oldest day reached"
     else
         do
-            resCount <- syncRepos intervalStart recent page
-            if | resCount < 100  -> syncReposByDate oldest nextRecent interval 1
-               | otherwise       -> syncReposByDate oldest recent interval (page + 1)
+            resCount <- syncReposByDate intervalStart recent page
+            if | resCount < 100  -> syncRepos oldest nextRecent interval 1
+               | otherwise       -> syncRepos oldest recent interval (page + 1)
   where
     intervalStart :: Day
     intervalStart = (negate interval) `addDays` recent
@@ -50,7 +50,7 @@ syncReposByDate oldest recent interval page =
     nextRecent :: Day
     nextRecent = pred intervalStart
 
-syncRepos
+syncReposByDate
     :: forall env m.
        ( MonadCabal m
        , MonadUnliftIO m
@@ -62,7 +62,7 @@ syncRepos
     -> Day
     -> Int
     -> m Int
-syncRepos from to page = do
+syncReposByDate from to page = do
     gitHubRepos <- fetchHaskellReposByDate from to page
     let repos = map fromGitHubRepo gitHubRepos
     upsertRepos repos
