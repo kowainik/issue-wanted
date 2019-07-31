@@ -9,6 +9,7 @@ module IW.Sync.Search
        ( fetchHaskellReposByDate
        , fetchAllHaskellIssues
        , fetchHaskellIssuesByLabels
+       , getSearchRateLimit
        , fromGitHubIssue
        , fromGitHubRepo
        , parseUserData

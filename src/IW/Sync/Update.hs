@@ -30,28 +30,55 @@ syncReposByDate
        , WithLog env m
        , WithError m
        )
-    => Day     -- ^ Most recent day
+    => Day     -- ^ Oldest day
+    -> Day     -- ^ Most recent day
     -> Integer -- ^ Interval of days before most recent day
     -> Int     -- ^ Page
     -> m ()
-syncReposByDate recent interval page = do
-    gitHubRepos <- fetchHaskellReposByDate older recent page
-    let resCount = length gitHubRepos
+syncReposByDate oldest recent interval page =
+    if recent == oldest then
+        log I $ "Oldest day reached"
+    else
+        do
+            resCount <- syncRepos intervalStart recent page
+            if | resCount < 100  -> syncReposByDate oldest nextRecent interval 1
+               | otherwise       -> syncReposByDate oldest recent interval (page + 1)
+  where
+    intervalStart :: Day
+    intervalStart = (negate interval) `addDays` recent
+
+    nextRecent :: Day
+    nextRecent = pred intervalStart
+
+syncRepos
+    :: forall env m.
+       ( MonadCabal m
+       , MonadUnliftIO m
+       , WithDb env m
+       , WithLog env m
+       , WithError m
+       )
+    => Day
+    -> Day
+    -> Int
+    -> m Int
+syncRepos from to page = do
+    gitHubRepos <- fetchHaskellReposByDate from to page
     let repos = map fromGitHubRepo gitHubRepos
     upsertRepos repos
     mapConcurrently_ syncCategories repos
-    if | recent == (ModifiedJulianDay 58484) -> log I $ "Earliest day reached."
-       | resCount == 100 -> syncReposByDate recent interval (page + 1)
-       | resCount < 100  -> syncReposByDate nextRecent interval 1
-       | otherwise       -> log E $ "More than 100 results returned on page"
-  where
-    older :: Day
-    older = (negate interval) `addDays` recent
+    pure $ length repos
 
-    nextRecent :: Day
-    nextRecent = (-1) `addDays` older
-
-    syncCategories :: Repo -> m ()
-    syncCategories Repo{..} = do
-        categories <- getCabalCategories repoOwner repoName
-        updateRepoCategories repoOwner repoName categories
+syncCategories
+    :: forall env m.
+       ( MonadCabal m
+       , MonadUnliftIO m
+       , WithDb env m
+       , WithLog env m
+       , WithError m
+       )
+    => Repo
+    -> m ()
+syncCategories Repo{..} = do
+    categories <- getCabalCategories repoOwner repoName
+    updateRepoCategories repoOwner repoName categories
