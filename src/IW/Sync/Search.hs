@@ -15,13 +15,12 @@ module IW.Sync.Search
        , parseUserData
        ) where
 
+import UnliftIO (MonadUnliftIO)
+import UnliftIO.Concurrent (threadDelay)
 import Data.Text (strip)
 import Data.Time (Day (..))
 import Data.Time.Format (formatTime, defaultTimeLocale, iso8601DateFormat)
-import GitHub (SearchResult (..), URL (..))
-import GitHub.Data.RateLimit (RateLimit (..), Limits)
-import GitHub.Data.Request (query)
-import GitHub.Request (executeRequest')
+import GitHub (SearchResult (..), URL (..), RateLimit (..), Limits, executeRequest', query, limitsRemaining)
 import GitHub.Endpoints.RateLimit (rateLimit)
 
 import IW.App (WithError)
@@ -38,6 +37,7 @@ import qualified Data.Vector as V
 githubSearch
     :: forall a env m.
        ( MonadIO m
+       , MonadUnliftIO m
        , WithError m
        , WithLog env m
        , FromJSON a
@@ -49,14 +49,24 @@ githubSearch
     -> Day    -- ^ To day
     -> Int    -- ^ Page
     -> m [a]
-githubSearch paths queryString from to page = liftIO (executeRequest' $ query paths queries) >>= \case
-    Left err -> throwError $ githubErrToAppErr err
-    Right (SearchResult count vec) -> do
-        log Info $ "Query executed with the following paths and query parameters: " <> show paths <> " " <> show queries
-        log Info $ "Fetched total of " <> show count <> " " <> typeName @a <> "s..."
-        searchLimit <- getSearchRateLimit
-        log Info $ "Search rate limit information: " <> show searchLimit
-        pure $ V.toList vec
+githubSearch paths queryString from to page = do
+    searchLimit <- getSearchRateLimit
+    if limitsRemaining searchLimit > 0 then
+        do
+            log Info $ "Search rate limit information: " <> show searchLimit
+            liftIO (executeRequest' $ query paths queries) >>= \case
+                Left err -> throwError $ githubErrToAppErr err
+                Right (SearchResult count vec) -> do
+                    log Info $ "Query executed with the following paths and query parameters: " <> show paths <> " " <> show queries
+                    log Info $ "Fetched total of " <> show count <> " " <> typeName @a <> "s..."
+                    pure $ V.toList vec
+    else
+        do
+            log Info $ "No more requests remaining. Waiting for one minute..."
+            threadDelay 60000000
+            githubSearch paths queryString from to page
+
+
   where
     queries :: [(ByteString, Maybe ByteString)]
     queries = pagination <> [("q", Just $ encodeUtf8 $ strip queryString <> " " <> dateRange from to)]
@@ -76,6 +86,7 @@ githubSearch paths queryString from to page = liftIO (executeRequest' $ query pa
 getSearchRateLimit
     :: forall m.
        ( MonadIO m
+       , MonadUnliftIO m
        , WithError m
        )
     => m Limits
@@ -86,7 +97,7 @@ getSearchRateLimit = liftIO rateLimit >>= \case
 -- | Fetch all repositories built with the Haskell language by page within a date range.
 fetchHaskellReposByDate
     :: forall env m.
-       ( MonadIO m
+       ( MonadUnliftIO m
        , WithError m
        , WithLog env m
        )
@@ -105,7 +116,7 @@ fetchHaskellReposByDate from to page = githubSearch paths queryString from to pa
 -- | Fetch all open issues with Haskell language and the labels passed in to the function.
 fetchHaskellIssuesByLabels
     :: forall env m.
-       ( MonadIO m
+       ( MonadUnliftIO m
        , WithError m
        , WithLog env m
        )
@@ -128,7 +139,7 @@ fetchHaskellIssuesByLabels labels from to page = githubSearch paths queryString 
 
 -- | Fetch all open issues with Haskell language.
 fetchAllHaskellIssues
-    :: ( MonadIO m
+    :: ( MonadUnliftIO m
        , WithError m
        , WithLog env m
        )
