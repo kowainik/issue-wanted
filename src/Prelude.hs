@@ -11,6 +11,7 @@ module Prelude
        , module Web
 
        , WithLog
+       , julianDayToIso
        , typeName
        ) where
 
@@ -23,6 +24,9 @@ import Control.Lens ((.~), (^.))
 import Colog (pattern D, pattern E, pattern I, LogAction (..), Severity (..), pattern W, log)
 
 import Data.Aeson as Json (FromJSON (parseJSON), ToJSON (toJSON))
+
+import Data.Time (Day (..))
+import Data.Time.Format (formatTime, defaultTimeLocale, iso8601DateFormat)
 
 import Database.PostgreSQL.Simple.FromField as Sql (FromField (fromField))
 import Database.PostgreSQL.Simple.FromRow as Sql (FromRow (fromRow), field)
@@ -43,3 +47,6 @@ import qualified Colog (Message, WithLog)
 
 -- | 'Colog.WithLog' alias specialized to 'Message' data type.
 type WithLog env m = Colog.WithLog env Colog.Message m
+
+julianDayToIso :: Day -> Text
+julianDayToIso = fromString . formatTime defaultTimeLocale (iso8601DateFormat Nothing)

@@ -37,7 +37,7 @@ syncRepos
     -> m ()
 syncRepos oldest recent interval page =
     if recent == oldest then
-        log I $ "Oldest day reached"
+        log I $ "Oldest day " <> julianDayToIso oldest <> " reached..."
     else
         do
             resCount <- syncReposByDate intervalStart recent page

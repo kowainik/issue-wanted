@@ -19,7 +19,6 @@ import UnliftIO (MonadUnliftIO)
 import UnliftIO.Concurrent (threadDelay)
 import Data.Text (strip)
 import Data.Time (Day (..))
-import Data.Time.Format (formatTime, defaultTimeLocale, iso8601DateFormat)
 import GitHub (SearchResult (..), URL (..), RateLimit (..), Limits, executeRequest', query, limitsRemaining)
 import GitHub.Endpoints.RateLimit (rateLimit)
 
@@ -65,8 +64,6 @@ githubSearch paths queryString from to page = do
             log Info $ "No more requests remaining. Waiting for one minute..."
             threadDelay 60000000
             githubSearch paths queryString from to page
-
-
   where
     queries :: [(ByteString, Maybe ByteString)]
     queries = pagination <> [("q", Just $ encodeUtf8 $ strip queryString <> " " <> dateRange from to)]
@@ -79,9 +76,6 @@ githubSearch paths queryString from to page = do
 
     dateRange :: Day -> Day -> Text
     dateRange from' to' = "created:" <> julianDayToIso from' <> ".." <> julianDayToIso to'
-
-    julianDayToIso :: Day -> Text
-    julianDayToIso = fromString . formatTime defaultTimeLocale (iso8601DateFormat Nothing)
 
 getSearchRateLimit
     :: forall m.
