@@ -1,14 +1,14 @@
 {- | This module provides functions used in fetching Haskell repos and
-issues from the GitHub API. Functions with the fetch- prefix such as
+issues from the GitHub API. Functions with the Search- prefix such as
 @fetchAllHaskellRepos@ can be used to make request to the GitHubAPI.
 This module also exposes functions that map @github@ library types to our own,
 and a parser for extracting the @RepoOwner@ and @RepoName@ from a URL.
 -}
 
 module IW.Sync.Search
-       ( fetchHaskellReposByDate
-       , fetchAllHaskellIssues
-       , fetchHaskellIssuesByLabels
+       ( searchHaskellReposByDate
+       , searchAllHaskellIssues
+       , searchHaskellIssuesByLabels
        , fromGitHubIssue
        , fromGitHubRepo
        , liftGithubSearchToApp
@@ -45,46 +45,51 @@ liftGithubSearchToApp
 liftGithubSearchToApp githubSearch' = do
     searchLimit <- getSearchRateLimit
     if limitsRemaining searchLimit > 0
-        then liftIO githubSearch' >>= \case
-            Left err -> throwError $ githubErrToAppErr err
-            Right (SearchResult count vec) -> do
-                -- log Info $ "Query executed with the following paths and query parameters: " <> show paths <> " " <> show queries
-                log Info $ "Fetched total of " <> show count <> " " <> typeName @a <> "s..."
-                pure $ V.toList vec
-        else do
-            log Info $ "No more requests remaining. Waiting for one minute..."
-            threadDelay 60000000
-            liftGithubSearchToApp githubSearch'
+        then performSearch
+        else delaySearch
+  where
+    performSearch :: m [a]
+    performSearch = liftIO githubSearch' >>= \case
+        Left err -> throwError $ githubErrToAppErr err
+        Right (SearchResult count vec) -> do
+            log Info $ "Fetched total of " <> show count <> " " <> typeName @a <> "s..."
+            pure $ V.toList vec
+
+    delaySearch :: m [a]
+    delaySearch = do
+        log Info "No more requests remaining. Waiting for one minute..."
+        threadDelay 60000000
+        liftGithubSearchToApp githubSearch'
 
 getSearchRateLimit :: forall m. (MonadIO m, MonadUnliftIO m, WithError m) => m Limits
 getSearchRateLimit = liftIO rateLimit >>= \case
     Left err -> throwError $ githubErrToAppErr err
     Right RateLimit{..} -> pure rateLimitSearch
 
--- | Fetch all repositories built with the Haskell language by page within a date range.
-fetchHaskellReposByDate
+-- | Search all repositories built with the Haskell language by page within a date range.
+searchHaskellReposByDate
     :: Day
     -> Day
     -> Int
     -> IO (Either GitHub.Error (SearchResult GitHub.Repo))
-fetchHaskellReposByDate = githubSearch ["search", "repositories"] "language:haskell"
+searchHaskellReposByDate = githubSearch ["search", "repositories"] "language:haskell"
 
--- | Fetch all open issues with Haskell language.
-fetchAllHaskellIssues
+-- | Search all open issues with Haskell language.
+searchAllHaskellIssues
     :: Day
     -> Day
     -> Int
     -> IO (Either GitHub.Error (SearchResult GitHub.Issue))
-fetchAllHaskellIssues = fetchHaskellIssuesByLabels []
+searchAllHaskellIssues = searchHaskellIssuesByLabels []
 
--- | Fetch all open issues with Haskell language and the labels passed in to the function.
-fetchHaskellIssuesByLabels
+-- | Search all open issues with Haskell language and the labels passed in to the function.
+searchHaskellIssuesByLabels
     :: [Label]
     -> Day
     -> Day
     -> Int
     -> IO (Either GitHub.Error (SearchResult GitHub.Issue))
-fetchHaskellIssuesByLabels labels = githubSearch ["search", "issues"] queryString
+searchHaskellIssuesByLabels labels = githubSearch ["search", "issues"] queryString
   where
     queryString :: Text
     queryString = "language:haskell" <> " " <> labelsToSearchQuery labels
