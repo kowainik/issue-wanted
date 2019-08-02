@@ -1,5 +1,3 @@
-{-# LANGUAGE MultiWayIf #-}
-
 {- | This module contains functions that are used for updating the database.
 It combines functionality from @IW.Sync.Search@ and @IW.Db@ to fetch the latest
 data and insert it into the database.
@@ -36,15 +34,13 @@ syncRepos
     -> Int     -- ^ Page
     -> m ()
 syncRepos oldest recent interval page =
-    if recent == oldest then
-        log I $ "Oldest day " <> julianDayToIso oldest <> " reached..."
-    else
-        do
+    if recent == oldest
+        then log I $ "Oldest day " <> julianDayToIso oldest <> " reached..."
+        else do
             resCount <- syncReposByDate intervalStart recent page
-            if resCount < 100 then
-                syncRepos oldest nextRecent interval 1
-            else
-                syncRepos oldest recent interval (page + 1)
+            if resCount < 100
+                then syncRepos oldest nextRecent interval 1
+                else syncRepos oldest recent interval (page + 1)
   where
     intervalStart :: Day
     intervalStart = negate interval `addDays` recent
