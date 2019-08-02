@@ -35,13 +35,16 @@ syncRepos
     -> m ()
 syncRepos oldest recent interval page =
     if recent == oldest
-        then log I $ "Oldest day " <> julianDayToIso oldest <> " reached..."
-        else do
-            resCount <- syncReposByDate intervalStart recent page
-            if resCount < 100
-                then syncRepos oldest nextRecent interval 1
-                else syncRepos oldest recent interval (page + 1)
+    then log I $ "Oldest day " <> julianDayToIso oldest <> " reached..."
+    else sync
   where
+    sync :: m ()
+    sync = do
+        resCount <- syncReposByDate intervalStart recent page
+        if resCount < 100
+            then syncRepos oldest nextRecent interval 1
+            else syncRepos oldest recent interval (page + 1)
+
     intervalStart :: Day
     intervalStart = negate interval `addDays` recent
 
