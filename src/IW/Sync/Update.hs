@@ -17,7 +17,7 @@ import IW.App (WithError)
 import IW.Core.Repo (Repo (..))
 import IW.Db (WithDb, upsertRepos, updateRepoCategories)
 import IW.Effects.Cabal (MonadCabal (..), getCabalCategories)
-import IW.Sync.Search (fetchHaskellReposByDate, fromGitHubRepo)
+import IW.Sync.Search (fetchHaskellReposByDate, fromGitHubRepo, liftGithubSearchToApp)
 
 
 -- | This function fetches repos from the GitHub API within a specified date range,
@@ -65,7 +65,7 @@ syncReposByDate
     -> Int
     -> m Int
 syncReposByDate from to page = do
-    gitHubRepos <- fetchHaskellReposByDate from to page
+    gitHubRepos <- liftGithubSearchToApp $ fetchHaskellReposByDate from to page
     let repos = map fromGitHubRepo gitHubRepos
     upsertRepos repos
     mapConcurrently_ syncCategories repos

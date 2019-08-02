@@ -9,17 +9,16 @@ module IW.Sync.Search
        ( fetchHaskellReposByDate
        , fetchAllHaskellIssues
        , fetchHaskellIssuesByLabels
-       , getSearchRateLimit
        , fromGitHubIssue
        , fromGitHubRepo
+       , liftGithubSearchToApp
        , parseUserData
        ) where
 
 import UnliftIO (MonadUnliftIO)
 import UnliftIO.Concurrent (threadDelay)
-import Data.Text (strip)
 import Data.Time (Day (..))
-import GitHub (SearchResult (..), URL (..), RateLimit (..), Limits, executeRequest', query, limitsRemaining)
+import GitHub (SearchResult (..), URL (..), RateLimit (..), Limits, Paths, QueryString, executeRequest', limitsRemaining)
 import GitHub.Endpoints.RateLimit (rateLimit)
 
 import IW.App (WithError)
@@ -33,97 +32,60 @@ import qualified Data.Text as T
 import qualified Data.Vector as V
 
 
-githubSearch
+liftGithubSearchToApp
     :: forall a env m.
        ( MonadIO m
        , MonadUnliftIO m
        , WithError m
        , WithLog env m
-       , FromJSON a
        , Typeable a
        )
-    => [Text] -- ^ Paths
-    -> Text   -- ^ Query String
-    -> Day    -- ^ From day
-    -> Day    -- ^ To day
-    -> Int    -- ^ Page
+    => IO (Either GitHub.Error (SearchResult a))
     -> m [a]
-githubSearch paths queryString from to page = do
+liftGithubSearchToApp githubSearch' = do
     searchLimit <- getSearchRateLimit
-    if limitsRemaining searchLimit > 0 then
-        do
-            log Info $ "Search rate limit information: " <> show searchLimit
-            liftIO (executeRequest' $ query paths queries) >>= \case
-                Left err -> throwError $ githubErrToAppErr err
-                Right (SearchResult count vec) -> do
-                    log Info $ "Query executed with the following paths and query parameters: " <> show paths <> " " <> show queries
-                    log Info $ "Fetched total of " <> show count <> " " <> typeName @a <> "s..."
-                    pure $ V.toList vec
-    else
-        do
+    if limitsRemaining searchLimit > 0
+        then liftIO githubSearch' >>= \case
+            Left err -> throwError $ githubErrToAppErr err
+            Right (SearchResult count vec) -> do
+                -- log Info $ "Query executed with the following paths and query parameters: " <> show paths <> " " <> show queries
+                log Info $ "Fetched total of " <> show count <> " " <> typeName @a <> "s..."
+                pure $ V.toList vec
+        else do
             log Info $ "No more requests remaining. Waiting for one minute..."
             threadDelay 60000000
-            githubSearch paths queryString from to page
-  where
-    queries :: [(ByteString, Maybe ByteString)]
-    queries = pagination <> [("q", Just $ encodeUtf8 $ strip queryString <> " " <> dateRange from to)]
+            liftGithubSearchToApp githubSearch'
 
-    pagination :: [(ByteString, Maybe ByteString)]
-    pagination =
-        [ ("per_page", Just "100")
-        , ("page", Just $ show page)
-        ]
-
-    dateRange :: Day -> Day -> Text
-    dateRange from' to' = "created:" <> julianDayToIso from' <> ".." <> julianDayToIso to'
-
-getSearchRateLimit
-    :: forall m.
-       ( MonadIO m
-       , MonadUnliftIO m
-       , WithError m
-       )
-    => m Limits
+getSearchRateLimit :: forall m. (MonadIO m, MonadUnliftIO m, WithError m) => m Limits
 getSearchRateLimit = liftIO rateLimit >>= \case
     Left err -> throwError $ githubErrToAppErr err
     Right RateLimit{..} -> pure rateLimitSearch
 
 -- | Fetch all repositories built with the Haskell language by page within a date range.
 fetchHaskellReposByDate
-    :: forall env m.
-       ( MonadUnliftIO m
-       , WithError m
-       , WithLog env m
-       )
-    => Day
+    :: Day
     -> Day
     -> Int
-    -> m [GitHub.Repo]
-fetchHaskellReposByDate from to page = githubSearch paths queryString from to page
-  where
-    paths :: [Text]
-    paths = ["search", "repositories"]
+    -> IO (Either GitHub.Error (SearchResult GitHub.Repo))
+fetchHaskellReposByDate = githubSearch ["search", "repositories"] "language:haskell"
 
-    queryString :: Text
-    queryString = "language:haskell"
+-- | Fetch all open issues with Haskell language.
+fetchAllHaskellIssues
+    :: Day
+    -> Day
+    -> Int
+    -> IO (Either GitHub.Error (SearchResult GitHub.Issue))
+fetchAllHaskellIssues = fetchHaskellIssuesByLabels []
 
 -- | Fetch all open issues with Haskell language and the labels passed in to the function.
 fetchHaskellIssuesByLabels
-    :: forall env m.
-       ( MonadUnliftIO m
-       , WithError m
-       , WithLog env m
-       )
-    => [Label]
+    :: [Label]
     -> Day
     -> Day
     -> Int
-    -> m [GitHub.Issue]
-fetchHaskellIssuesByLabels labels from to page = githubSearch paths queryString from to page
+    -> IO (Either GitHub.Error (SearchResult GitHub.Issue))
+fetchHaskellIssuesByLabels labels = githubSearch ["search", "issues"] queryString
   where
-    paths :: [Text]
-    paths = ["search", "issues"]
-
     queryString :: Text
     queryString = "language:haskell" <> " " <> labelsToSearchQuery labels
 
@@ -131,17 +93,34 @@ fetchHaskellIssuesByLabels labels from to page = githubSearch paths queryString 
     labelsToSearchQuery :: [Label] -> Text
     labelsToSearchQuery = foldMap (\Label{..} -> "label:\"" <> unLabel <> "\" ")
 
--- | Fetch all open issues with Haskell language.
-fetchAllHaskellIssues
-    :: ( MonadUnliftIO m
-       , WithError m
-       , WithLog env m
-       )
-    => Day
+githubSearch
+    :: FromJSON a
+    => Paths -- ^ Path
+    -> Text  -- ^ Query String
+    -> Day   -- ^ From day
+    -> Day   -- ^ To day
+    -> Int   -- ^ Page
+    -> IO (Either GitHub.Error (SearchResult a))
+githubSearch paths queryString from to page = executeRequest' $ buildGithubQuery paths queryString from to page
+
+buildGithubQuery
+    :: Paths
+    -> Text
+    -> Day
     -> Day
     -> Int
-    -> m [GitHub.Issue]
-fetchAllHaskellIssues = fetchHaskellIssuesByLabels []
+    -> GitHub.GenRequest 'GitHub.MtJSON 'GitHub.RO a
+buildGithubQuery paths queryString from to page = GitHub.query paths queryString'
+  where
+    queryString' :: QueryString
+    queryString' =
+        [ ("per_page", Just "100")
+        , ("page", Just $ show page)
+        , ("q", Just $ encodeUtf8 $ queryString <> " " <> dateRange from to)
+        ]
+
+    dateRange :: Day -> Day -> Text
+    dateRange from' to' = "created:" <> julianDayToIso from' <> ".." <> julianDayToIso to'
 
 -- | Convert a value of the @GitHub.Repo@ type to a value of our own @Repo@ type.
 fromGitHubRepo :: GitHub.Repo -> Repo
