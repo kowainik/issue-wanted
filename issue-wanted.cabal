@@ -98,6 +98,8 @@ library
                          IW.Sync.Search
                          IW.Sync.Update
 
+                         IW.Time
+
   build-depends:       aeson >= 1.4
                      , async ^>= 2.2.2
                      , bytestring ^>= 0.10

@@ -16,6 +16,7 @@ import IW.Core.Repo (Repo (..))
 import IW.Db (WithDb, upsertRepos, updateRepoCategories)
 import IW.Effects.Cabal (MonadCabal (..), getCabalCategories)
 import IW.Sync.Search (searchHaskellReposByDate, fromGitHubRepo, liftGithubSearchToApp)
+import IW.Time (julianDayToIso)
 
 
 -- | This function fetches repos from the GitHub API within a specified date range,

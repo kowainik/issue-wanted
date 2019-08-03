@@ -16,16 +16,16 @@ module IW.Sync.Search
        ) where
 
 import UnliftIO (MonadUnliftIO)
-import UnliftIO.Concurrent (threadDelay)
 import Data.Time (Day (..))
 import GitHub (SearchResult (..), URL (..), RateLimit (..), Limits, Paths, QueryString, executeRequest', limitsRemaining)
 import GitHub.Endpoints.RateLimit (rateLimit)
 
 import IW.App (WithError)
+import IW.App.Error (githubErrToAppErr, throwError)
 import IW.Core.Issue (Issue (..), Label (..))
 import IW.Core.Repo (Repo (..), RepoOwner (..), RepoName (..))
 import IW.Core.SqlArray (SqlArray (..))
-import IW.App.Error (githubErrToAppErr, throwError)
+import IW.Time (julianDayToIso)
 
 import qualified GitHub
 import qualified Data.Text as T
@@ -57,8 +57,7 @@ liftGithubSearchToApp githubSearch' = do
 
     delaySearch :: m [a]
     delaySearch = do
-        log Info "No more requests remaining. Waiting for one minute..."
-        threadDelay 60000000
+        log Info "No more requests remaining. Waiting..."
         liftGithubSearchToApp githubSearch'
 
 getSearchRateLimit :: forall m. (MonadIO m, MonadUnliftIO m, WithError m) => m Limits
