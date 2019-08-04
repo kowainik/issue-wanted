@@ -32,6 +32,7 @@ import qualified Data.Text as T
 import qualified Data.Vector as V
 
 
+-- | This function is for lifting a GitHub search action to the App monad.
 liftGithubSearchToApp
     :: forall a env m.
        ( MonadIO m
@@ -46,8 +47,9 @@ liftGithubSearchToApp githubSearch' = do
     searchLimit <- getSearchRateLimit
     if limitsRemaining searchLimit > 0
         then performSearch
-        else delaySearch
+        else liftGithubSearchToApp githubSearch'
   where
+    -- | Execute a query against the GitHub Search API.
     performSearch :: m [a]
     performSearch = liftIO githubSearch' >>= \case
         Left err -> throwError $ githubErrToAppErr err
@@ -55,11 +57,7 @@ liftGithubSearchToApp githubSearch' = do
             log Info $ "Fetched total of " <> show count <> " " <> typeName @a <> "s..."
             pure $ V.toList vec
 
-    delaySearch :: m [a]
-    delaySearch = do
-        log Info "No more requests remaining. Waiting..."
-        liftGithubSearchToApp githubSearch'
-
+-- | Function for fetching the current rate limit information for the GitHub Search API.
 getSearchRateLimit :: forall m. (MonadIO m, MonadUnliftIO m, WithError m) => m Limits
 getSearchRateLimit = liftIO rateLimit >>= \case
     Left err -> throwError $ githubErrToAppErr err
@@ -67,52 +65,54 @@ getSearchRateLimit = liftIO rateLimit >>= \case
 
 -- | Search all repositories built with the Haskell language by page within a date range.
 searchHaskellReposByDate
-    :: Day
-    -> Day
-    -> Int
+    :: Day -- ^ First day of date range that repos were created in
+    -> Day -- ^ Last day of date range that repos were created in
+    -> Int -- ^ Number of page to be returned
     -> IO (Either GitHub.Error (SearchResult GitHub.Repo))
 searchHaskellReposByDate = githubSearch ["search", "repositories"] "language:haskell"
 
 -- | Search all open issues with Haskell language.
 searchAllHaskellIssues
-    :: Day
-    -> Day
-    -> Int
+    :: Day -- ^ First day of date range that issues were created in
+    -> Day -- ^ Last day of date range that issues were created in
+    -> Int -- ^ Number of page to be returned
     -> IO (Either GitHub.Error (SearchResult GitHub.Issue))
 searchAllHaskellIssues = searchHaskellIssuesByLabels []
 
 -- | Search all open issues with Haskell language and the labels passed in to the function.
 searchHaskellIssuesByLabels
-    :: [Label]
-    -> Day
-    -> Day
-    -> Int
+    :: [Label] -- ^ Issue labels
+    -> Day     -- ^ First day of date range that issues were created in
+    -> Day     -- ^ Last day of date range that issues were created in
+    -> Int     -- ^ Number of page to be returned
     -> IO (Either GitHub.Error (SearchResult GitHub.Issue))
 searchHaskellIssuesByLabels labels = githubSearch ["search", "issues"] queryString
   where
     queryString :: Text
-    queryString = "language:haskell" <> " " <> labelsToSearchQuery labels
+    queryString = "language:haskell " <> labelsToSearchQuery labels
 
     -- | Construct a github search query from a list of labels.
     labelsToSearchQuery :: [Label] -> Text
     labelsToSearchQuery = foldMap (\Label{..} -> "label:\"" <> unLabel <> "\" ")
 
+-- | Executes a query against the GitHub Search API.
 githubSearch
     :: FromJSON a
-    => Paths -- ^ Path
-    -> Text  -- ^ Query String
-    -> Day   -- ^ From day
-    -> Day   -- ^ To day
-    -> Int   -- ^ Page
+    => Paths -- ^ URL paths
+    -> Text  -- ^ Query string for GitHub search
+    -> Day   -- ^ First day of date range that values were created in
+    -> Day   -- ^ Last day of date range that values were created in
+    -> Int   -- ^ Number of page to be returned
     -> IO (Either GitHub.Error (SearchResult a))
 githubSearch paths queryString from to page = executeRequest' $ buildGithubQuery paths queryString from to page
 
+-- | Function for building a GitHub search query value.
 buildGithubQuery
-    :: Paths
-    -> Text
-    -> Day
-    -> Day
-    -> Int
+    :: Paths -- ^ URL paths
+    -> Text  -- ^ Query string for GitHub search
+    -> Day   -- ^ First day of date range that values were created in
+    -> Day   -- ^ Last day of date range that values were created in
+    -> Int   -- ^ Number of page to be returned
     -> GitHub.GenRequest 'GitHub.MtJSON 'GitHub.RO a
 buildGithubQuery paths queryString from to page = GitHub.query paths queryString'
   where
