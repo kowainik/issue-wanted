@@ -12,7 +12,7 @@ firstHaskellRepoCreated :: Day
 firstHaskellRepoCreated = ModifiedJulianDay 58211
 
 getToday :: IO Day
-getToday = getCurrentTime >>= pure . utctDay
+getToday = utctDay <$> getCurrentTime
 
 julianDayToIso :: Day -> Text
 julianDayToIso = fromString . formatTime defaultTimeLocale (iso8601DateFormat Nothing)

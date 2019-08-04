@@ -9,6 +9,7 @@ module IW.Sync.Update
 
 import Control.Monad.IO.Unlift (MonadUnliftIO)
 import Data.Time (Day (..), addDays)
+import Relude.Extra.Enum (next)
 import UnliftIO.Async (mapConcurrently_)
 
 import IW.App (WithError)
@@ -75,11 +76,11 @@ sync
        , WithLog env m
        , WithError m
        )
-    => (Day -> Day -> Int -> m Int)
-    -> Day -- ^ Oldest day that will be reached
-    -> Day -- ^ Most recent day to start synchronization from
-    -> Int -- ^ Interval of days for the date range to be split into
-    -> Int -- ^ Page
+    => (Day -> Day -> Int -> m Int) -- ^ The function used for synchronization
+    -> Day     -- ^ Oldest day that will be reached
+    -> Day     -- ^ Most recent day to start synchronization from
+    -> Integer -- ^ Interval of days for the date range to be split into
+    -> Int     -- ^ Page
     -> m ()
 sync syncFunction oldest recent interval page =
     if recent == oldest
@@ -88,10 +89,10 @@ sync syncFunction oldest recent interval page =
         resCount <- syncFunction intervalStart recent page
         if resCount < 100
             then sync syncFunction oldest nextRecent interval 1
-            else sync syncFunction oldest recent interval $ succ page
+            else sync syncFunction oldest recent interval $ next page
   where
     intervalStart :: Day
-    intervalStart = negate (toEnum interval) `addDays` recent
+    intervalStart = negate interval `addDays` recent
 
     nextRecent :: Day
     nextRecent = pred intervalStart
