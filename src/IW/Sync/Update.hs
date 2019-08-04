@@ -29,28 +29,9 @@ syncRepos
        , WithLog env m
        , WithError m
        )
-    => Day     -- ^ Oldest day
-    -> Day     -- ^ Most recent day
-    -> Integer -- ^ Interval of days before most recent day
-    -> Int     -- ^ Page
-    -> m ()
-syncRepos oldest recent interval page =
-    if recent == oldest
-    then log I $ "Oldest day " <> julianDayToIso oldest <> " reached..."
-    else sync
-  where
-    sync :: m ()
-    sync = do
-        resCount <- syncReposByDate intervalStart recent page
-        if resCount < 100
-            then syncRepos oldest nextRecent interval 1
-            else syncRepos oldest recent interval (page + 1)
+    => m ()
+syncRepos = sync syncReposByDate
 
-    intervalStart :: Day
-    intervalStart = negate interval `addDays` recent
-
-    nextRecent :: Day
-    nextRecent = pred intervalStart
 
 syncReposByDate
     :: forall env m.
@@ -84,3 +65,32 @@ syncCategories
 syncCategories Repo{..} = do
     categories <- getCabalCategories repoOwner repoName
     updateRepoCategories repoOwner repoName categories
+
+sync
+    :: forall env m.
+       ( MonadCabal m
+       , MonadUnliftIO m
+       , WithDb env m
+       , WithLog env m
+       , WithError m
+       )
+    => (Day -> Day -> Int -> m Int)
+    -> Day -- ^ Oldest day that will be reached
+    -> Day -- ^ Most recent day to start synchronization from
+    -> Int -- ^ Interval of days for the date range to be split into
+    -> Int -- ^ Page
+    -> m ()
+sync syncFunction oldest recent interval page =
+    if recent == oldest
+    then log I $ "Oldest day " <> julianDayToIso oldest <> " reached. Synchronization complete."
+    else do
+        resCount <- syncFunction intervalStart recent page
+        if resCount < 100
+            then sync syncFunction oldest nextRecent interval 1
+            else sync syncFunction oldest recent interval $ succ page
+  where
+    intervalStart :: Day
+    intervalStart = negate (toEnum interval) `addDays` recent
+
+    nextRecent :: Day
+    nextRecent = pred intervalStart
