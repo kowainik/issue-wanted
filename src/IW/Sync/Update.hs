@@ -16,7 +16,7 @@ import IW.Core.Repo (Repo (..))
 import IW.Db (WithDb, upsertRepos, updateRepoCategories)
 import IW.Effects.Cabal (MonadCabal (..), getCabalCategories)
 import IW.Sync.Search (searchHaskellReposByDate, fromGitHubRepo, liftGithubSearchToApp)
-import IW.Time (julianDayToIso)
+import IW.Time (firstHaskellRepoCreated, getToday, julianDayToIso)
 
 
 -- | This function fetches repos from the GitHub API within a specified date range,
@@ -30,8 +30,9 @@ syncRepos
        , WithError m
        )
     => m ()
-syncRepos = sync syncReposByDate
-
+syncRepos = do
+    today <- liftIO getToday
+    sync syncReposByDate firstHaskellRepoCreated today 15 1
 
 syncReposByDate
     :: forall env m.
