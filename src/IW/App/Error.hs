@@ -24,6 +24,7 @@ module IW.App.Error
        , headerDecodeError
        , dbError
        , dbNamedError
+       , githubHTTPError
        , urlDownloadFailedError
 
          -- * Error throwing helpers
@@ -206,6 +207,9 @@ dbError = InternalError . DbError
 
 dbNamedError :: PgNamedError -> AppErrorType
 dbNamedError = InternalError . DbNamedError
+
+githubHTTPError :: Text -> AppErrorType
+githubHTTPError = GitHubError . HTTPError
 
 urlDownloadFailedError :: Url -> AppErrorType
 urlDownloadFailedError = UrlDownloadFailed

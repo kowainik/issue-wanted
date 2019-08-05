@@ -20,8 +20,7 @@ import Data.Time (Day (..))
 import GitHub (SearchResult (..), URL (..), RateLimit (..), Limits, Paths, QueryString, executeRequest', limitsRemaining)
 import GitHub.Endpoints.RateLimit (rateLimit)
 
-import IW.App (WithError)
-import IW.App.Error (githubErrToAppErr, throwError)
+import IW.App (WithError, githubErrToAppErr, githubHTTPError, throwError)
 import IW.Core.Issue (Issue (..), Label (..))
 import IW.Core.Repo (Repo (..), RepoOwner (..), RepoName (..))
 import IW.Core.SqlArray (SqlArray (..))
@@ -43,19 +42,28 @@ liftGithubSearchToApp
        )
     => IO (Either GitHub.Error (SearchResult a))
     -> m [a]
-liftGithubSearchToApp githubSearch' = do
+liftGithubSearchToApp searchAction = do
     searchLimit <- getSearchRateLimit
     if limitsRemaining searchLimit > 0
-        then performSearch
-        else liftGithubSearchToApp githubSearch'
-  where
-    -- | Execute a query against the GitHub Search API.
-    performSearch :: m [a]
-    performSearch = liftIO githubSearch' >>= \case
-        Left err -> throwError $ githubErrToAppErr err
-        Right (SearchResult count vec) -> do
-            log Info $ "Fetched total of " <> show count <> " " <> typeName @a <> "s..."
-            pure $ V.toList vec
+        then execSearch searchAction
+        else throwError $ githubHTTPError "GitHub Search API limit reached."
+
+-- | Execute a query against the GitHub Search API.
+execSearch
+    :: forall a env m.
+       ( MonadIO m
+       , MonadUnliftIO m
+       , WithError m
+       , WithLog env m
+       , Typeable a
+       )
+    => IO (Either GitHub.Error (SearchResult a))
+    -> m [a]
+execSearch searchAction = liftIO searchAction >>= \case
+    Left err -> throwError $ githubErrToAppErr err
+    Right (SearchResult count vec) -> do
+        log Info $ "Fetched total of " <> show count <> " " <> typeName @a <> "s..."
+        pure $ V.toList vec
 
 -- | Function for fetching the current rate limit information for the GitHub Search API.
 getSearchRateLimit :: forall m. (MonadIO m, MonadUnliftIO m, WithError m) => m Limits
