@@ -8,21 +8,16 @@ and a parser for extracting the @RepoOwner@ and @RepoName@ from a URL.
 -}
 
 module IW.Sync.Search
-       ( searchHaskellReposByDate
+       ( searchAllHaskellRepos
        , searchAllHaskellIssues
-       , searchHaskellIssuesByLabels
-       , fromGitHubIssue
-       , fromGitHubRepo
-       , liftGithubSearchToApp
+       , searchAllHaskellIssuesByLabels
        , parseUserData
        ) where
 
 import UnliftIO (MonadUnliftIO)
 import Data.Time (Day (..), addDays)
-import Data.Vector (Vector)
 import GitHub (SearchResult (..), URL (..), RateLimit (..), Limits, Paths, QueryString, executeRequest', limitsRemaining)
 import GitHub.Endpoints.RateLimit (rateLimit)
-import Relude.Extra.Enum (next)
 
 import IW.App (WithError, githubErrToAppErr, githubHTTPError, throwError)
 import IW.Core.Issue (Issue (..), Label (..))
@@ -34,8 +29,59 @@ import qualified GitHub
 import qualified Data.Text as T
 import qualified Data.Vector as V
 
+{- HLINT ignore "Use prec" -}
 
-megaSearch
+
+-- | Search all repositories built with the Haskell language by page within a date range.
+searchAllHaskellRepos
+    :: forall env m.
+       ( MonadIO m
+       , MonadUnliftIO m
+       , WithError m
+       , WithLog env m
+       )
+    => Integer -- ^ Search interval
+    -> m [Repo]
+searchAllHaskellRepos interval = do
+    today <- liftIO getToday
+    githubRepos <- githubSearchAll ["search", "repositories"] "language:haskell" today interval []
+    pure $ fromGitHubRepo <$> githubRepos
+
+-- | Search all open issues with Haskell language.
+searchAllHaskellIssues
+    :: forall env m.
+       ( MonadUnliftIO m
+       , WithError m
+       , WithLog env m
+       )
+    => Integer -- ^ Search interval
+    -> m [Issue]
+searchAllHaskellIssues = searchAllHaskellIssuesByLabels []
+
+-- | Search all open issues with Haskell language and the labels passed in to the function.
+searchAllHaskellIssuesByLabels
+    :: forall env m.
+       ( MonadIO m
+       , MonadUnliftIO m
+       , WithError m
+       , WithLog env m
+       )
+    => [Label] -- ^ Issue labels
+    -> Integer -- ^ Search interval
+    -> m [Issue]
+searchAllHaskellIssuesByLabels labels interval = do
+     today <- liftIO getToday
+     githubIssues <- githubSearchAll ["search", "issues"] queryString today interval []
+     pure $ catMaybes $ fromGitHubIssue <$> githubIssues
+  where
+    queryString :: Text
+    queryString = "language:haskell " <> labelsToSearchQuery labels
+
+    -- | Construct a github search query from a list of labels.
+    labelsToSearchQuery :: [Label] -> Text
+    labelsToSearchQuery = foldMap (\Label{..} -> "label:\"" <> unLabel <> "\" ")
+
+githubSearchAll
     :: forall a env m.
        ( MonadIO m
        , MonadUnliftIO m
@@ -44,59 +90,33 @@ megaSearch
        , FromJSON a
        , Typeable a
        )
-    => Paths
+    => Paths   -- ^ URL paths
     -> Text    -- ^ Query properties
-    -> Day     -- ^ Most recent day
+    -> Day     -- ^ The function starts at this day and goes back in time
     -> Integer -- ^ Interval
-    -> [a]
+    -> [a]     -- ^ Accumulated results used in recursive calls to this function
     -> m [a]
-megaSearch paths properties recent interval acc = do
+githubSearchAll paths properties recent interval acc = do
     let startDay = negate interval `addDays` recent
-    searchRes <- liftIO $ githubSearch paths properties startDay recent 1
-    case searchRes of
-        Left err -> throwError $ githubErrToAppErr err
-        Right (SearchResult count vec) -> do
-            if | count == 0   -> do
-                    log I "All results obtained."
-                    pure acc
-               | count < 1000 -> do
-                    remResults <- foldMapM (githubSearch' paths properties startDay recent) [2..10]
-                    megaSearch paths properties (pred startDay) interval (V.toList vec <> remResults)
-               | otherwise    -> megaSearch paths properties recent (pred interval) acc
-
--- | This function is for lifting a GitHub search action to the App monad.
-liftGithubSearchToApp
-    :: forall a env m.
-       ( MonadIO m
-       , MonadUnliftIO m
-       , WithError m
-       , WithLog env m
-       , Typeable a
-       )
-    => IO (Either GitHub.Error (SearchResult a))
-    -> m [a]
-liftGithubSearchToApp searchAction = do
-    searchLimit <- getSearchRateLimit
-    if limitsRemaining searchLimit > 0
-        then execSearch searchAction
-        else throwError $ githubHTTPError "GitHub Search API limit reached."
-  where
-    -- | Execute a query against the GitHub Search API.
-    execSearch :: IO (Either GitHub.Error (SearchResult a)) -> m [a]
-    execSearch searchAction = liftIO searchAction >>= \case
-        Left err -> throwError $ githubErrToAppErr err
-        Right (SearchResult count vec) -> do
-            log Info $ "Fetched total of " <> show count <> " " <> typeName @a <> "s..."
-            pure $ V.toList vec
+    (SearchResult count vec) <- liftGithubSearchToApp $ githubSearch paths properties startDay recent 1
+        -- | If count is 0, then all results for the given properties have been obtained.
+    if | count == 0   -> do
+            log I "All results obtained."
+            pure acc
+        -- | If count is less than 1000, then the interval is good and we can get
+        -- the rest of the results on pages 2 to 10.
+       | count < 1000 -> do
+            remResults <- foldMapM (githubSearch' paths properties startDay recent) [2..10]
+            githubSearchAll paths properties (pred startDay) interval (acc <> V.toList vec <> remResults)
+        -- | Otherwise, call the function with the same arguments but a smaller interval.
+       | otherwise    -> githubSearchAll paths properties recent (pred interval) acc
 
 githubSearch'
-    :: forall a env m.
+    :: forall a m.
        ( MonadIO m
        , MonadUnliftIO m
        , WithError m
-       , WithLog env m
        , FromJSON a
-       , Typeable a
        )
     => Paths -- ^ URL paths
     -> Text  -- ^ Query string for GitHub search
@@ -104,7 +124,30 @@ githubSearch'
     -> Day   -- ^ Last day of date range that values were created in
     -> Int   -- ^ Number of page to be returned
     -> m [a]
-githubSearch' paths properties from to page = liftGithubSearchToApp $ executeRequest' $ buildGithubQuery paths properties from to page
+githubSearch' paths properties from to page = do
+    (SearchResult _ vec) <- liftGithubSearchToApp $ githubSearch paths properties from to page
+    pure $ V.toList vec
+
+-- | This function is for lifting a GitHub search action to the App monad.
+liftGithubSearchToApp
+    :: forall a m.
+       ( MonadIO m
+       , MonadUnliftIO m
+       , WithError m
+       )
+    => IO (Either GitHub.Error (SearchResult a))
+    -> m (SearchResult a)
+liftGithubSearchToApp searchAction = do
+    searchLimit <- getSearchRateLimit
+    if limitsRemaining searchLimit > 0
+        then execSearch searchAction
+        else throwError $ githubHTTPError "GitHub Search API limit reached."
+  where
+    -- | Execute a query against the GitHub Search API.
+    execSearch :: IO (Either GitHub.Error (SearchResult a)) -> m (SearchResult a)
+    execSearch searchAction' = liftIO searchAction' >>= \case
+        Left err -> throwError $ githubErrToAppErr err
+        Right searchRes -> pure searchRes
 
 -- | Executes a query against the GitHub Search API.
 githubSearch
@@ -142,38 +185,6 @@ getSearchRateLimit :: forall m. (MonadIO m, MonadUnliftIO m, WithError m) => m L
 getSearchRateLimit = liftIO rateLimit >>= \case
     Left err -> throwError $ githubErrToAppErr err
     Right RateLimit{..} -> pure rateLimitSearch
-
--- | Search all repositories built with the Haskell language by page within a date range.
-searchHaskellReposByDate
-    :: Day -- ^ First day of date range that repos were created in
-    -> Day -- ^ Last day of date range that repos were created in
-    -> Int -- ^ Number of page to be returned
-    -> IO (Either GitHub.Error (SearchResult GitHub.Repo))
-searchHaskellReposByDate = githubSearch ["search", "repositories"] "language:haskell"
-
--- | Search all open issues with Haskell language.
-searchAllHaskellIssues
-    :: Day -- ^ First day of date range that issues were created in
-    -> Day -- ^ Last day of date range that issues were created in
-    -> Int -- ^ Number of page to be returned
-    -> IO (Either GitHub.Error (SearchResult GitHub.Issue))
-searchAllHaskellIssues = searchHaskellIssuesByLabels []
-
--- | Search all open issues with Haskell language and the labels passed in to the function.
-searchHaskellIssuesByLabels
-    :: [Label] -- ^ Issue labels
-    -> Day     -- ^ First day of date range that issues were created in
-    -> Day     -- ^ Last day of date range that issues were created in
-    -> Int     -- ^ Number of page to be returned
-    -> IO (Either GitHub.Error (SearchResult GitHub.Issue))
-searchHaskellIssuesByLabels labels = githubSearch ["search", "issues"] queryString
-  where
-    queryString :: Text
-    queryString = "language:haskell " <> labelsToSearchQuery labels
-
-    -- | Construct a github search query from a list of labels.
-    labelsToSearchQuery :: [Label] -> Text
-    labelsToSearchQuery = foldMap (\Label{..} -> "label:\"" <> unLabel <> "\" ")
 
 -- | Convert a value of the @GitHub.Repo@ type to a value of our own @Repo@ type.
 fromGitHubRepo :: GitHub.Repo -> Repo
