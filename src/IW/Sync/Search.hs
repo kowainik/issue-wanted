@@ -140,14 +140,10 @@ liftGithubSearchToApp
 liftGithubSearchToApp searchAction = do
     searchLimit <- getSearchRateLimit
     if limitsRemaining searchLimit > 0
-        then execSearch searchAction
+        then liftIO searchAction >>= \case
+            Left err -> throwError $ githubErrToAppErr err
+            Right searchRes -> pure searchRes
         else throwError $ githubHTTPError "GitHub Search API limit reached."
-  where
-    -- | Execute a query against the GitHub Search API.
-    execSearch :: IO (Either GitHub.Error (SearchResult a)) -> m (SearchResult a)
-    execSearch searchAction' = liftIO searchAction' >>= \case
-        Left err -> throwError $ githubErrToAppErr err
-        Right searchRes -> pure searchRes
 
 -- | Executes a query against the GitHub Search API.
 githubSearch
