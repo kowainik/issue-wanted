@@ -98,14 +98,15 @@ githubSearchAll
     -> m [a]
 githubSearchAll paths properties recent interval acc = do
     let startDay = negate interval `addDays` recent
+    -- | Search for first page of query and check the result count to see what to do next.
     (SearchResult count vec) <- liftGithubSearchToApp $ githubSearch paths properties startDay recent 1
         -- | If count is 0, then all results for the given properties have been obtained.
     if | count == 0   -> do
             log I "All results obtained."
             pure acc
-        -- | If count is less than 1000, then the interval is good and we can get
+        -- | If count is less than or equal to 1000, then the interval is good and we can get
         -- the rest of the results on pages 2 to 10.
-       | count < 1000 -> do
+       | count <= 1000 -> do
             remResults <- foldMapM (githubSearch' paths properties startDay recent) [2..10]
             githubSearchAll paths properties (pred startDay) interval (acc <> V.toList vec <> remResults)
         -- | Otherwise, call the function with the same arguments but a smaller interval.
