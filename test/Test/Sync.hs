@@ -17,25 +17,25 @@ import qualified GitHub
 
 syncSpecs :: AppEnv -> Spec
 syncSpecs env = describe "GitHub sync correctness" $ do
-    parseIssueUserDataSpec
+    parseIssueUserDataSpec env
     downloadFileSpec env
     getCabalCategoriesSpec env
     repoCabalUrlSpec
 
-parseIssueUserDataSpec :: Spec
-parseIssueUserDataSpec = describe "parseIssueUserData" $ do
+parseIssueUserDataSpec :: AppEnv -> Spec
+parseIssueUserDataSpec env = describe "parseIssueUserData" $ do
     it "parsing testGitHubUrl1 should return Just (RepoOwner owner123, RepoName repo123)" $
-        parseUserData testGitHubUrl1
-            `shouldBe` Just (RepoOwner "owner123", RepoName "repo123")
+        env & parseUserData testGitHubUrl1
+            `equals` (RepoOwner "owner123", RepoName "repo123")
     it "parsing testGitHubUrl2 should return Just (RepoOwner owner123, RepoName repo123)" $
-        parseUserData testGitHubUrl2
-            `shouldBe` Just (RepoOwner "owner123", RepoName "repo123")
-    it "parsing testBadGitHubUrl1 return Nothing" $
-        parseUserData testBadGitHubUrl1
-            `shouldBe` Nothing
-    it "parsing testBadGitHubUrl2 return Nothing" $
-        parseUserData testBadGitHubUrl2
-            `shouldBe` Nothing
+        env & parseUserData testGitHubUrl2
+            `equals` (RepoOwner "owner123", RepoName "repo123")
+    it "parsing testBadGitHubUrl1 should fail with notFound error" $
+        env & parseUserData testBadGitHubUrl1
+            `failsWith` notFound
+    it "parsing testBadGitHubUrl2 should fail with notFound error" $
+        env & parseUserData testBadGitHubUrl2
+            `failsWith` notFound
 
 -- | A @GitHub.Url@ for a repo with a valid format.
 testGitHubUrl1 :: GitHub.URL
