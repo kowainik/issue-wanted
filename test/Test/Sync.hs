@@ -5,11 +5,12 @@ module Test.Sync
 import Test.Hspec (Spec, describe, it, shouldBe)
 
 import IW.App (AppEnv, AppErrorType (..))
-import IW.Core.Repo (RepoOwner (..), RepoName (..), Category (..))
+import IW.Core.Repo (Repo (..), RepoOwner (..), RepoName (..), Category (..))
+import IW.Core.SqlArray (SqlArray (..))
 import IW.Core.Url (Url (..))
 import IW.Effects.Download (downloadFileImpl)
 import IW.Effects.Cabal (getCabalCategoriesImpl, repoCabalUrl)
-import IW.Sync.Search (parseUserData)
+import IW.Sync.Search (parseUserData, mkRepoCabalUrl)
 import Test.Assert (equals, succeeds, failsWith)
 
 import qualified GitHub
@@ -83,36 +84,54 @@ issueWantedMainContent = "module Main where\n\nimport qualified IW\n\n\nmain :: 
 getCabalCategoriesSpec :: AppEnv -> Spec
 getCabalCategoriesSpec env = describe "getCabalCategories" $ do
     it "should return issueWantedCategories when passed in a valid URL for the issue-wanted cabal file" $
-       env & uncurry getCabalCategoriesImpl issueWantedRepo
+       env & getCabalCategoriesImpl issueWantedRepo
             `equals` issueWantedCategories
     it "should return [] when passed in a repo that doesn't exist" $
-       env & uncurry getCabalCategoriesImpl nonExistentRepo
+       env & getCabalCategoriesImpl nonExistentRepo
             `equals` []
     it "should return [] when passed in a repo that has a cabal file without a category field" $
-       env & uncurry getCabalCategoriesImpl noCategoryFieldCabalFileRepo
+       env & getCabalCategoriesImpl noCategoryFieldCabalFileRepo
             `equals` []
 
 repoCabalUrlSpec :: Spec
 repoCabalUrlSpec = describe "repoCabalUrl" $ do
     it "should equal issueWantedCabalUrl when passed in issueWantedRepo" $
-        uncurry repoCabalUrl issueWantedRepo
+        repoCabalUrl issueWantedRepo
             `shouldBe` issueWantedCabalUrl
     it "should equal nonExistentCabalUrl when passed in nonExistentRepo" $
-        uncurry repoCabalUrl nonExistentRepo
+        repoCabalUrl nonExistentRepo
             `shouldBe` nonExistentCabalUrl
 
--- | A tuple of @Repo@ data for the @issue-wanted@ project.
-issueWantedRepo :: (RepoOwner, RepoName)
-issueWantedRepo = (RepoOwner "kowainik", RepoName "issue-wanted")
+-- | @Repo@ data for the @issue-wanted@ project.
+issueWantedRepo :: Repo
+issueWantedRepo = Repo
+    { repoOwner      = RepoOwner "kowainik"
+    , repoName       = RepoName "issue-wanted"
+    , repoDescr      = ""
+    , repoCategories = SqlArray [Category "Web", Category "Application"]
+    , repoCabalUrl   = mkRepoCabalUrl (RepoOwner "kowainik") (RepoName "issue-wanted") Nothing
+    }
 
--- | A tuple of @Repo@ data for a repository doesn't exist.
-nonExistentRepo :: (RepoOwner, RepoName)
-nonExistentRepo = (RepoOwner "blahblah", RepoName "noexist123")
+-- | @Repo@ data for a repository doesn't exist.
+nonExistentRepo :: Repo
+nonExistentRepo = Repo
+    { repoOwner      = RepoOwner "blahblah"
+    , repoName       = RepoName "noexist123"
+    , repoDescr      = ""
+    , repoCategories = SqlArray []
+    , repoCabalUrl   = mkRepoCabalUrl (RepoOwner "blahblah") (RepoName "noexist123") Nothing
+    }
 
--- | A tuple of @Repo@ data for a repository that does exist,
+-- | @Repo@ data for a repository that does exist,
 -- but doesn't have a @.cabal@ file with a @category@ field.
-noCategoryFieldCabalFileRepo :: (RepoOwner, RepoName)
-noCategoryFieldCabalFileRepo = (RepoOwner "rashadg1030", RepoName "kiiboodoo-api")
+noCategoryFieldCabalFileRepo :: Repo
+noCategoryFieldCabalFileRepo = Repo
+    { repoOwner      = RepoOwner "rashadg1030"
+    , repoName       = RepoName "kiiboodoo-api"
+    , repoDescr      = ""
+    , repoCategories = SqlArray []
+    , repoCabalUrl   = mkRepoCabalUrl (RepoOwner "rashadg1030") (RepoName "kiiboodoo-api") Nothing
+    }
 
 -- | Represents the categories in @catgory@ field of the @issue-wanted@ @.cabal@ file.
 issueWantedCategories :: [Category]

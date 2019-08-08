@@ -12,6 +12,7 @@ module Test.Data
 import IW.Core.Issue (Issue (..), Label (..))
 import IW.Core.Repo (Repo (..), RepoName (..), RepoOwner (..), Category (..))
 import IW.Core.SqlArray (SqlArray (..))
+import IW.Sync.Search (mkRepoCabalUrl)
 
 
 validRepo :: Repo
@@ -20,6 +21,7 @@ validRepo = Repo
     , repoName       = RepoName "repo123"
     , repoDescr      = "A test repo."
     , repoCategories = SqlArray [Category "FFI"]
+    , repoCabalUrl   = mkRepoCabalUrl (RepoOwner "owner123") (RepoName "repo123") Nothing
     }
 
 updatedValidRepo :: Repo
@@ -31,6 +33,7 @@ updatedValidRepo = Repo
         [ Category "Testing"
         , Category "FFI"
         ]
+    , repoCabalUrl   = mkRepoCabalUrl (RepoOwner "owner123") (RepoName "repo123") Nothing
     }
 
 invalidIssue :: Issue

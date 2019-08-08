@@ -10,16 +10,16 @@ module IW.Db.Repo
        ) where
 
 import IW.App (WithError)
-import IW.Core.Repo (Repo, RepoOwner, RepoName, Category)
+import IW.Core.Repo (Repo (..), Category)
 import IW.Core.SqlArray (SqlArray (..))
 import IW.Core.WithId (WithId)
 import IW.Db.Functions (WithDb, executeMany, executeNamed, queryNamed)
 
 
--- | Returns repos in the database by page.
+-- | Returns all repos in the database.
 getRepos :: (WithDb env m, WithError m) => Int -> m [WithId Repo]
 getRepos page = queryNamed [sql|
-    SELECT id, owner, name, descr, categories
+    SELECT id, owner, name, descr, categories, cabal_url
     FROM repos
     LIMIT 100
     OFFSET (?page * 100)
@@ -28,7 +28,7 @@ getRepos page = queryNamed [sql|
 -- | Returns all repos with at least one category in the given list.
 getReposByCategories :: (WithDb env m, WithError m) => [Category] -> Int -> m [WithId Repo]
 getReposByCategories categories page = queryNamed [sql|
-    SELECT id, owner, name, descr, categories
+    SELECT id, owner, name, descr, categories, cabal_url
     FROM repos
     WHERE categories && ?categories
     LIMIT 100
@@ -41,9 +41,9 @@ getReposByCategories categories page = queryNamed [sql|
 upsertRepos :: WithDb env m => [Repo] -> m ()
 upsertRepos = executeMany [sql|
     INSERT INTO repos
-        (owner, name, descr, categories)
+        (owner, name, descr, categories, cabal_url)
     VALUES
-        (?, ?, ?, ?)
+        (?, ?, ?, ?, ?)
     ON CONFLICT ON CONSTRAINT unique_repos DO
     UPDATE SET
         descr = EXCLUDED.descr
@@ -55,11 +55,10 @@ updateRepoCategories
     :: ( WithDb env m
        , WithError m
        )
-    => RepoOwner
-    -> RepoName
+    => Repo
     -> [Category]
     -> m ()
-updateRepoCategories repoOwner repoName categories = void $ executeNamed [sql|
+updateRepoCategories Repo{..} categories = void $ executeNamed [sql|
     UPDATE repos
     SET categories = ?categories
     WHERE owner = ?owner

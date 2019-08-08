@@ -5,11 +5,10 @@ module IW.Core.Repo
        , RepoOwner (..)
        , RepoName (..)
        , Category (..)
-       , repoUrl
        ) where
 
 import IW.Core.SqlArray (SqlArray (..))
-import IW.Core.Url (Url (..))
+import IW.Core.Url (Url)
 
 
 -- | Wrapper for repository owner
@@ -33,13 +32,7 @@ data Repo = Repo
     , repoName       :: !RepoName
     , repoDescr      :: !Text
     , repoCategories :: !(SqlArray Category)
+    , repoCabalUrl   :: !Url
     } deriving stock    (Eq, Generic, Show)
       deriving anyclass (FromRow, ToRow)
       deriving (Elm, ToJSON) via ElmStreet Repo
-
-repoUrl :: Repo -> Url
-repoUrl Repo{..} = Url
-    $ "https://github.com/"
-    <> unRepoOwner repoOwner
-    <> "/"
-    <> unRepoName repoName

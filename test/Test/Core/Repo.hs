@@ -1,6 +1,6 @@
 {-# LANGUAGE QuasiQuotes #-}
 
-module Test.Core.Repo 
+module Test.Core.Repo
        ( repoRoundtripProp
        ) where
 
@@ -13,6 +13,7 @@ import IW.Core.WithId (WithId (..))
 import IW.Effects.Log (runAppLogIO)
 import IW.Db (WithDb)
 import IW.Db.Functions (asSingleRow, query)
+import IW.Sync.Search (mkRepoCabalUrl)
 import Test.Gen (genId, genRepoOwner, genRepoName)
 
 import qualified Hedgehog.Gen as Gen
@@ -20,16 +21,16 @@ import qualified Hedgehog.Range as Range
 
 
 repoViaSql :: (WithDb env m, WithError m) => WithId Repo -> m (WithId Repo)
-repoViaSql = asSingleRow . query [sql| SELECT ?, ?, ?, ?, (? :: TEXT ARRAY) |]
+repoViaSql = asSingleRow . query [sql| SELECT ?, ?, ?, ?, (? :: TEXT ARRAY), ? |]
 
 repoRoundtripProp :: AppEnv -> Property
 repoRoundtripProp env = property $ do
     generatedRepo <- forAll genRepo
-    parsedRepo <- liftIO $ runAppLogIO env $ repoViaSql generatedRepo 
+    parsedRepo <- liftIO $ runAppLogIO env $ repoViaSql generatedRepo
     parsedRepo === Right generatedRepo
 
 testCategories :: [Category]
-testCategories = Category <$> 
+testCategories = Category <$>
     [ "FFI"
     , "Text"
     , "Database"
@@ -44,8 +45,9 @@ genRepo = do
     repoName       <- genRepoName
     repoDescr      <- genDescr
     repoCategories <- genCategories
+    let repoCabalUrl = mkRepoCabalUrl repoOwner repoName Nothing
 
-    pure $ WithId repoId Repo{..} 
+    pure $ WithId repoId Repo{..}
   where
     genDescr :: MonadGen m => m Text
     genDescr = Gen.text (Range.constant 0 300) Gen.alphaNum
