@@ -4,23 +4,35 @@ data and insert it into the database.
 -}
 
 module IW.Sync.Update
-       ( syncRepos
+       ( syncCache
        ) where
 
 import Control.Monad.IO.Unlift (MonadUnliftIO)
-import UnliftIO.Async (mapConcurrently_)
+import UnliftIO.Async (async, mapConcurrently_, wait)
 
-import IW.App (WithError)
+import IW.App (WithError, catchError)
 import IW.Core.Repo (Repo (..))
-import IW.Db (WithDb, upsertRepos, updateRepoCategories)
+import IW.Db (WithDb, upsertRepos, updateRepoCategories, upsertIssues)
 import IW.Effects.Cabal (MonadCabal (..), getCabalCategories)
-import IW.Sync.Search (searchAllHaskellRepos)
+import IW.Sync.Search (searchAllHaskellRepos, searchAllHaskellIssues)
 import IW.Time (getToday)
 
 
--- | This function fetches all repos from the GitHub API, downloads their @.cabal@ files,
--- and upserts them into the database.
-syncRepos
+-- | Loop for keeping the database up to date with the latest GitHub data.
+syncCache
+    :: forall env m.
+       ( MonadCabal m
+       , MonadUnliftIO m
+       , WithDb env m
+       , WithLog env m
+       , WithError m
+       )
+    => Integer
+    -> m ()
+syncCache interval = forever $ syncWithGithub interval `catchError` undefined
+
+-- | This function synchronizes the database with the latest GitHub data.
+syncWithGithub
     :: forall env m.
        ( MonadCabal m
        , MonadUnliftIO m
@@ -30,13 +42,22 @@ syncRepos
        )
     => Integer -- ^ The starting date interval used in the search function
     -> m ()
-syncRepos interval = do
+syncWithGithub interval = do
+    log I "Starting synchronization of all repositories and issues..."
     today <- liftIO getToday
+    log I "Searching for all Haskell repositories..."
     repos <- searchAllHaskellRepos today interval
+    log I "Upserting repositories into the database..."
     upsertRepos repos
-    mapConcurrently_ syncCategories repos
+    populateCategoriesAsync <- async $ mapConcurrently_ syncCategories repos
+    log I "Searching for all Haskell issues..."
+    issues <- searchAllHaskellIssues today interval
+    log I "Upserting issues into the database..."
+    upsertIssues issues
+    wait populateCategoriesAsync
+    log I "All repositories and issues successfully synchronized"
 
--- | This function takes a @Repo@ and attempts to download its @.cabal@ file.
+-- | This function takes a @Repo@ and updates its category field in the database.
 syncCategories
     :: forall env m.
        ( MonadCabal m
@@ -47,6 +68,14 @@ syncCategories
        )
     => Repo
     -> m ()
+<<<<<<< HEAD
 syncCategories repo = do
     categories <- getCabalCategories repo
     updateRepoCategories repo categories
+=======
+syncCategories Repo{..} = do
+    log I "Updating repository's categories..."
+    categories <- getCabalCategories repoOwner repoName
+    updateRepoCategories repoOwner repoName categories
+    log I "Categories successfully updated"
+>>>>>>> c36be34... [#45] Add sync function for synchronizing all repositories and issues
