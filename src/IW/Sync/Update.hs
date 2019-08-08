@@ -18,8 +18,8 @@ import IW.Sync.Search (searchAllHaskellRepos)
 import IW.Time (getToday)
 
 
--- | This function fetches repos from the GitHub API within a specified date range,
--- parses their @.cabal@ files, and upserts them into the database.
+-- | This function fetches all repos from the GitHub API, downloads their @.cabal@ files,
+-- and upserts them into the database.
 syncRepos
     :: forall env m.
        ( MonadCabal m
@@ -28,7 +28,7 @@ syncRepos
        , WithLog env m
        , WithError m
        )
-    => Integer -- ^ Starting interval
+    => Integer -- ^ The starting date interval used in the search function
     -> m ()
 syncRepos interval = do
     today <- liftIO getToday
@@ -36,6 +36,7 @@ syncRepos interval = do
     upsertRepos repos
     mapConcurrently_ syncCategories repos
 
+-- | This function takes a @Repo@ and attempts to download its @.cabal@ file.
 syncCategories
     :: forall env m.
        ( MonadCabal m
