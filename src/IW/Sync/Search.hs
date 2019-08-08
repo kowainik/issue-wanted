@@ -20,11 +20,11 @@ import GitHub.Endpoints.RateLimit (rateLimit)
 import UnliftIO (MonadUnliftIO)
 import UnliftIO.Concurrent (threadDelay)
 
-import IW.App (WithError, githubErrToAppErr, githubHttpError, throwError)
+import IW.App (WithError, githubErrToAppErr, throwError)
 import IW.Core.Issue (Issue (..), Label (..))
 import IW.Core.Repo (Repo (..), RepoOwner (..), RepoName (..))
 import IW.Core.SqlArray (SqlArray (..))
-import IW.Time (getToday, julianDayToIso)
+import IW.Time (julianDayToIso)
 
 import qualified GitHub
 import qualified Data.Text as T
@@ -41,11 +41,11 @@ searchAllHaskellRepos
        , WithError m
        , WithLog env m
        )
-    => Integer -- ^ Search interval
+    => Day
+    -> Integer -- ^ Search interval
     -> m [Repo]
-searchAllHaskellRepos interval = do
-    today <- liftIO getToday
-    githubRepos <- githubSearchAll ["search", "repositories"] "language:haskell" today interval []
+searchAllHaskellRepos recent interval = do
+    githubRepos <- githubSearchAll ["search", "repositories"] "language:haskell" recent interval []
     pure $ fromGitHubRepo <$> githubRepos
 
 -- | Search all open issues with Haskell language.
@@ -55,7 +55,8 @@ searchAllHaskellIssues
        , WithError m
        , WithLog env m
        )
-    => Integer -- ^ Search interval
+    => Day
+    -> Integer -- ^ Search interval
     -> m [Issue]
 searchAllHaskellIssues = searchAllHaskellIssuesByLabels []
 
@@ -68,11 +69,11 @@ searchAllHaskellIssuesByLabels
        , WithLog env m
        )
     => [Label] -- ^ Issue labels
+    -> Day
     -> Integer -- ^ Search interval
     -> m [Issue]
-searchAllHaskellIssuesByLabels labels interval = do
-     today <- liftIO getToday
-     githubIssues <- githubSearchAll ["search", "issues"] queryString today interval []
+searchAllHaskellIssuesByLabels labels recent interval = do
+     githubIssues <- githubSearchAll ["search", "issues"] queryString recent interval []
      pure $ catMaybes $ fromGitHubIssue <$> githubIssues
   where
     queryString :: Text
@@ -98,22 +99,30 @@ githubSearchAll
     -> [a]     -- ^ Accumulated results used in recursive calls to this function
     -> m [a]
 githubSearchAll paths properties recent interval acc = do
-    let startDay = negate interval `addDays` recent
     -- | Search for first page of query and check the result count to see what to do next.
-    (SearchResult count vec) <- liftExecuteSearchToApp $ executeSearch paths properties startDay recent 1
+    SearchResult count vec <- executeGithubSearch paths properties startDay recent 1
+    let firstPage = V.toList vec
         -- | If count is 0, then all results for the given properties have been obtained.
     if | count == 0   -> do
-            log I "All results obtained."
+            log I "All results obtained"
             pure acc
         -- | If count is less than or equal to 1000, then the interval is good and we can get
         -- the rest of the results on pages 2 to 10.
        | count <= 1000 -> do
-            remResults <- foldMapM (githubSearch paths properties startDay recent) [2..10]
-            githubSearchAll paths properties (pred startDay) interval (acc <> V.toList vec <> remResults)
+            listOfSearchResult <- mapM (executeGithubSearch paths properties startDay recent) [2..10]
+            let remainingPages = concatMap searchResultToList listOfSearchResult
+            githubSearchAll paths properties (pred startDay) interval (firstPage <> remainingPages <> acc)
         -- | Otherwise, call the function with the same arguments but a smaller interval.
-       | otherwise    -> githubSearchAll paths properties recent (pred interval) acc
+       | otherwise     -> githubSearchAll paths properties recent (pred interval) acc
+  where
+    startDay :: Day
+    startDay = negate interval `addDays` recent
 
-githubSearch
+    searchResultToList :: SearchResult a -> [a]
+    searchResultToList (SearchResult _ vec) = V.toList vec
+
+-- | This function is for lifting a GitHub search action to the App monad.
+executeGithubSearch
     :: forall a env m.
        ( MonadIO m
        , MonadUnliftIO m
@@ -126,36 +135,25 @@ githubSearch
     -> Day   -- ^ First day of date range that values were created in
     -> Day   -- ^ Last day of date range that values were created in
     -> Int   -- ^ Number of page to be returned
-    -> m [a]
-githubSearch paths properties from to page = do
-    log I $ "Searching GitHub API with following paths and properties: " <> show paths <> " " <> properties
-    (SearchResult _ vec) <- liftExecuteSearchToApp $ executeSearch paths properties from to page
-    pure $ V.toList vec
-
--- | This function is for lifting a GitHub search action to the App monad.
-liftExecuteSearchToApp
-    :: forall a env m.
-       ( MonadIO m
-       , MonadUnliftIO m
-       , WithError m
-       , WithLog env m
-       )
-    => IO (Either GitHub.Error (SearchResult a))
     -> m (SearchResult a)
-liftExecuteSearchToApp searchAction = do
+executeGithubSearch paths properties from to page = do
     searchLimit <- getSearchRateLimit
-    log I $ "Search limit information: " <> show searchLimit
+    log I $ "Current search limit information: " <> show searchLimit
     if limitsRemaining searchLimit > 0
-        then liftIO searchAction >>= \case
-            Left err -> throwError $ githubErrToAppErr err
-            Right searchRes -> pure searchRes
+        then do
+            log I $ "Searching GitHub API with following request: " <> showGithubQuery paths properties from to page
+            liftIO (githubSearch paths properties from to page) >>= \case
+                Left err -> throwError $ githubErrToAppErr err
+                Right searchRes@(SearchResult count _) -> do
+                    log I $ "Search successfully returned " <> show count <> " results"
+                    pure searchRes
         else do
-            log I $ "API limit reached. Delaying search..."
+            log I "API limit reached. Delaying search..."
             threadDelay 60000000
-            liftExecuteSearchToApp searchAction
+            executeGithubSearch paths properties from to page
 
 -- | Executes a query against the GitHub Search API.
-executeSearch
+githubSearch
     :: FromJSON a
     => Paths -- ^ URL paths
     -> Text  -- ^ Query string for GitHub search
@@ -163,7 +161,16 @@ executeSearch
     -> Day   -- ^ Last day of date range that values were created in
     -> Int   -- ^ Number of page to be returned
     -> IO (Either GitHub.Error (SearchResult a))
-executeSearch paths properties from to page = executeRequest' $ buildGithubQuery paths properties from to page
+githubSearch paths properties from to page = executeRequest' $ buildGithubQuery paths properties from to page
+
+showGithubQuery
+    :: Paths
+    -> Text
+    -> Day
+    -> Day
+    -> Int
+    -> Text
+showGithubQuery paths properties from to page = show $ buildGithubQuery paths properties from to page
 
 -- | Function for building a GitHub search query value.
 buildGithubQuery
