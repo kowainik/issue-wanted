@@ -1,6 +1,5 @@
 module IW.Time
-       ( firstHaskellRepoCreated
-       , getToday
+       ( getToday
        , julianDayToIso
        ) where
 
@@ -8,10 +7,7 @@ import Data.Time (Day (..), getCurrentTime, utctDay)
 import Data.Time.Format (formatTime, defaultTimeLocale, iso8601DateFormat)
 
 
--- | This day is equilvalent to 2008-04-03.
-firstHaskellRepoCreated :: Day
-firstHaskellRepoCreated = ModifiedJulianDay 54559
-
+-- | Returns today's date as a Julian day.
 getToday :: IO Day
 getToday = utctDay <$> getCurrentTime
 
