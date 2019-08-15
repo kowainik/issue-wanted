@@ -73,11 +73,11 @@ categoryNames genPkgDescr = Category <$> splitCategories genPkgDescr
     splitCategories :: GenericPackageDescription -> [Text]
     splitCategories = splitAndStrip "," . toText . category . packageDescription
 
-{- | This function takes a delimeter and a delimeter seperated value,
-and returns a list of @Text@ values stripped of excess whitespace.
-Note that it returns an empty list when an empty delimeter seperated value is
-passed in. This prevents the value @[""]@ from being returned.
--}
-splitAndStrip :: Text -> Text -> [Text]
-splitAndStrip _ ""       = []
-splitAndStrip delim text = strip <$> splitOn delim text
+    {- | This function takes a delimeter and a delimeter seperated value,
+    and returns a list of @Text@ values stripped of excess whitespace.
+    Note that it returns an empty list when an empty delimeter seperated value is
+    passed in. This prevents the value @[""]@ from being returned.
+    -}
+    splitAndStrip :: Text -> Text -> [Text]
+    splitAndStrip _ ""       = []
+    splitAndStrip delim text = strip <$> splitOn delim text

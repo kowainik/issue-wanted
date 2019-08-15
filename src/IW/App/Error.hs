@@ -24,6 +24,7 @@ module IW.App.Error
        , headerDecodeError
        , dbError
        , dbNamedError
+       , githubHttpError
        , urlDownloadFailedError
 
          -- * Error throwing helpers
@@ -131,7 +132,7 @@ data IError
 -}
 data GError
     {- | A HTTP error occurred. The actual caught error is included. -}
-    = HTTPError Text
+    = HttpError Text
     {- | An error in the parser itself. -}
     | ParseError Text
     {- | The JSON is malformed or unexpected. -}
@@ -143,7 +144,7 @@ data GError
 -- | Map the @github@ library's @Error@ type into AppErrorType.
 githubErrToAppErr :: GitHub.Error -> AppErrorType
 githubErrToAppErr = \case
-    GitHub.HTTPError httpException -> GitHubError $ HTTPError $ show httpException
+    GitHub.HTTPError httpException -> GitHubError $ HttpError $ show httpException
     GitHub.ParseError text         -> GitHubError $ ParseError text
     GitHub.JsonError text          -> GitHubError $ JsonError text
     GitHub.UserError text          -> GitHubError $ UserError text
@@ -206,6 +207,9 @@ dbError = InternalError . DbError
 
 dbNamedError :: PgNamedError -> AppErrorType
 dbNamedError = InternalError . DbNamedError
+
+githubHttpError :: Text -> AppErrorType
+githubHttpError = GitHubError . HttpError
 
 urlDownloadFailedError :: Url -> AppErrorType
 urlDownloadFailedError = UrlDownloadFailed

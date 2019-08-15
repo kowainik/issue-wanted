@@ -4,7 +4,7 @@ data and insert it into the database.
 -}
 
 module IW.Sync.Update
-       ( fetchAndUpsertRepos
+       ( syncRepos
        ) where
 
 import Control.Monad.IO.Unlift (MonadUnliftIO)
@@ -14,12 +14,13 @@ import IW.App (WithError)
 import IW.Core.Repo (Repo (..))
 import IW.Db (WithDb, upsertRepos, updateRepoCategories)
 import IW.Effects.Cabal (MonadCabal (..), getCabalCategories)
-import IW.Sync.Search (fetchAllHaskellRepos, fromGitHubRepo)
+import IW.Sync.Search (searchAllHaskellRepos)
+import IW.Time (getToday)
 
 
--- | This function fetches the latest repos from the GitHub API, parses their @.cabal@ files,
+-- | This function fetches all repos from the GitHub API, downloads their @.cabal@ files,
 -- and upserts them into the database.
-fetchAndUpsertRepos
+syncRepos
     :: forall env m.
        ( MonadCabal m
        , MonadUnliftIO m
@@ -27,14 +28,25 @@ fetchAndUpsertRepos
        , WithLog env m
        , WithError m
        )
-    => m ()
-fetchAndUpsertRepos = do
-    gitHubRepos <- fetchAllHaskellRepos
-    let repos = map fromGitHubRepo gitHubRepos
+    => Integer -- ^ The starting date interval used in the search function
+    -> m ()
+syncRepos interval = do
+    today <- liftIO getToday
+    repos <- searchAllHaskellRepos today interval
     upsertRepos repos
-    mapConcurrently_ fetchAndUpdateCategories repos
-  where
-    fetchAndUpdateCategories :: Repo -> m ()
-    fetchAndUpdateCategories Repo{..} = do
-        categories <- getCabalCategories repoOwner repoName
-        updateRepoCategories repoOwner repoName categories
+    mapConcurrently_ syncCategories repos
+
+-- | This function takes a @Repo@ and attempts to download its @.cabal@ file.
+syncCategories
+    :: forall env m.
+       ( MonadCabal m
+       , MonadUnliftIO m
+       , WithDb env m
+       , WithLog env m
+       , WithError m
+       )
+    => Repo
+    -> m ()
+syncCategories Repo{..} = do
+    categories <- getCabalCategories repoOwner repoName
+    updateRepoCategories repoOwner repoName categories
