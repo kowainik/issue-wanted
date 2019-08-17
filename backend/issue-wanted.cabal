@@ -1,6 +1,6 @@
 cabal-version:       2.4
 name:                issue-wanted
-version:             0.0.0
+version:             0.0.0.0
 description:         Web application to help beginners to start contributing into Haskell projects
 synopsis:            Web application to help beginners to start contributing into Haskell projects
 homepage:            https://github.com/kowainik/issue-wanted#readme
@@ -14,14 +14,14 @@ category:            Web, Application
 build-type:          Simple
 extra-doc-files:     README.md
                      CHANGELOG.md
-tested-with:         GHC == 8.6.5
+tested-with:         GHC == 8.4.3
 
 source-repository head
   type:                git
   location:            https://github.com/kowainik/issue-wanted.git
 
 common common-options
-  build-depends:       base-noprelude ^>= 4.12.0.0
+  build-depends:       base-noprelude ^>= 4.11.0.0
                      , relude ^>= 0.5.0
 
   ghc-options:         -Wall
@@ -39,7 +39,6 @@ common common-options
                        DataKinds
                        DeriveGeneric
                        DerivingStrategies
-                       DerivingVia
                        FlexibleContexts
                        FlexibleInstances
                        GeneralizedNewtypeDeriving
@@ -138,6 +137,9 @@ executable issue-wanted
 
 test-suite issue-wanted-test
   import:              common-options
+  if impl(ghcjs)
+    buildable: False
+
   type:                exitcode-stdio-1.0
   hs-source-dirs:      test
 
@@ -155,8 +157,8 @@ test-suite issue-wanted-test
   build-depends:       issue-wanted
                      , github == 0.22
                      , hedgehog ^>= 1.0
-                     , hspec
-                     , hspec-core
+                     , hspec ^>= 2.7.1
+                     , hspec-core ^>= 2.7.1
                      , mtl
                      , postgresql-simple
                      , resource-pool
