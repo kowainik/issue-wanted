@@ -123,7 +123,7 @@ data AppErrorType
     {- | An error thrown from one of the @github@ library parsing functions. -}
     | GithubParseError Text
     {- | The JSON returned from a @github@ library function is malformed or unexpected. -}
-    | GithubJSONError Text
+    | GithubJsonError Text
     {- | An incorrect input was used in a GitHub login attempt. -}
     | GithubUserError Text
     {- | Failed to download the contents of the @Url@. -}
@@ -135,7 +135,7 @@ githubErrToAppErr :: GitHub.Error -> AppErrorType
 githubErrToAppErr = \case
     GitHub.HTTPError e    -> GithubHttpError $ show e
     GitHub.ParseError msg -> GithubParseError msg
-    GitHub.JsonError msg  -> GithubJSONError msg
+    GitHub.JsonError msg  -> GithubJsonError msg
     GitHub.UserError msg  -> GithubUserError msg
 
 -- | Map 'AppError' into a HTTP error code.
@@ -151,7 +151,7 @@ toHttpError AppError{..} = case appErrorType of
     DbNamedError e         -> err500 { errBody = show e }
     GithubHttpError e      -> err500 { errBody = encodeUtf8 e }
     GithubParseError msg   -> err500 { errBody = encodeUtf8 msg }
-    GithubJSONError msg    -> err500 { errBody = encodeUtf8 msg }
+    GithubJsonError msg    -> err500 { errBody = encodeUtf8 msg }
     GithubUserError msg    -> err500 { errBody = encodeUtf8 msg }
     UrlDownloadFailed url  -> err500 { errBody = encodeUtf8 $ "Couldn't download file from " <> unUrl url }
 
