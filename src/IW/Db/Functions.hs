@@ -22,7 +22,7 @@ module IW.Db.Functions
 import PgNamed (NamedParam, PgNamedError)
 
 import IW.App.Env (DbPool, Has, grab)
-import IW.App.Error (AppErrorType, WithError, dbError, dbNamedError, throwError, throwOnNothingM)
+import IW.App.Error (AppErrorType (..), WithError, throwError, throwOnNothingM)
 
 import qualified Data.Pool as Pool
 import qualified Database.PostgreSQL.Simple as Sql
@@ -133,8 +133,8 @@ asSingleRow res = withFrozenCallStack $ throwOnNothingM
 
 -- | Lift database named parameters errors.
 liftDbError :: WithError m => Either PgNamedError a -> m a
-liftDbError = either (throwError . dbNamedError) pure
+liftDbError = either (throwError . DbNamedError) pure
 {-# INLINE liftDbError #-}
 
 singleRowError :: AppErrorType
-singleRowError = dbError "Expected a single row, but got none"
+singleRowError = DbError "Expected a single row, but got none"

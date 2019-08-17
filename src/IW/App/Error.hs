@@ -15,18 +15,6 @@ module IW.App.Error
        , isNotAllowed
        , isInvalid
 
-         -- * Internal error helpers
-       , notFound
-       , serverError
-       , notAllowed
-       , invalid
-       , missingHeader
-       , headerDecodeError
-       , dbError
-       , dbNamedError
-       , githubHttpError
-       , urlDownloadFailedError
-
          -- * Error throwing helpers
        , throwOnNothing
        , throwOnNothingM
@@ -94,15 +82,6 @@ data AppError = AppError
 
 -- | App errors type.
 data AppErrorType
-    = InternalError IError
-    | GitHubError GError
-    | UrlDownloadFailed Url
-    deriving (Show, Eq)
-
-{- | The internal errors that can be thrown. These errors are meant to be
-handled within the application and cover exceptional circumstances/coding errors.
--}
-data IError
     {- | General not found. -}
     = NotFound
     {- | Some exceptional circumstance has happened stop execution and return.
@@ -126,93 +105,59 @@ data IError
     | DbError Text
     -- | Data base named parameters errors.
     | DbNamedError PgNamedError
-    deriving (Show, Eq)
-
-{- | Errors from the @github@ library search functions that can be thrown.
--}
-data GError
-    {- | A HTTP error occurred. The actual caught error is included. -}
-    = HttpError Text
-    {- | An error in the parser itself. -}
-    | ParseError Text
-    {- | The JSON is malformed or unexpected. -}
-    | JsonError Text
-    {- | Incorrect input was provided. -}
-    | UserError Text
+    {- | A HTTP error occurred using the @github@ library.
+    The actual caught error is included. -}
+    | GithubHttpError Text
+    {- | An error thrown from one of the @github@ library parsing functions. -}
+    | GithubParseError Text
+    {- | The JSON returned from a @github@ library function is malformed or unexpected. -}
+    | GithubJsonError Text
+    {- | An incorrect input was used in a GitHub login attempt. -}
+    | GithubUserError Text
+    {- | Failed to download the contents of the @Url@. -}
+    | UrlDownloadFailed Url
     deriving (Show, Eq)
 
 -- | Map the @github@ library's @Error@ type into AppErrorType.
 githubErrToAppErr :: GitHub.Error -> AppErrorType
 githubErrToAppErr = \case
-    GitHub.HTTPError httpException -> GitHubError $ HttpError $ show httpException
-    GitHub.ParseError text         -> GitHubError $ ParseError text
-    GitHub.JsonError text          -> GitHubError $ JsonError text
-    GitHub.UserError text          -> GitHubError $ UserError text
+    GitHub.HTTPError e    -> GithubHttpError $ show e
+    GitHub.ParseError msg -> GithubParseError msg
+    GitHub.JsonError msg  -> GithubJsonError msg
+    GitHub.UserError msg  -> GithubUserError msg
 
 -- | Map 'AppError' into a HTTP error code.
 toHttpError :: AppError -> Servant.ServerError
-toHttpError (AppError _callStack errorType) = case errorType of
-    InternalError err -> case err of
-        NotFound               -> err404
-        ServerError msg        -> err500 { errBody = encodeUtf8 msg }
-        NotAllowed msg         -> err401 { errBody = encodeUtf8 msg }
-        Invalid msg            -> err417 { errBody = encodeUtf8 msg }
-        MissingHeader name     -> err401 { errBody = toLazy $ "Header not found: " <> foldedCase name }
-        HeaderDecodeError name -> err401 { errBody = encodeUtf8 $ "Unable to decode header: " <> name }
-        DbError e              -> err500 { errBody = encodeUtf8 e }
-        DbNamedError e         -> err500 { errBody = show e }
-    GitHubError err -> err500 { errBody = show err }
-    UrlDownloadFailed url -> err500 { errBody = encodeUtf8 $ "Couldn't download file from " <> unUrl url }
+toHttpError AppError{..} = case appErrorType of
+    NotFound               -> err404
+    ServerError msg        -> err500 { errBody = encodeUtf8 msg }
+    NotAllowed msg         -> err401 { errBody = encodeUtf8 msg }
+    Invalid msg            -> err417 { errBody = encodeUtf8 msg }
+    MissingHeader name     -> err401 { errBody = toLazy $ "Header not found: " <> foldedCase name }
+    HeaderDecodeError name -> err401 { errBody = encodeUtf8 $ "Unable to decode header: " <> name }
+    DbError e              -> err500 { errBody = encodeUtf8 e }
+    DbNamedError e         -> err500 { errBody = show e }
+    GithubHttpError e      -> err500 { errBody = encodeUtf8 e }
+    GithubParseError msg   -> err500 { errBody = encodeUtf8 msg }
+    GithubJsonError msg    -> err500 { errBody = encodeUtf8 msg }
+    GithubUserError msg    -> err500 { errBody = encodeUtf8 msg }
+    UrlDownloadFailed url  -> err500 { errBody = encodeUtf8 $ "Couldn't download file from " <> unUrl url }
 
 ----------------------------------------------------------------------------
 -- Error checks
 ----------------------------------------------------------------------------
 
 isServerError :: AppErrorType -> Bool
-isServerError (InternalError (ServerError _)) = True
-isServerError _                               = False
+isServerError (ServerError _) = True
+isServerError _               = False
 
 isNotAllowed :: AppErrorType -> Bool
-isNotAllowed (InternalError (NotAllowed _)) = True
-isNotAllowed _                              = False
+isNotAllowed (NotAllowed _) = True
+isNotAllowed _              = False
 
 isInvalid :: AppErrorType -> Bool
-isInvalid (InternalError (Invalid _)) = True
-isInvalid _                           = False
-
-----------------------------------------------------------------------------
--- Internal Error helpers
-----------------------------------------------------------------------------
-
-notFound :: AppErrorType
-notFound = InternalError NotFound
-
-serverError :: Text -> AppErrorType
-serverError = InternalError . ServerError
-
-notAllowed :: Text -> AppErrorType
-notAllowed = InternalError . NotAllowed
-
-invalid :: Text -> AppErrorType
-invalid = InternalError . Invalid
-
-missingHeader :: HeaderName -> AppErrorType
-missingHeader = InternalError . MissingHeader
-
-headerDecodeError :: Text -> AppErrorType
-headerDecodeError = InternalError . HeaderDecodeError
-
-dbError :: Text -> AppErrorType
-dbError = InternalError . DbError
-
-dbNamedError :: PgNamedError -> AppErrorType
-dbNamedError = InternalError . DbNamedError
-
-githubHttpError :: Text -> AppErrorType
-githubHttpError = GitHubError . HttpError
-
-urlDownloadFailedError :: Url -> AppErrorType
-urlDownloadFailedError = UrlDownloadFailed
+isInvalid (Invalid _) = True
+isInvalid _           = False
 
 ----------------------------------------------------------------------------
 -- Helpers
@@ -230,8 +175,8 @@ throwOnNothingM err action = withFrozenCallStack $ action >>= throwOnNothing err
 
 -- | Similar to 'throwOnNothing' but throws a 'NotFound' if the value does not exist
 notFoundOnNothing :: WithError m => Maybe a -> m a
-notFoundOnNothing = withFrozenCallStack . throwOnNothing notFound
+notFoundOnNothing = withFrozenCallStack . throwOnNothing NotFound
 
 -- | Similar to 'throwOnNothingM' but throws a 'NotFound' if the value does not exist
 notFoundOnNothingM :: WithError m => m (Maybe a) -> m a
-notFoundOnNothingM = withFrozenCallStack . throwOnNothingM notFound
+notFoundOnNothingM = withFrozenCallStack . throwOnNothingM NotFound
