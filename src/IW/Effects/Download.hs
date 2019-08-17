@@ -14,7 +14,7 @@ module IW.Effects.Download
 import Network.HTTP.Client (Manager, Response (..), httpLbs)
 import Network.HTTP.Types (Status (..))
 
-import IW.App (App, AppErrorType (..), Has, WithError, grab, throwError, catchError, urlDownloadFailedError)
+import IW.App (App, AppErrorType (..), Has, WithError, grab, throwError, catchError)
 import IW.Core.Url (Url (..))
 
 
@@ -42,7 +42,7 @@ downloadFileImpl url@Url{..} = do
             pure $ toStrict body
         _   -> do
             log E $ "Couldn't download file from " <> unUrl
-            throwError $ urlDownloadFailedError url
+            throwError $ UrlDownloadFailed url
 
 downloadFileMaybe :: (MonadDownload m, WithError m) => Url -> m (Maybe ByteString)
 downloadFileMaybe url = (Just <$> downloadFile url) `catchError` \case

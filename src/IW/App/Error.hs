@@ -15,18 +15,6 @@ module IW.App.Error
        , isNotAllowed
        , isInvalid
 
-         -- * Internal error helpers
-       , notFound
-       , serverError
-       , notAllowed
-       , invalid
-       , missingHeader
-       , headerDecodeError
-       , dbError
-       , dbNamedError
-       , githubHttpError
-       , urlDownloadFailedError
-
          -- * Error throwing helpers
        , throwOnNothing
        , throwOnNothingM
@@ -172,40 +160,6 @@ isInvalid (Invalid _) = True
 isInvalid _           = False
 
 ----------------------------------------------------------------------------
--- Internal Error helpers
-----------------------------------------------------------------------------
-
-notFound :: AppErrorType
-notFound = NotFound
-
-serverError :: Text -> AppErrorType
-serverError = ServerError
-
-notAllowed :: Text -> AppErrorType
-notAllowed = NotAllowed
-
-invalid :: Text -> AppErrorType
-invalid = Invalid
-
-missingHeader :: HeaderName -> AppErrorType
-missingHeader = MissingHeader
-
-headerDecodeError :: Text -> AppErrorType
-headerDecodeError = HeaderDecodeError
-
-dbError :: Text -> AppErrorType
-dbError = DbError
-
-dbNamedError :: PgNamedError -> AppErrorType
-dbNamedError = DbNamedError
-
-githubHttpError :: Text -> AppErrorType
-githubHttpError = GithubHttpError
-
-urlDownloadFailedError :: Url -> AppErrorType
-urlDownloadFailedError = UrlDownloadFailed
-
-----------------------------------------------------------------------------
 -- Helpers
 ----------------------------------------------------------------------------
 
@@ -221,8 +175,8 @@ throwOnNothingM err action = withFrozenCallStack $ action >>= throwOnNothing err
 
 -- | Similar to 'throwOnNothing' but throws a 'NotFound' if the value does not exist
 notFoundOnNothing :: WithError m => Maybe a -> m a
-notFoundOnNothing = withFrozenCallStack . throwOnNothing notFound
+notFoundOnNothing = withFrozenCallStack . throwOnNothing NotFound
 
 -- | Similar to 'throwOnNothingM' but throws a 'NotFound' if the value does not exist
 notFoundOnNothingM :: WithError m => m (Maybe a) -> m a
-notFoundOnNothingM = withFrozenCallStack . throwOnNothingM notFound
+notFoundOnNothingM = withFrozenCallStack . throwOnNothingM NotFound
