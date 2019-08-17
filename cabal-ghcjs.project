@@ -1,0 +1,10 @@
+packages:
+    backend/
+    frontend/
+
+compiler: ghcjs
+
+source-repository-package
+    type: git
+    location: https://github.com/kowainik/base-noprelude.git
+    tag: 914806ad69af7cfbb92890dae1dff6e84f3bdb7e
