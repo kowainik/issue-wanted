@@ -15,12 +15,13 @@ module IW.Sync.Search
        ) where
 
 import Data.Time (Day (..), addDays)
-import GitHub (SearchResult (..), URL (..), RateLimit (..), Limits, Paths, QueryString, executeRequest', limitsRemaining)
+import GitHub (SearchResult (..), URL (..), RateLimit (..), Limits, Paths, QueryString,
+               executeRequest', limitsRemaining)
 import GitHub.Endpoints.RateLimit (rateLimit)
 import UnliftIO (MonadUnliftIO)
 import UnliftIO.Concurrent (threadDelay)
 
-import IW.App (WithError, githubErrToAppErr, notFoundOnNothing, throwError)
+import IW.App (WithError, AppErrorType (..), githubErrToAppErr, throwError)
 import IW.Core.Issue (Issue (..), Label (..))
 import IW.Core.Repo (Repo (..), RepoOwner (..), RepoName (..))
 import IW.Core.SqlArray (SqlArray (..))
@@ -222,10 +223,27 @@ fromGitHubIssue githubIssue = do
 Parsing the URL @https://api.github.com/repos/owner/name/issues/1@ should return
 @Just (RepoOwner "owner", RepoName "name")@.
 -}
+-- parseUserData :: WithError m => GitHub.URL -> m (RepoOwner, RepoName)
+-- parseUserData (URL url) = notFoundOnNothing
+--     $ T.stripPrefix "https://api.github.com/repos/" url >>= splitOwnerAndName
+--   where
+--     splitOwnerAndName :: Text -> Maybe (RepoOwner, RepoName)
+--     splitOwnerAndName strippedUrl = do
+--         owner:name:_ <- Just $ T.splitOn "/" strippedUrl
+--         guard $ owner /= "" && name /= ""
+--         pure (RepoOwner owner, RepoName name)
+
 parseUserData :: WithError m => GitHub.URL -> m (RepoOwner, RepoName)
-parseUserData (URL url) = notFoundOnNothing
-    $ T.stripPrefix "https://api.github.com/repos/" url >>= splitOwnerAndName
+parseUserData (URL url) = case maybeUserData of
+    Nothing -> do
+        log E "Couldn't parse user data from URL"
+        throwError NotFound
+    Just userData -> pure userData
   where
+    maybeUserData :: Maybe (RepoOwner, RepoName)
+    maybeUserData = splitOwnerAndName
+        $ T.stripPrefix "https://api.github.com/repos/" url
+
     splitOwnerAndName :: Text -> Maybe (RepoOwner, RepoName)
     splitOwnerAndName strippedUrl = do
         owner:name:_ <- Just $ T.splitOn "/" strippedUrl
