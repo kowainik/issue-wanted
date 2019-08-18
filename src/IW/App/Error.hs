@@ -15,20 +15,6 @@ module IW.App.Error
        , isNotAllowed
        , isInvalid
 
-<<<<<<< HEAD
-=======
-         -- * Internal error helpers
-       , notFound
-       , serverError
-       , notAllowed
-       , invalid
-       , missingHeader
-       , headerDecodeError
-       , dbError
-       , dbNamedError
-       , urlDownloadFailedError
-
->>>>>>> 0c071fc... [#99] Add error throwing to parseUserData function
          -- * Error throwing helpers
        , throwOnNothing
        , throwOnNothingM
@@ -170,44 +156,8 @@ isNotAllowed (NotAllowed _) = True
 isNotAllowed _              = False
 
 isInvalid :: AppErrorType -> Bool
-<<<<<<< HEAD
 isInvalid (Invalid _) = True
 isInvalid _           = False
-=======
-isInvalid (InternalError (Invalid _)) = True
-isInvalid _                           = False
-
-----------------------------------------------------------------------------
--- Internal Error helpers
-----------------------------------------------------------------------------
-
-notFound :: AppErrorType
-notFound = InternalError NotFound
-
-serverError :: Text -> AppErrorType
-serverError = InternalError . ServerError
-
-notAllowed :: Text -> AppErrorType
-notAllowed = InternalError . NotAllowed
-
-invalid :: Text -> AppErrorType
-invalid = InternalError . Invalid
-
-missingHeader :: HeaderName -> AppErrorType
-missingHeader = InternalError . MissingHeader
-
-headerDecodeError :: Text -> AppErrorType
-headerDecodeError = InternalError . HeaderDecodeError
-
-dbError :: Text -> AppErrorType
-dbError = InternalError . DbError
-
-dbNamedError :: PgNamedError -> AppErrorType
-dbNamedError = InternalError . DbNamedError
-
-urlDownloadFailedError :: Url -> AppErrorType
-urlDownloadFailedError = UrlDownloadFailed
->>>>>>> 0c071fc... [#99] Add error throwing to parseUserData function
 
 ----------------------------------------------------------------------------
 -- Helpers

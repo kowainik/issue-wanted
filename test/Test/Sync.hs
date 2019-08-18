@@ -30,12 +30,12 @@ parseIssueUserDataSpec env = describe "parseIssueUserData" $ do
     it "parsing testGitHubUrl2 should return Just (RepoOwner owner123, RepoName repo123)" $
         env & parseUserData testGitHubUrl2
             `equals` (RepoOwner "owner123", RepoName "repo123")
-    it "parsing testBadGitHubUrl1 should fail with notFound error" $
+    it "parsing testBadGitHubUrl1 should fail with NotFound error" $
         env & parseUserData testBadGitHubUrl1
-            `failsWith` notFound
-    it "parsing testBadGitHubUrl2 should fail with notFound error" $
+            `failsWith` NotFound
+    it "parsing testBadGitHubUrl2 should fail with NotFound error" $
         env & parseUserData testBadGitHubUrl2
-            `failsWith` notFound
+            `failsWith` NotFound
 
 -- | A @GitHub.Url@ for a repo with a valid format.
 testGitHubUrl1 :: GitHub.URL
