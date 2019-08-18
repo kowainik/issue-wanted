@@ -18,6 +18,7 @@ newtype IssueSite route = IssueSite
     { issuesRoute :: route
         :- "issues"
         :> ReqBody '[JSON] [Label]
+        :> QueryParam "page" Int
         :> Get '[JSON] [WithId Issue]
     } deriving (Generic)
 
@@ -33,5 +34,6 @@ issuesHandler
        , WithError m
        )
     => [Label]
+    -> Maybe Int
     -> m [WithId Issue]
-issuesHandler = getIssuesByLabels
+issuesHandler labels page = getIssuesByLabels labels $ fromMaybe 0 page

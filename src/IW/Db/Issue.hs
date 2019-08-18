@@ -12,25 +12,29 @@ import IW.App (WithError)
 import IW.Core.Issue (Issue (..), Label (..))
 import IW.Core.SqlArray (SqlArray (..))
 import IW.Core.WithId (WithId)
-import IW.Db.Functions (WithDb, executeMany, queryNamed, queryRaw)
+import IW.Db.Functions (WithDb, executeMany, queryNamed)
 
 
 -- | Returns all issues in the database.
-getIssues :: WithDb env m => m [WithId Issue]
-getIssues = queryRaw [sql|
+getIssues :: (WithDb env m, WithError m) => Int -> m [WithId Issue]
+getIssues page = queryNamed [sql|
     SELECT id, repo_owner, repo_name, number, title, body, labels
     FROM issues
     LIMIT 100
-|]
+    OFFSET (?page * 100)
+|] [ "page" =? page ]
 
 -- | Returns all issues with at least one label in the given list.
-getIssuesByLabels :: (WithDb env m, WithError m) => [Label] -> m [WithId Issue]
-getIssuesByLabels labels = queryNamed [sql|
+getIssuesByLabels :: (WithDb env m, WithError m) => [Label] -> Int -> m [WithId Issue]
+getIssuesByLabels labels page = queryNamed [sql|
     SELECT id, repo_owner, repo_name, number, title, body, labels
     FROM issues
     WHERE labels && ?labels
     LIMIT 100
-|] [ "labels" =? SqlArray labels ]
+    OFFSET (?page * 100)
+|] [ "labels" =? SqlArray labels
+   , "page" =? page
+   ]
 
 -- | Insert a list of issues into the database, but update on conflict.
 upsertIssues :: (WithDb env m) => [Issue] -> m ()

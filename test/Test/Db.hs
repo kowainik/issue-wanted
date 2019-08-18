@@ -1,3 +1,5 @@
+{-# LANGUAGE QuasiQuotes #-}
+
 module Test.Db
        ( dbSpecs
        ) where
@@ -10,7 +12,7 @@ import IW.Core.Issue (Issue, Label (..))
 import IW.Core.Id (Id (..))
 import IW.Core.Repo (Repo, Category (..))
 import IW.Core.WithId (WithId (..))
-import IW.Db (getIssues, getRepos, getReposByCategories, getIssuesByLabels, upsertIssues, upsertRepos)
+import IW.Db (getIssues, getRepos, getReposByCategories, getIssuesByLabels, upsertIssues, upsertRepos, queryRaw)
 import Test.Assert (equals, succeeds)
 import Test.Common (joinSpecs)
 import Test.Data (invalidIssue, updatedValidIssue, updatedValidRepo, validIssue, validRepo)
@@ -30,6 +32,12 @@ beforeAfter getter comparison action = do
     _  <- action
     after <- getter
     pure $ after `comparison` before
+
+-- | Takes a default value and a list of @Only a@ values.
+-- Useful when you just want to extract one field from a SQL query.
+fromOnlyList :: a -> [Only a] -> a
+fromOnlyList def []     = def
+fromOnlyList _ (only:_) = fromOnly only
 
 ---------------
 -- REPO SPEC --
@@ -60,11 +68,13 @@ getReposSpec env = describe "getRepos" $
 getReposByCategoriesSpec :: AppEnv -> Spec
 getReposByCategoriesSpec env = describe "getReposByCategories" $
     it "should return [Id 1 `WithId` updaterValidRepo]" $
-        env & getReposByCategories [Category "FFI"] `equals` [Id 1 `WithId` updatedValidRepo]
+        env & getReposByCategories [Category "FFI"] 0 `equals` [Id 1 `WithId` updatedValidRepo]
 
--- | Returns number of rows currently in the repos database.
+-- | Returns the number of rows in the repos table.
 reposRowCount :: App Int
-reposRowCount = length <$> getRepos
+reposRowCount = fromOnlyList 0 <$> queryRaw [sql|
+    SELECT count(*) FROM repos
+|]
 
 -- | Returns the number of rows added to the repo table after an action.
 reposAddedRows :: App a -> App Int
@@ -76,7 +86,7 @@ reposIncreased = beforeAfter reposRowCount (>)
 
 -- | Returns difference between rows of the repos table after and before an action.
 reposRowDifference :: App a -> App [WithId Repo]
-reposRowDifference = beforeAfter getRepos (\\)
+reposRowDifference = beforeAfter (getRepos 0) (\\)
 
 ----------------
 -- ISSUE SPEC --
@@ -109,11 +119,13 @@ getIssuesSpec env = describe "getIssues" $
 getIssuesByLabelsSpec :: AppEnv -> Spec
 getIssuesByLabelsSpec env = describe "getIssuesByLabels" $
     it "should return [Id 1 `WithId` updatedValidIssue]" $
-        env & getIssuesByLabels [Label "good first issue"] `equals` [Id 1 `WithId` updatedValidIssue]
+        env & getIssuesByLabels [Label "good first issue"] 0 `equals` [Id 1 `WithId` updatedValidIssue]
 
--- | Returns number of rows currently in the issues database.
+-- | Returns the number of rows in the issues table.
 issuesRowCount :: App Int
-issuesRowCount = length <$> getIssues
+issuesRowCount = fromOnlyList 0 <$> queryRaw [sql|
+    SELECT count(*) FROM issues
+|]
 
 -- | Returns the number of rows added to the issue table after an action.
 issuesAddedRows :: App a -> App Int
@@ -121,7 +133,7 @@ issuesAddedRows = beforeAfter issuesRowCount (-)
 
 -- | Returns True if no rows in the issues table were affected after an action.
 issuesUnaffected :: App a -> App Bool
-issuesUnaffected = beforeAfter getIssues (==)
+issuesUnaffected = beforeAfter (getIssues 0) (==)
 
 -- | Returns True if number of rows in the issues table increased after an action.
 issuesIncreased :: App a -> App Bool
@@ -129,4 +141,4 @@ issuesIncreased = beforeAfter issuesRowCount (>)
 
 -- | Returns difference between rows of the issue table after and before an action.
 issuesRowDifference :: App a -> App [WithId Issue]
-issuesRowDifference = beforeAfter getIssues (\\)
+issuesRowDifference = beforeAfter (getIssues 0) (\\)
