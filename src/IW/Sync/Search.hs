@@ -205,7 +205,7 @@ fromGitHubRepo githubRepo = Repo
     }
 
 -- | Convert a value of the @GitHub.Issue@ type to a value of our own @Issue@ type.
-fromGitHubIssue :: WithError m => GitHub.Issue -> m Issue
+fromGitHubIssue :: (WithError m, WithLog env m) => GitHub.Issue -> m Issue
 fromGitHubIssue githubIssue = do
     (issueRepoOwner, issueRepoName) <- parseUserData $ GitHub.issueUrl githubIssue
     pure Issue
@@ -223,17 +223,7 @@ fromGitHubIssue githubIssue = do
 Parsing the URL @https://api.github.com/repos/owner/name/issues/1@ should return
 @Just (RepoOwner "owner", RepoName "name")@.
 -}
--- parseUserData :: WithError m => GitHub.URL -> m (RepoOwner, RepoName)
--- parseUserData (URL url) = notFoundOnNothing
---     $ T.stripPrefix "https://api.github.com/repos/" url >>= splitOwnerAndName
---   where
---     splitOwnerAndName :: Text -> Maybe (RepoOwner, RepoName)
---     splitOwnerAndName strippedUrl = do
---         owner:name:_ <- Just $ T.splitOn "/" strippedUrl
---         guard $ owner /= "" && name /= ""
---         pure (RepoOwner owner, RepoName name)
-
-parseUserData :: WithError m => GitHub.URL -> m (RepoOwner, RepoName)
+parseUserData :: (WithError m, WithLog env m) => GitHub.URL -> m (RepoOwner, RepoName)
 parseUserData (URL url) = case maybeUserData of
     Nothing -> do
         log E "Couldn't parse user data from URL"
@@ -241,8 +231,8 @@ parseUserData (URL url) = case maybeUserData of
     Just userData -> pure userData
   where
     maybeUserData :: Maybe (RepoOwner, RepoName)
-    maybeUserData = splitOwnerAndName
-        $ T.stripPrefix "https://api.github.com/repos/" url
+    maybeUserData = T.stripPrefix "https://api.github.com/repos/" url >>=
+        splitOwnerAndName
 
     splitOwnerAndName :: Text -> Maybe (RepoOwner, RepoName)
     splitOwnerAndName strippedUrl = do
