@@ -15,12 +15,13 @@ module IW.Sync.Search
        ) where
 
 import Data.Time (Day (..), addDays)
-import GitHub (SearchResult (..), URL (..), RateLimit (..), Limits, Paths, QueryString, executeRequest', limitsRemaining)
+import GitHub (SearchResult (..), URL (..), RateLimit (..), Limits, Paths, QueryString,
+               executeRequest', limitsRemaining)
 import GitHub.Endpoints.RateLimit (rateLimit)
 import UnliftIO (MonadUnliftIO)
 import UnliftIO.Concurrent (threadDelay)
 
-import IW.App (WithError, githubErrToAppErr, throwError)
+import IW.App (WithError, AppErrorType (..), githubErrToAppErr, throwError)
 import IW.Core.Issue (Issue (..), Label (..))
 import IW.Core.Repo (Repo (..), RepoOwner (..), RepoName (..))
 import IW.Core.SqlArray (SqlArray (..))
@@ -35,9 +36,7 @@ import qualified Data.Vector as V
 
 -- | Search all Haskell repositories starting from the most recent day.
 searchAllHaskellRepos
-    :: forall env m.
-       ( MonadIO m
-       , MonadUnliftIO m
+    :: ( MonadUnliftIO m
        , WithError m
        , WithLog env m
        )
@@ -50,8 +49,7 @@ searchAllHaskellRepos recent interval = do
 
 -- | Search all Haskell open issues starting from the most recent day.
 searchAllHaskellIssues
-    :: forall env m.
-       ( MonadUnliftIO m
+    :: ( MonadUnliftIO m
        , WithError m
        , WithLog env m
        )
@@ -62,9 +60,7 @@ searchAllHaskellIssues = searchAllHaskellIssuesByLabels []
 
 -- | Search all open Haskell issues with the corresponding labels.
 searchAllHaskellIssuesByLabels
-    :: forall env m.
-       ( MonadIO m
-       , MonadUnliftIO m
+    :: ( MonadUnliftIO m
        , WithError m
        , WithLog env m
        )
@@ -74,7 +70,7 @@ searchAllHaskellIssuesByLabels
     -> m [Issue]
 searchAllHaskellIssuesByLabels labels recent interval = do
      githubIssues <- githubSearchAll ["search", "issues"] queryString recent interval []
-     pure $ catMaybes $ fromGitHubIssue <$> githubIssues
+     mapM fromGitHubIssue githubIssues
   where
     queryString :: Text
     queryString = "language:haskell state:open" <> labelsToSearchQuery labels
@@ -85,8 +81,7 @@ searchAllHaskellIssuesByLabels labels recent interval = do
 
 githubSearchAll
     :: forall a env m.
-       ( MonadIO m
-       , MonadUnliftIO m
+       ( MonadUnliftIO m
        , WithError m
        , WithLog env m
        , FromJSON a
@@ -127,8 +122,7 @@ githubSearchAll paths properties recent interval acc = do
 
 -- | Executes a GitHub search action within the context of the @App@ monad.
 executeGithubSearch
-    :: forall a env m.
-       ( MonadIO m
+    :: ( MonadIO m
        , MonadUnliftIO m
        , WithError m
        , WithLog env m
@@ -196,7 +190,7 @@ buildGithubQuery paths properties from to page = GitHub.query paths queryString
     dateRange from' to' = "created:" <> julianDayToIso from' <> ".." <> julianDayToIso to'
 
 -- | Function for fetching the current rate limit information for the GitHub Search API.
-getSearchRateLimit :: forall m. (MonadIO m, MonadUnliftIO m, WithError m) => m Limits
+getSearchRateLimit :: (MonadIO m, MonadUnliftIO m, WithError m) => m Limits
 getSearchRateLimit = liftIO rateLimit >>= \case
     Left err -> throwError $ githubErrToAppErr err
     Right RateLimit{..} -> pure rateLimitSearch
@@ -211,7 +205,7 @@ fromGitHubRepo githubRepo = Repo
     }
 
 -- | Convert a value of the @GitHub.Issue@ type to a value of our own @Issue@ type.
-fromGitHubIssue :: GitHub.Issue -> Maybe Issue
+fromGitHubIssue :: (WithError m, WithLog env m) => GitHub.Issue -> m Issue
 fromGitHubIssue githubIssue = do
     (issueRepoOwner, issueRepoName) <- parseUserData $ GitHub.issueUrl githubIssue
     pure Issue
@@ -229,11 +223,17 @@ fromGitHubIssue githubIssue = do
 Parsing the URL @https://api.github.com/repos/owner/name/issues/1@ should return
 @Just (RepoOwner "owner", RepoName "name")@.
 -}
-parseUserData :: GitHub.URL -> Maybe (RepoOwner, RepoName)
-parseUserData (URL url) =
-    T.stripPrefix "https://api.github.com/repos/" url
-    >>= splitOwnerAndName
+parseUserData :: (WithError m, WithLog env m) => GitHub.URL -> m (RepoOwner, RepoName)
+parseUserData (URL url) = case maybeUserData of
+    Nothing -> do
+        log E "Couldn't parse user data from URL"
+        throwError NotFound
+    Just userData -> pure userData
   where
+    maybeUserData :: Maybe (RepoOwner, RepoName)
+    maybeUserData = T.stripPrefix "https://api.github.com/repos/" url >>=
+        splitOwnerAndName
+
     splitOwnerAndName :: Text -> Maybe (RepoOwner, RepoName)
     splitOwnerAndName strippedUrl = do
         owner:name:_ <- Just $ T.splitOn "/" strippedUrl
