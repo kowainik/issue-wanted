@@ -1,7 +1,6 @@
 module IW.Server.Repo
        ( -- * API
-         RepoAPI
-       , reposServer
+         ReposAPI
 
          -- * Handlers
        , reposHandler
@@ -24,16 +23,11 @@ newtype ReposSite route = ReposSite
         :> Get '[JSON] [WithId Repo]
     } deriving (Generic)
 
-reposServer :: RepoSite AppServer
-reposServer = RepoSite
-    { reposRoute = reposHandler
-    }
-
 reposHandler
     :: ( WithDb env m
        , WithError m
        )
     => [Category]
     -> Maybe Int
-    -> m [WithId Issue]
+    -> m [WithId Repo]
 reposHandler categories page = getReposByCategories categories $ fromMaybe 0 page
