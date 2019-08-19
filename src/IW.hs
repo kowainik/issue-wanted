@@ -13,7 +13,7 @@ import IW.App (AppEnv, Env (..))
 import IW.Config (Config (..), loadConfig)
 import IW.Db (initialisePool)
 import IW.Effects.Log (mainLogAction)
-import IW.Server (API, server)
+import IW.Server (IwApi, server)
 
 
 mkAppEnv :: Config -> IO AppEnv
@@ -34,7 +34,7 @@ mkGhciEnv = loadConfig >>= mkAppEnv
 runServer :: AppEnv -> IO ()
 runServer env@Env{..} = run 8080 application
   where
-    application = serve (Proxy @API) (server env)
+    application = serve (Proxy @IwApi) (server env)
 
 main :: IO ()
 main = loadConfig >>= mkAppEnv >>= runServer

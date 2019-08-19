@@ -1,25 +1,30 @@
 module IW.Server
-       ( API
+       ( IwApi
        , server
        ) where
 
-import Servant.API ((:<|>))
 import Servant.API.Generic (toServant)
 import Servant.Server (Server, hoistServer)
 
 import IW.App (AppEnv)
 import IW.Effects.Log (runAppAsHandler)
-import IW.Server.Issue (IssuesAPI, issuesHandler)
-import IW.Server.Repo (ReposAPI, reposHandler)
+import IW.Server.Issue (IssuesApi, issuesHandler)
+import IW.Server.Repo (ReposApi, reposHandler)
+import IW.Server.Types (AppServer, ToApi)
 
 
-type API = ReposAPI :<|> IssuesAPI
+data IwSite route = IwSite
+    { iwIssuesRoute :: route :- IssuesApi
+    , iwReposRoute :: route :- ReposApi
+    } deriving (Generic)
 
-server :: AppEnv -> Server API
-server env = hoistServer (Proxy @API) (runAppAsHandler env) (toServant iwServer)
+type IwApi = ToApi IwSite
 
-iwServer :: IssuesSite AppServer
-iwServer = IssuesSite
-    { reposRoute = reposHandler
-    , issuesRoute = issuesHandler
+iwServer :: IwSite AppServer
+iwServer = IwSite
+    { iwIssuesRoute = issuesHandler
+    , iwReposRoute = reposHandler
     }
+
+server :: AppEnv -> Server IwApi
+server env = hoistServer (Proxy @IwApi) (runAppAsHandler env) (toServant iwServer)

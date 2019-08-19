@@ -1,6 +1,7 @@
 module IW.Server.Issue
        ( -- * API
-         IssuesAPI
+         IssuesApi
+       , issuesServer
 
          -- * Handlers
        , issuesHandler
@@ -13,7 +14,7 @@ import IW.Db (WithDb, getIssuesByLabels)
 import IW.Server.Types (AppServer, ToApi)
 
 
-type IssuesAPI = ToApi IssuesSite
+type IssuesApi = ToApi IssuesSite
 
 newtype IssuesSite route = IssuesSite
     { issuesRoute :: route
@@ -22,6 +23,11 @@ newtype IssuesSite route = IssuesSite
         :> QueryParam "page" Int
         :> Get '[JSON] [WithId Issue]
     } deriving (Generic)
+
+issuesServer :: IssuesSite AppServer
+issuesServer = IssuesSite
+    { issuesRoute = issuesHandler
+    }
 
 issuesHandler
     :: ( WithDb env m

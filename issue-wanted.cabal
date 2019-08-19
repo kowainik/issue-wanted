@@ -92,6 +92,7 @@ library
                          -- Server
                          IW.Server
                            IW.Server.Issue
+                           IW.Server.Repo
                            IW.Server.Types
 
                          -- Sync Worker

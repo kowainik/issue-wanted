@@ -25,7 +25,7 @@ newtype RepoName = RepoName { unRepoName :: Text }
 -- | Wrapper for repository Hackage category names
 newtype Category = Category { unCategory :: Text }
     deriving stock   (Generic, Show)
-    deriving newtype (Eq, Ord, FromField, ToField, ToJSON, FromHttpApiData)
+    deriving newtype (Eq, Ord, FromField, ToField, FromJSON, ToJSON, FromHttpApiData)
 
 -- | Data type representing a GitHub repository
 data Repo = Repo

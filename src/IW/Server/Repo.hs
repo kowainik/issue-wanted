@@ -1,6 +1,7 @@
 module IW.Server.Repo
        ( -- * API
-         ReposAPI
+         ReposApi
+       , reposServer
 
          -- * Handlers
        , reposHandler
@@ -13,7 +14,7 @@ import IW.Db (WithDb, getReposByCategories)
 import IW.Server.Types (AppServer, ToApi)
 
 
-type ReposAPI = ToApi ReposSite
+type ReposApi = ToApi ReposSite
 
 newtype ReposSite route = ReposSite
     { reposRoute :: route
@@ -22,6 +23,11 @@ newtype ReposSite route = ReposSite
         :> QueryParam "page" Int
         :> Get '[JSON] [WithId Repo]
     } deriving (Generic)
+
+reposServer :: ReposSite AppServer
+reposServer = ReposSite
+    { reposRoute = reposHandler
+    }
 
 reposHandler
     :: ( WithDb env m
