@@ -87,7 +87,7 @@ Tip: If you stop running the server and then try to restart it, you may need to 
 
 ## Frontend
 
-Currently, frontend is implemented using [`Elm`]().
+Currently, frontend is implemented using [`Elm`](https://elm-lang.org/).
 
 ### Prerequisites (what you need to have locally)
 
