@@ -93,7 +93,7 @@ Currently, frontend is implemented using [`Elm`](https://elm-lang.org/).
 
 * [`elm`](https://elm-lang.org/)
 * [`npm`](https://www.npmjs.com/)
-* [`create-elm-app`](https://github.com/halfzebra/create-elm-app): to install run `npm install -g create-elm-app@2.2.0**
+* [`create-elm-app`](https://github.com/halfzebra/create-elm-app): to install run `npm install -g create-elm-app@2.2.0`
 
 ### How to run
 
