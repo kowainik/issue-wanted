@@ -108,6 +108,7 @@ library
                      , case-insensitive ^>= 1.2
                      , co-log ^>= 0.3.0
                      , containers >= 0.6
+                     , elm-street ^>= 0.0.1
                      , github == 0.22
                      , http-api-data ^>= 0.4
                      , http-client ^>= 0.5.14
@@ -136,6 +137,14 @@ executable issue-wanted
   main-is:             Main.hs
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   build-depends:       issue-wanted
+
+executable generate-elm
+  import:              common-options
+  hs-source-dirs:      generate-elm
+  main-is:             Main.hs
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+  build-depends:       issue-wanted
+                     , elm-street ^>= 0.0.1
 
 test-suite issue-wanted-test
   import:              common-options

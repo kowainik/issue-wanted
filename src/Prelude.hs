@@ -6,6 +6,7 @@ module Prelude
        ( module Relude
        , module Colog
        , module Control.Lens
+       , module Elm
        , module Json
        , module Sql
        , module Web
@@ -21,6 +22,8 @@ import Relude.Extra.Type (typeName)
 import Control.Lens ((.~), (^.))
 
 import Colog (pattern D, pattern E, pattern I, LogAction (..), Severity (..), pattern W, log)
+
+import Elm (Elm (..), ElmStreet (..), elmStreetParseJson, elmStreetToJson)
 
 import Data.Aeson as Json (FromJSON (parseJSON), ToJSON (toJSON))
 
