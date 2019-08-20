@@ -6,4 +6,4 @@ module IW.Core.Url
 newtype Url = Url
     { unUrl :: Text
     } deriving stock   (Generic)
-      deriving newtype (Eq, Ord, Show, FromField, ToField, ToJSON)
+      deriving newtype (Eq, Ord, Show, FromField, ToField, ToJSON, Elm)
