@@ -1,7 +1,7 @@
 module IW.Server.Issue
        ( -- * API
-         IssueAPI
-       , issueServer
+         IssuesApi
+       , issuesServer
 
          -- * Handlers
        , issuesHandler
@@ -14,17 +14,18 @@ import IW.Db (WithDb, getIssuesByLabels)
 import IW.Server.Types (AppServer, ToApi)
 
 
-newtype IssueSite route = IssueSite
+type IssuesApi = ToApi IssuesSite
+
+newtype IssuesSite route = IssuesSite
     { issuesRoute :: route
         :- "issues"
         :> ReqBody '[JSON] [Label]
+        :> QueryParam "page" Int
         :> Get '[JSON] [WithId Issue]
     } deriving (Generic)
 
-type IssueAPI = ToApi IssueSite
-
-issueServer :: IssueSite AppServer
-issueServer = IssueSite
+issuesServer :: IssuesSite AppServer
+issuesServer = IssuesSite
     { issuesRoute = issuesHandler
     }
 
@@ -33,5 +34,6 @@ issuesHandler
        , WithError m
        )
     => [Label]
+    -> Maybe Int
     -> m [WithId Issue]
-issuesHandler = getIssuesByLabels
+issuesHandler labels page = getIssuesByLabels labels $ fromMaybe 0 page
