@@ -14,7 +14,7 @@ import IW.Core.Url (Url (..))
 -- | Wrapper for issue label names.
 newtype Label = Label { unLabel :: Text }
     deriving stock   (Generic, Show)
-    deriving newtype (Eq, Ord, FromField, ToField, FromJSON, ToJSON, FromHttpApiData)
+    deriving newtype (Eq, Ord, FromField, ToField, FromJSON, ToJSON, Elm, FromHttpApiData)
 
 -- | Data type representing a GitHub issue.
 data Issue = Issue
@@ -25,7 +25,8 @@ data Issue = Issue
     , issueBody      :: !Text
     , issueLabels    :: !(SqlArray Label)
     } deriving stock (Eq, Generic, Show)
-      deriving anyclass (ToJSON, FromRow, ToRow)
+      deriving anyclass (FromRow, ToRow)
+      deriving (Elm, ToJSON) via ElmStreet Issue
 
 issueUrl :: Issue -> Url
 issueUrl Issue{..} = Url

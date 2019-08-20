@@ -15,17 +15,17 @@ import IW.Core.Url (Url (..))
 -- | Wrapper for repository owner
 newtype RepoOwner = RepoOwner { unRepoOwner :: Text }
     deriving stock   (Generic, Show)
-    deriving newtype (Eq, Ord, FromField, ToField, ToJSON, FromHttpApiData)
+    deriving newtype (Eq, Ord, FromField, ToField, ToJSON, Elm, FromHttpApiData)
 
 -- | Wrapper for repository name
 newtype RepoName = RepoName { unRepoName :: Text }
     deriving stock   (Generic, Show)
-    deriving newtype (Eq, Ord, FromField, ToField, ToJSON, FromHttpApiData)
+    deriving newtype (Eq, Ord, FromField, ToField, ToJSON, Elm, FromHttpApiData)
 
 -- | Wrapper for repository Hackage category names
 newtype Category = Category { unCategory :: Text }
     deriving stock   (Generic, Show)
-    deriving newtype (Eq, Ord, FromField, ToField, FromJSON, ToJSON, FromHttpApiData)
+    deriving newtype (Eq, Ord, FromField, ToField, FromJSON, ToJSON, Elm, FromHttpApiData)
 
 -- | Data type representing a GitHub repository
 data Repo = Repo
@@ -34,7 +34,8 @@ data Repo = Repo
     , repoDescr      :: !Text
     , repoCategories :: !(SqlArray Category)
     } deriving stock    (Eq, Generic, Show)
-      deriving anyclass (ToJSON, FromRow, ToRow)
+      deriving anyclass (FromRow, ToRow)
+      deriving (Elm, ToJSON) via ElmStreet Repo
 
 repoUrl :: Repo -> Url
 repoUrl Repo{..} = Url
