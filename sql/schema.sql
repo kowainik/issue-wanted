@@ -6,17 +6,18 @@
 -----------------
 
 CREATE TABLE IF NOT EXISTS repos
-( id         SERIAL      PRIMARY KEY  
-, owner      TEXT        NOT NULL       
+( id         SERIAL      PRIMARY KEY
+, owner      TEXT        NOT NULL
 , name       TEXT        NOT NULL
 , descr      TEXT        NOT NULL
 , categories TEXT ARRAY  NOT NULL
+, cabal_url  TEXT        NOT NULL
 , created_at TIMESTAMP   WITH TIME ZONE DEFAULT NOW() NOT NULL
 , updated_at TIMESTAMP   WITH TIME ZONE DEFAULT NOW() NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS issues
-( id         SERIAL      PRIMARY KEY 
+( id         SERIAL      PRIMARY KEY
 , repo_owner TEXT        NOT NULL
 , repo_name  TEXT        NOT NULL
 , number     INT         NOT NULL
@@ -38,18 +39,18 @@ ALTER TABLE ONLY issues
   ADD CONSTRAINT unique_issues UNIQUE (repo_owner, repo_name, number);
 
 ALTER TABLE ONLY issues
-  ADD CONSTRAINT fk_repos FOREIGN KEY (repo_owner, repo_name) 
+  ADD CONSTRAINT fk_repos FOREIGN KEY (repo_owner, repo_name)
   REFERENCES repos (owner, name) ON DELETE CASCADE;
 
 --------------
 -- TRIGGERS --
 --------------
 
-CREATE OR REPLACE FUNCTION update_updated_at() 
+CREATE OR REPLACE FUNCTION update_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN
     NEW.updated_at = NOW();
-    RETURN NEW; 
+    RETURN NEW;
 END;
 $$ LANGUAGE 'plpgsql';
 

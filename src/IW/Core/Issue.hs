@@ -10,6 +10,8 @@ import IW.Core.SqlArray (SqlArray (..))
 import IW.Core.Repo (RepoName (..), RepoOwner (..))
 import IW.Core.Url (Url (..))
 
+import qualified Data.Text as T
+
 
 -- | Wrapper for issue label names.
 newtype Label = Label { unLabel :: Text }
@@ -29,10 +31,10 @@ data Issue = Issue
       deriving (Elm, ToJSON) via ElmStreet Issue
 
 issueUrl :: Issue -> Url
-issueUrl Issue{..} = Url
-    $ "https://github.com/"
-    <> unRepoOwner issueRepoOwner
-    <> "/"
-    <> unRepoName issueRepoName
-    <> "/issues/"
-    <> show issueNumber
+issueUrl Issue{..} = Url $ T.intercalate "/"
+    [ "https://github.com"
+    , unRepoOwner issueRepoOwner
+    , unRepoName issueRepoName
+    , "issues"
+    , show issueNumber
+    ]

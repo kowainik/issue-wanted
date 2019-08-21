@@ -18,14 +18,14 @@ import Distribution.PackageDescription
 import Distribution.PackageDescription.Parsec (parseGenericPackageDescriptionMaybe)
 
 import IW.App (App (..), WithError)
-import IW.Core.Repo (RepoOwner (..), RepoName (..), Category (..))
+import IW.Core.Repo (Repo (..), Category (..))
 import IW.Core.Url (Url (..))
 import IW.Effects.Download (MonadDownload (..), downloadFileMaybe)
 
 
 -- | Describes a monad that returns @[Category]@ given a @RepoOwner@ and @RepoName@.
 class Monad m => MonadCabal m where
-    getCabalCategories :: RepoOwner -> RepoName -> m [Category]
+    getCabalCategories :: Repo -> m [Category]
 
 instance MonadCabal App where
     getCabalCategories = getCabalCategoriesImpl
@@ -39,32 +39,17 @@ which will return @Nothing@ on an unsuccessful parse.
 getCabalCategoriesImpl
     :: forall env m.
        WithCabal env m
-    => RepoOwner
-    -> RepoName
+    => Repo
     -> m [Category]
-getCabalCategoriesImpl repoOwner repoName = do
-    maybeCabalFile <- downloadFileMaybe cabalUrl
+getCabalCategoriesImpl Repo{..} = do
+    maybeCabalFile <- downloadFileMaybe repoCabalUrl
     case maybeCabalFile >>= parseGenericPackageDescriptionMaybe of
         Nothing -> do
-            log W $ "Couldn't parse file downloaded from " <> unUrl cabalUrl
+            log W $ "Couldn't parse file downloaded from " <> unUrl repoCabalUrl
             pure []
         Just genPkgDescr -> do
-            log I $ "Successfully parsed file downloaded from " <> unUrl cabalUrl
+            log I $ "Successfully parsed file downloaded from " <> unUrl repoCabalUrl
             pure $ categoryNames genPkgDescr
-  where
-    cabalUrl :: Url
-    cabalUrl = repoCabalUrl repoOwner repoName
-
--- | This function returns a @Url@ for downloading a @Repo@'s @.cabal@ file.
-repoCabalUrl :: RepoOwner -> RepoName -> Url
-repoCabalUrl (RepoOwner repoOwner) (RepoName repoName) = Url $
-    "https://raw.githubusercontent.com/"
-    <> repoOwner
-    <> "/"
-    <> repoName
-    <> "/master/"
-    <> repoName
-    <> ".cabal"
 
 -- | Parses a comma separated @Text@ value to @[Category]@.
 categoryNames :: GenericPackageDescription -> [Category]

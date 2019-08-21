@@ -11,25 +11,29 @@ module IW.Sync.Search
        ( searchAllHaskellRepos
        , searchAllHaskellIssues
        , searchAllHaskellIssuesByLabels
+       , fromGithubRepo
+       , fromGithubIssue
+       , mkRepoCabalUrl
        , parseUserData
        ) where
 
 import Data.Time (Day (..), addDays)
-import GitHub (SearchResult (..), URL (..), RateLimit (..), Limits, Paths, QueryString,
-               executeRequest', limitsRemaining)
+import GitHub (GenRequest (..), SearchResult (..), RateLimit (..), Limits, MediaType (..),
+               RW (..), Paths, QueryString, URL (..), executeRequest', limitsRemaining)
 import GitHub.Endpoints.RateLimit (rateLimit)
-import UnliftIO (MonadUnliftIO)
+import UnliftIO (MonadUnliftIO, mapConcurrently)
 import UnliftIO.Concurrent (threadDelay)
 
 import IW.App (WithError, AppErrorType (..), githubErrToAppErr, throwError)
 import IW.Core.Issue (Issue (..), Label (..))
-import IW.Core.Repo (Repo (..), RepoOwner (..), RepoName (..))
+import IW.Core.Repo (Repo (..), RepoName (..), RepoOwner (..))
 import IW.Core.SqlArray (SqlArray (..))
+import IW.Core.Url (Url (..))
 import IW.Time (julianDayToIso)
 
-import qualified GitHub
 import qualified Data.Text as T
 import qualified Data.Vector as V
+import qualified GitHub
 
 {- HLINT ignore "Use prec" -}
 
@@ -45,7 +49,7 @@ searchAllHaskellRepos
     -> m [Repo]
 searchAllHaskellRepos recent interval = do
     githubRepos <- githubSearchAll ["search", "repositories"] "language:haskell" recent interval []
-    pure $ fromGitHubRepo <$> githubRepos
+    pure $ fromGithubRepo <$> githubRepos
 
 -- | Search all Haskell open issues starting from the most recent day.
 searchAllHaskellIssues
@@ -70,7 +74,7 @@ searchAllHaskellIssuesByLabels
     -> m [Issue]
 searchAllHaskellIssuesByLabels labels recent interval = do
      githubIssues <- githubSearchAll ["search", "issues"] queryString recent interval []
-     mapM fromGitHubIssue githubIssues
+     mapConcurrently fromGithubIssue githubIssues
   where
     queryString :: Text
     queryString = "language:haskell state:open" <> labelsToSearchQuery labels
@@ -98,7 +102,7 @@ githubSearchAll paths properties recent interval acc = do
     SearchResult count vec <- executeGithubSearch paths properties firstDay recent 1
     let firstPage = V.toList vec
         -- | If count is 0, then all results for the given properties have been obtained.
-    if | count == 0   -> do
+    if | count == 0 -> do
             log I "All results obtained"
             pure acc
         -- | If count is less than or equal to 1000, then the interval is good and we can get
@@ -110,7 +114,7 @@ githubSearchAll paths properties recent interval acc = do
             -- representing all pages accumulated up to this point.
             githubSearchAll paths properties (pred firstDay) interval (firstPage <> remainingPages <> acc)
         -- | Otherwise, call the function with the same arguments but a smaller interval.
-       | otherwise     -> githubSearchAll paths properties recent (pred interval) acc
+       | otherwise -> githubSearchAll paths properties recent (pred interval) acc
   where
     -- | The first day of the search interval. It's calculated by subtracting the size of the
     -- interval from the most recent day of the search interval.
@@ -195,18 +199,39 @@ getSearchRateLimit = liftIO rateLimit >>= \case
     Left err -> throwError $ githubErrToAppErr err
     Right RateLimit{..} -> pure rateLimitSearch
 
+----------------------------------------------------------------------------
+-- Helpers
+----------------------------------------------------------------------------
+
 -- | Convert a value of the @GitHub.Repo@ type to a value of our own @Repo@ type.
-fromGitHubRepo :: GitHub.Repo -> Repo
-fromGitHubRepo githubRepo = Repo
-    { repoOwner      = RepoOwner $ GitHub.untagName $ GitHub.simpleOwnerLogin $ GitHub.repoOwner githubRepo
-    , repoName       = RepoName $ GitHub.untagName $ GitHub.repoName githubRepo
+fromGithubRepo :: GitHub.Repo -> Repo
+fromGithubRepo githubRepo = Repo
+    { repoOwner      = owner
+    , repoName       = name
     , repoDescr      = fromMaybe "" $ GitHub.repoDescription githubRepo
     , repoCategories = SqlArray []
+    , repoCabalUrl   = mkRepoCabalUrl owner name $ GitHub.repoDefaultBranch githubRepo
     }
+  where
+    owner :: RepoOwner
+    owner = RepoOwner $ GitHub.untagName $ GitHub.simpleOwnerLogin $ GitHub.repoOwner githubRepo
+
+    name :: RepoName
+    name  = RepoName $ GitHub.untagName $ GitHub.repoName githubRepo
+
+-- | This function returns a @Url@ for downloading a @Repo@'s @.cabal@ file.
+mkRepoCabalUrl :: RepoOwner -> RepoName -> Maybe Text -> Url
+mkRepoCabalUrl (RepoOwner repoOwner) (RepoName repoName) maybeBranch = Url $ T.intercalate "/"
+    [ "https://raw.githubusercontent.com"
+    , repoOwner
+    , repoName
+    , fromMaybe "master" maybeBranch
+    , repoName <> ".cabal"
+    ]
 
 -- | Convert a value of the @GitHub.Issue@ type to a value of our own @Issue@ type.
-fromGitHubIssue :: (WithError m, WithLog env m) => GitHub.Issue -> m Issue
-fromGitHubIssue githubIssue = do
+fromGithubIssue :: (WithError m, WithLog env m) => GitHub.Issue -> m Issue
+fromGithubIssue githubIssue = do
     (issueRepoOwner, issueRepoName) <- parseUserData $ GitHub.issueUrl githubIssue
     pure Issue
         { issueNumber = GitHub.unIssueNumber $ GitHub.issueNumber githubIssue

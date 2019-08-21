@@ -47,6 +47,6 @@ syncCategories
        )
     => Repo
     -> m ()
-syncCategories Repo{..} = do
-    categories <- getCabalCategories repoOwner repoName
-    updateRepoCategories repoOwner repoName categories
+syncCategories repo = do
+    categories <- getCabalCategories repo
+    updateRepoCategories repo categories
