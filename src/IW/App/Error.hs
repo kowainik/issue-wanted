@@ -24,6 +24,8 @@ module IW.App.Error
 
 import Control.Monad.Except (MonadError)
 import Data.CaseInsensitive (foldedCase)
+import Distribution.Parsec.Common (PError (..))
+import Distribution.Types.Version (Version)
 import GHC.Stack (SrcLoc (SrcLoc, srcLocModule, srcLocStartLine))
 import Network.HTTP.Types.Header (HeaderName)
 import PgNamed (PgNamedError)
@@ -98,13 +100,15 @@ data AppErrorType
     -}
     | MissingHeader HeaderName
     {- | An authentication header that was required was provided but not in a
-    format that the server can understand
+    format that the server can understand.
     -}
     | HeaderDecodeError Text
-    -- | Data base specific errors
+    {- | Data base specific errors. -}
     | DbError Text
-    -- | Data base named parameters errors.
+    {- | Data base named parameters errors. -}
     | DbNamedError PgNamedError
+    {- | -}
+    | CabalParseError (Maybe Version, [CabalPError])
     {- | A HTTP error occurred using the @github@ library.
     The actual caught error is included. -}
     | GithubHttpError Text
@@ -117,6 +121,13 @@ data AppErrorType
     {- | Failed to download the contents of the @Url@. -}
     | UrlDownloadFailed Url
     deriving (Show, Eq)
+
+newtype CabalPError = CabalPError { unCabalPError :: PError }
+    deriving (Show)
+
+instance Eq CabalPError where
+    (CabalPError (PError pos1 str1)) == (CabalPError (PError pos2 str2)) =
+        pos1 == pos2 && str1 == str2
 
 -- | Map the @github@ library's @Error@ type into AppErrorType.
 githubErrToAppErr :: GitHub.Error -> AppErrorType
@@ -137,6 +148,7 @@ toHttpError AppError{..} = case appErrorType of
     HeaderDecodeError name -> err401 { errBody = encodeUtf8 $ "Unable to decode header: " <> name }
     DbError e              -> err500 { errBody = encodeUtf8 e }
     DbNamedError e         -> err500 { errBody = show e }
+    CabalParseError e      -> err500 { errBody = show e }
     GithubHttpError e      -> err500 { errBody = encodeUtf8 e }
     GithubParseError msg   -> err500 { errBody = encodeUtf8 msg }
     GithubJsonError msg    -> err500 { errBody = encodeUtf8 msg }

@@ -15,12 +15,14 @@ module IW.Effects.Cabal
 
 import Data.Text (splitOn, strip)
 import Distribution.PackageDescription
-import Distribution.PackageDescription.Parsec (parseGenericPackageDescriptionMaybe)
+import Distribution.PackageDescription.Parsec (ParseResult (..),
+                                               parseGenericPackageDescription,
+                                               runParseResult)
 
 import IW.App (App (..), WithError)
 import IW.Core.Repo (Repo (..), Category (..))
 import IW.Core.Url (Url (..))
-import IW.Effects.Download (MonadDownload (..), downloadFileMaybe)
+import IW.Effects.Download (MonadDownload (..))
 
 
 -- | Describes a monad that returns @[Category]@ given a @RepoOwner@ and @RepoName@.
@@ -42,14 +44,19 @@ getCabalCategoriesImpl
     => Repo
     -> m [Category]
 getCabalCategoriesImpl Repo{..} = do
-    maybeCabalFile <- downloadFileMaybe repoCabalUrl
-    case maybeCabalFile >>= parseGenericPackageDescriptionMaybe of
-        Nothing -> do
-            log W $ "Couldn't parse file downloaded from " <> unUrl repoCabalUrl
-            pure []
-        Just genPkgDescr -> do
-            log I $ "Successfully parsed file downloaded from " <> unUrl repoCabalUrl
-            pure $ categoryNames genPkgDescr
+    cabalFile <- downloadFile repoCabalUrl
+    let result = runParseResult $ parseGenericPackageDescription cabalFile
+    log D $ "Cabal file parsed with these warnings: " <> show $ fst result
+    case snd result of
+        Right err -> throwErr
+
+
+        -- Nothing -> do
+        --     log W $ "Couldn't parse file downloaded from " <> unUrl repoCabalUrl
+        --     pure []
+        -- Just genPkgDescr -> do
+        --     log I $ "Successfully parsed file downloaded from " <> unUrl repoCabalUrl
+        --     pure $ categoryNames genPkgDescr
 
 -- | Parses a comma separated @Text@ value to @[Category]@.
 categoryNames :: GenericPackageDescription -> [Category]
