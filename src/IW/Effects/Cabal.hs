@@ -52,14 +52,6 @@ getCabalCategoriesImpl Repo{..} = do
         Left err -> throwError $ CabalParseError $ second (CabalPError <$>) err
         Right genPkgDescr -> undefined
 
-
-        -- Nothing -> do
-        --     log W $ "Couldn't parse file downloaded from " <> unUrl repoCabalUrl
-        --     pure []
-        -- Just genPkgDescr -> do
-        --     log I $ "Successfully parsed file downloaded from " <> unUrl repoCabalUrl
-        --     pure $ categoryNames genPkgDescr
-
 -- | Parses a comma separated @Text@ value to @[Category]@.
 categoryNames :: GenericPackageDescription -> [Category]
 categoryNames genPkgDescr = Category <$> splitCategories genPkgDescr
