@@ -46,7 +46,7 @@ getCabalCategoriesImpl Repo{..} = do
     cabalFile <- downloadFile repoCabalUrl
     let result = runParseResult $ parseGenericPackageDescription cabalFile
     log D $ "Parsed cabal file downloaded from " <> show repoCabalUrl
-            <> " with these warnings: " <> (show $ fst result)
+            <> " with these warnings: " <> show (fst result)
     case snd result of
         Left err -> do
             let cabalParseErr = CabalParseError $ second (CabalPError <$>) err
