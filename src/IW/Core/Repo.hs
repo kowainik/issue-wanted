@@ -11,22 +11,22 @@ import IW.Core.SqlArray (SqlArray (..))
 import IW.Core.Url (Url)
 
 
--- | Wrapper for repository owner
+-- | Wrapper for a repository owner.
 newtype RepoOwner = RepoOwner { unRepoOwner :: Text }
     deriving stock   (Generic, Show)
     deriving newtype (Eq, Ord, FromField, ToField, ToJSON, Elm, FromHttpApiData)
 
--- | Wrapper for repository name
+-- | Wrapper for a repository name.
 newtype RepoName = RepoName { unRepoName :: Text }
     deriving stock   (Generic, Show)
     deriving newtype (Eq, Ord, FromField, ToField, ToJSON, Elm, FromHttpApiData)
 
--- | Wrapper for repository Hackage category names
+-- | Wrapper for repository Hackage category names.
 newtype Category = Category { unCategory :: Text }
     deriving stock   (Generic, Show)
     deriving newtype (Eq, Ord, FromField, ToField, FromJSON, ToJSON, Elm, FromHttpApiData)
 
--- | Data type representing a GitHub repository
+-- | Data type representing a GitHub repository.
 data Repo = Repo
     { repoOwner      :: !RepoOwner
     , repoName       :: !RepoName
