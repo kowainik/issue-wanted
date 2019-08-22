@@ -19,12 +19,12 @@ import Distribution.PackageDescription.Parsec (parseGenericPackageDescription,
                                                runParseResult)
 
 import IW.App (App (..), AppErrorType (..), CabalPError (..), WithError,
-               throwError, catchError)
+               throwError)
 import IW.Core.Repo (Repo (..), Category (..))
 import IW.Effects.Download (MonadDownload (..))
 
 
--- | Describes a monad that returns @[Category]@ given a @RepoOwner@ and @RepoName@.
+-- | Describes a monad that returns @[Category]@ given a @Repo@.
 class Monad m => MonadCabal m where
     getCabalCategories :: Repo -> m [Category]
 
@@ -33,9 +33,9 @@ instance MonadCabal App where
 
 type WithCabal env m = (MonadDownload m, WithLog env m, WithError m)
 
-{- | This function may throw anyone of the errors inherited by the use of @downloadFile@
-defined in @IW.Effects.Download@. We are using @parseGenericPackageDescriptionMaybe@
-which will return @Nothing@ on an unsuccessful parse.
+{- | This function may either return @[Categories]@ or throw a @CabalParseError@.
+This function may also throw anyone of the errors inherited by the use
+of @downloadFile@ defined in @IW.Effects.Download@.
 -}
 getCabalCategoriesImpl
     :: forall env m.
@@ -45,10 +45,17 @@ getCabalCategoriesImpl
 getCabalCategoriesImpl Repo{..} = do
     cabalFile <- downloadFile repoCabalUrl
     let result = runParseResult $ parseGenericPackageDescription cabalFile
-    log D $ "Cabal file parsed with these warnings: " <> (show $ fst result)
+    log D $ "Parsed cabal file downloaded from " <> show repoCabalUrl
+            <> " with these warnings: " <> (show $ fst result)
     case snd result of
-        Left err -> throwError $ CabalParseError $ second (CabalPError <$>) err
-        Right genPkgDescr -> pure $ categoryNames genPkgDescr
+        Left err -> do
+            let cabalParseErr = CabalParseError $ second (CabalPError <$>) err
+            log E $ "Failed to parse cabal file downloaded from " <> show repoCabalUrl
+                    <> " with these errors: " <> show cabalParseErr
+            throwError cabalParseErr
+        Right genPkgDescr -> do
+            log I $ "Successfuly parsed cabal file downloaded from " <> show repoCabalUrl
+            pure $ categoryNames genPkgDescr
 
 -- | Parses a comma separated @Text@ value to @[Category]@.
 categoryNames :: GenericPackageDescription -> [Category]
