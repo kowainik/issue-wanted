@@ -87,7 +87,7 @@ data AppError = AppError
 data AppErrorType
     {- | General not found. -}
     = NotFound
-    {- | Some exceptional circumstance has happened stop execution and return.
+    {- | Some exceptional circumstance has happened to stop execution and return.
     Optional text to provide some context in server logs.
     -}
     | ServerError Text
@@ -130,7 +130,7 @@ instance Eq CabalPError where
     (CabalPError (PError pos1 str1)) == (CabalPError (PError pos2 str2)) =
         pos1 == pos2 && str1 == str2
 
--- | Map the @github@ library's @Error@ type into AppErrorType.
+-- | Map the @github@ library's @Error@ type into @AppErrorType@.
 githubErrToAppErr :: GitHub.Error -> AppErrorType
 githubErrToAppErr = \case
     GitHub.HTTPError e    -> GithubHttpError $ show e
@@ -138,7 +138,7 @@ githubErrToAppErr = \case
     GitHub.JsonError msg  -> GithubJsonError msg
     GitHub.UserError msg  -> GithubUserError msg
 
--- | Map 'AppError' into a HTTP error code.
+-- | Map @AppError@ into a HTTP error code.
 toHttpError :: AppError -> Servant.ServerError
 toHttpError AppError{..} = case appErrorType of
     NotFound               -> err404
@@ -176,20 +176,20 @@ isInvalid _           = False
 -- Helpers
 ----------------------------------------------------------------------------
 
--- | Extract the value from a maybe, throwing the given 'AppError' if
--- the value does not exist
+-- | Extract the value from a @Maybe a@, throwing the given @AppError@ if
+-- the value does not exist.
 throwOnNothing :: WithError m => AppErrorType -> Maybe a -> m a
 throwOnNothing err = withFrozenCallStack . maybe (throwError err) pure
 
--- | Extract the value from a 'Maybe' in @m@, throwing the given 'AppError' if
--- the value does not exist
+-- | Extract the value from a @Maybe a@ in @m@, throwing the given @AppError@ if
+-- the value does not exist.
 throwOnNothingM :: WithError m => AppErrorType -> m (Maybe a) -> m a
 throwOnNothingM err action = withFrozenCallStack $ action >>= throwOnNothing err
 
--- | Similar to 'throwOnNothing' but throws a 'NotFound' if the value does not exist
+-- | Similar to @throwOnNothing@ but throws a @NotFound@ if the value does not exist.
 notFoundOnNothing :: WithError m => Maybe a -> m a
 notFoundOnNothing = withFrozenCallStack . throwOnNothing NotFound
 
--- | Similar to 'throwOnNothingM' but throws a 'NotFound' if the value does not exist
+-- | Similar to @throwOnNothingM@ but throws a @NotFound@ if the value does not exist.
 notFoundOnNothingM :: WithError m => m (Maybe a) -> m a
 notFoundOnNothingM = withFrozenCallStack . throwOnNothingM NotFound

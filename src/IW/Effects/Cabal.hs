@@ -33,9 +33,9 @@ instance MonadCabal App where
 
 type WithCabal env m = (MonadDownload m, WithLog env m, WithError m)
 
-{- | This function may either return @[Categories]@ or throw a @CabalParseError@.
-This function may also throw anyone of the errors inherited by the use
-of @downloadFile@ defined in @IW.Effects.Download@.
+{- | This function takes a @Repo@ and either returns @[Category]@, or
+throws a @CabalParseError@ error. This function may also throw any one of the
+errors inherited by the use of @downloadFile@ defined in @IW.Effects.Download@.
 -}
 getCabalCategoriesImpl
     :: forall env m.
@@ -57,7 +57,7 @@ getCabalCategoriesImpl Repo{..} = do
             log I $ "Successfuly parsed cabal file downloaded from " <> show repoCabalUrl
             pure $ categoryNames genPkgDescr
 
--- | Parses a comma separated @Text@ value to @[Category]@.
+-- | Parses a @GenericPackageDescription@ for @[Category]@.
 categoryNames :: GenericPackageDescription -> [Category]
 categoryNames genPkgDescr = Category <$> splitCategories genPkgDescr
   where
