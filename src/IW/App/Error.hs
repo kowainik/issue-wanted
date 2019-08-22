@@ -4,6 +4,7 @@ module IW.App.Error
        ( AppError (..)
        , AppErrorType (..)
        , AppException (..)
+       , CabalPError (..)
        , WithError
        , githubErrToAppErr
        , throwError

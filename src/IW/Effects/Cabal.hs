@@ -19,7 +19,8 @@ import Distribution.PackageDescription.Parsec (ParseResult (..),
                                                parseGenericPackageDescription,
                                                runParseResult)
 
-import IW.App (App (..), WithError)
+import IW.App (App (..), AppErrorType (..), CabalPError (..), WithError,
+               throwError, catchError)
 import IW.Core.Repo (Repo (..), Category (..))
 import IW.Core.Url (Url (..))
 import IW.Effects.Download (MonadDownload (..))
@@ -44,11 +45,12 @@ getCabalCategoriesImpl
     => Repo
     -> m [Category]
 getCabalCategoriesImpl Repo{..} = do
-    cabalFile <- downloadFile repoCabalUrl
+    cabalFile <- downloadFile repoCabalUrl `catchError` undefined
     let result = runParseResult $ parseGenericPackageDescription cabalFile
-    log D $ "Cabal file parsed with these warnings: " <> show $ fst result
+    log D $ "Cabal file parsed with these warnings: " <> (show $ fst result)
     case snd result of
-        Right err -> throwErr
+        Left err -> throwError $ CabalParseError $ second (CabalPError <$>) err
+        Right genPkgDescr -> undefined
 
 
         -- Nothing -> do
