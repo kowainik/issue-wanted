@@ -88,7 +88,7 @@ getCabalCategoriesSpec env = describe "getCabalCategories" $ do
             `equals` issueWantedCategories
     it "should return [] when passed in a repo that doesn't exist" $
        env & getCabalCategoriesImpl nonExistentRepo
-            `equals` []
+            `failsWith` (UrlDownloadFailed $ repoCabalUrl nonExistentRepo)
     it "should return [] when passed in a repo that has a cabal file without a category field" $
        env & getCabalCategoriesImpl noCategoryFieldCabalFileRepo
             `equals` []

@@ -15,14 +15,12 @@ module IW.Effects.Cabal
 
 import Data.Text (splitOn, strip)
 import Distribution.PackageDescription
-import Distribution.PackageDescription.Parsec (ParseResult (..),
-                                               parseGenericPackageDescription,
+import Distribution.PackageDescription.Parsec (parseGenericPackageDescription,
                                                runParseResult)
 
 import IW.App (App (..), AppErrorType (..), CabalPError (..), WithError,
                throwError, catchError)
 import IW.Core.Repo (Repo (..), Category (..))
-import IW.Core.Url (Url (..))
 import IW.Effects.Download (MonadDownload (..))
 
 
@@ -45,12 +43,12 @@ getCabalCategoriesImpl
     => Repo
     -> m [Category]
 getCabalCategoriesImpl Repo{..} = do
-    cabalFile <- downloadFile repoCabalUrl `catchError` undefined
+    cabalFile <- downloadFile repoCabalUrl
     let result = runParseResult $ parseGenericPackageDescription cabalFile
     log D $ "Cabal file parsed with these warnings: " <> (show $ fst result)
     case snd result of
         Left err -> throwError $ CabalParseError $ second (CabalPError <$>) err
-        Right genPkgDescr -> undefined
+        Right genPkgDescr -> pure $ categoryNames genPkgDescr
 
 -- | Parses a comma separated @Text@ value to @[Category]@.
 categoryNames :: GenericPackageDescription -> [Category]

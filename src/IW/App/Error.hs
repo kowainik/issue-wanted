@@ -108,7 +108,7 @@ data AppErrorType
     | DbError Text
     {- | Data base named parameters errors. -}
     | DbNamedError PgNamedError
-    {- | -}
+    {- | An error occurred while attempting to parse a @.cabal@ file. -}
     | CabalParseError (Maybe Version, [CabalPError])
     {- | A HTTP error occurred using the @github@ library.
     The actual caught error is included. -}
