@@ -1,7 +1,7 @@
-{- | This module contains the class definitiion of @MonadCabal@ and
-an instance of @MonadCabal@ for the @App@ monad. Instances of
-@MonadCabal@ have a @getCabalCategories@ action that returns @[Category]@
-given a @RepoOwner@ and @RepoName@. It does so by downloading a @.cabal@ file
+{- | This module contains the class definitiion of 'MonadCabal' and
+an instance of 'MonadCabal' for the 'App' monad. Instances of
+'MonadCabal' have a 'getCabalCategories' action that returns @['Category']@
+given a 'RepoOwner' and 'RepoName'. It does so by downloading a @.cabal@ file
 and parsing the @category@ field of the file.
 -}
 
@@ -24,7 +24,7 @@ import IW.Core.Repo (Repo (..), Category (..))
 import IW.Effects.Download (MonadDownload (..))
 
 
--- | Describes a monad that returns @[Category]@ given a @Repo@.
+-- | Describes a monad that returns @['Category']@ given a 'Repo'.
 class Monad m => MonadCabal m where
     getCabalCategories :: Repo -> m [Category]
 
@@ -33,9 +33,9 @@ instance MonadCabal App where
 
 type WithCabal env m = (MonadDownload m, WithLog env m, WithError m)
 
-{- | This function takes a @Repo@ and either returns @[Category]@, or
-throws a @CabalParseError@ error. This function may also throw any one of the
-errors inherited by the use of @downloadFile@ defined in @IW.Effects.Download@.
+{- | This function takes a 'Repo' and either returns @['Category']@, or
+throws a 'CabalParseError' error. This function may also throw any one of the
+errors inherited by the use of 'downloadFile' defined in @IW.Effects.Download@.
 -}
 getCabalCategoriesImpl
     :: forall env m.
@@ -47,6 +47,7 @@ getCabalCategoriesImpl Repo{..} = do
     let (warnings, result) = runParseResult $ parseGenericPackageDescription cabalFile
     log D $ "Parsed cabal file downloaded from " <> show repoCabalUrl
             <> " with these warnings: " <> show warnings
+    -- | The @result@ has the type @'Either' ('Maybe' 'Version', ['PError']) a@.
     case result of
         Left err -> do
             let cabalParseErr = CabalParseError $ second (CabalPError <$>) err
@@ -57,7 +58,7 @@ getCabalCategoriesImpl Repo{..} = do
             log I $ "Successfuly parsed cabal file downloaded from " <> show repoCabalUrl
             pure $ categoryNames genPkgDescr
 
--- | Parses a @GenericPackageDescription@ for @[Category]@.
+-- | Parses a 'GenericPackageDescription' for @['Category']@.
 categoryNames :: GenericPackageDescription -> [Category]
 categoryNames genPkgDescr = Category <$> splitCategories genPkgDescr
   where
@@ -65,7 +66,7 @@ categoryNames genPkgDescr = Category <$> splitCategories genPkgDescr
     splitCategories = splitAndStrip "," . toText . category . packageDescription
 
     {- | This function takes a delimeter and a delimeter seperated value,
-    and returns a list of @Text@ values stripped of excess whitespace.
+    and returns a list of 'Text' values stripped of excess whitespace.
     Note that it returns an empty list when an empty delimeter seperated value is
     passed in. This prevents the value @[""]@ from being returned.
     -}
