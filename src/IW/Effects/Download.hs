@@ -27,8 +27,8 @@ instance MonadDownload App where
 
 type WithDownload env m = (MonadIO m, MonadReader env m, WithError m, WithLog env m, Has Manager env)
 
-{- | This function takes an @Url@ and either returns a @ByteString@ representing
-the file contents, or throws an @UrlDownloadFailed@ error.
+{- | This function takes an 'Url' and either returns a 'ByteString' representing
+the file contents, or throws an 'UrlDownloadFailed' error.
 -}
 downloadFileImpl :: WithDownload env m => Url -> m ByteString
 downloadFileImpl url@Url{..} = do
@@ -47,7 +47,7 @@ downloadFileImpl url@Url{..} = do
             log E $ "Couldn't download file from " <> unUrl
             throwError $ UrlDownloadFailed url
 
--- | A verison of @downloadFile@ that returns a @Maybe BytseString@,
+-- | A verison of 'downloadFile' that returns a @'Maybe' 'BytseString'@,
 downloadFileMaybe :: (MonadDownload m, WithError m) => Url -> m (Maybe ByteString)
 downloadFileMaybe url = (Just <$> downloadFile url) `catchError` \case
     UrlDownloadFailed _ -> pure Nothing
