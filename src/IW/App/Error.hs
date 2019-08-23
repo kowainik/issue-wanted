@@ -109,7 +109,7 @@ data AppErrorType
     {- | Data base named parameters errors. -}
     | DbNamedError PgNamedError
     {- | An error occurred while attempting to parse a @.cabal@ file. -}
-    | CabalParseError (Maybe Version, [CabalPError])
+    | CabalParseError ParseErrorInfo
     {- | A HTTP error occurred using the @github@ library.
     The actual caught error is included. -}
     | GithubHttpError Text
@@ -123,15 +123,17 @@ data AppErrorType
     | UrlDownloadFailed Url
     deriving (Show, Eq)
 
+type ParseErrorInfo = (Maybe Version, [CabalPError])
+
 {- | A wrapper around the 'PError' type from the @Cabal@ library.
 This is needed to implement an instance of 'Eq' for 'PError' without
 triggering the @orphan-instances@ warning. -}
-newtype CabalPError = CabalPError 
-    { unCabalPError :: PError 
+newtype CabalPError = CabalPError
+    { unCabalPError :: PError
     } deriving newtype (Show)
 
 instance Eq CabalPError where
-    (CabalPError (PError pos1 str1)) == (CabalPError (PError pos2 str2)) =
+    CabalPError (PError pos1 str1) == CabalPError (PError pos2 str2) =
         pos1 == pos2 && str1 == str2
 
 -- | Map the @github@ library's 'Error' type into 'AppErrorType'.
