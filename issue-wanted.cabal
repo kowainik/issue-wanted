@@ -96,6 +96,7 @@ library
                            IW.Server.Types
 
                          -- Sync Worker
+                         IW.Sync.Delete
                          IW.Sync.Search
                          IW.Sync.Update
 
