@@ -109,7 +109,7 @@ data AppErrorType
     {- | Data base named parameters errors. -}
     | DbNamedError PgNamedError
     {- | An error occurred while attempting to parse a @.cabal@ file. -}
-    | CabalParseError ParseErrorInfo
+    | CabalParseError CabalErrorInfo
     {- | A HTTP error occurred using the @github@ library.
     The actual caught error is included. -}
     | GithubHttpError Text
@@ -123,7 +123,7 @@ data AppErrorType
     | UrlDownloadFailed Url
     deriving (Show, Eq)
 
-type ParseErrorInfo = (Maybe Version, [CabalPError])
+type CabalErrorInfo = (Maybe Version, [CabalPError])
 
 {- | A wrapper around the 'PError' type from the @Cabal@ library.
 This is needed to implement an instance of 'Eq' for 'PError' without
