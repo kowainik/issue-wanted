@@ -18,8 +18,8 @@ import Distribution.PackageDescription
 import Distribution.PackageDescription.Parsec (parseGenericPackageDescription,
                                                runParseResult)
 
-import IW.App (App (..), AppErrorType (..), CabalPError (..), WithError,
-               throwError)
+import IW.App (App (..), AppErrorType (..), CabalPError (..), CabalErrorInfo (..),
+               WithError, throwError)
 import IW.Core.Repo (Repo (..), Category (..))
 import IW.Effects.Download (MonadDownload (..))
 
@@ -35,7 +35,7 @@ type WithCabal env m = (MonadDownload m, WithLog env m, WithError m)
 
 {- | This function takes a 'Repo' and either returns @['Category']@, or
 throws a 'CabalParseError' error. This function may also throw any one of the
-errors inherited by the use of 'downloadFile' defined in @IW.Effects.Download@.
+errors inherited by the use of 'downloadFile' defined in "IW.Effects.Download".
 -}
 getCabalCategoriesImpl
     :: forall env m.
@@ -50,7 +50,9 @@ getCabalCategoriesImpl Repo{..} = do
     -- | The @result@ has the type @'Either' 'CabalErrorInfo' a@.
     case result of
         Left err -> do
-            let cabalParseErr = CabalParseError $ second (CabalPError <$>) err
+            let cabalParseErr = CabalParseError $ CabalErrorInfo { cabalVersion = fst err
+                                                                 , cabalPErrors = CabalPError <$> snd err
+                                                                 }
             log E $ "Failed to parse cabal file downloaded from " <> show repoCabalUrl
                     <> " with these errors: " <> show cabalParseErr
             throwError cabalParseErr

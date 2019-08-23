@@ -5,6 +5,7 @@ module IW.App.Error
        , AppErrorType (..)
        , AppException (..)
        , CabalPError (..)
+       , CabalErrorInfo (..)
        , WithError
        , githubErrToAppErr
        , throwError
@@ -123,7 +124,10 @@ data AppErrorType
     | UrlDownloadFailed Url
     deriving (Show, Eq)
 
-type CabalErrorInfo = (Maybe Version, [CabalPError])
+data CabalErrorInfo = CabalErrorInfo
+    { cabalVersion :: Maybe Version
+    , cabalPErrors :: [CabalPError]
+    } deriving (Show, Eq)
 
 {- | A wrapper around the 'PError' type from the @Cabal@ library.
 This is needed to implement an instance of 'Eq' for 'PError' without
@@ -136,7 +140,7 @@ instance Eq CabalPError where
     CabalPError (PError pos1 str1) == CabalPError (PError pos2 str2) =
         pos1 == pos2 && str1 == str2
 
--- | Map the @github@ library's 'Error' type into 'AppErrorType'.
+-- | Map the @github@ library's 'GitHub.Error' type into 'AppErrorType'.
 githubErrToAppErr :: GitHub.Error -> AppErrorType
 githubErrToAppErr = \case
     GitHub.HTTPError e    -> GithubHttpError $ show e
