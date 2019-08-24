@@ -4,6 +4,8 @@ module IW.App.Error
        ( AppError (..)
        , AppErrorType (..)
        , AppException (..)
+       , CabalPError (..)
+       , CabalErrorInfo (..)
        , WithError
        , githubErrToAppErr
        , throwError
@@ -24,6 +26,8 @@ module IW.App.Error
 
 import Control.Monad.Except (MonadError)
 import Data.CaseInsensitive (foldedCase)
+import Distribution.Parsec.Common (PError (..))
+import Distribution.Types.Version (Version)
 import GHC.Stack (SrcLoc (SrcLoc, srcLocModule, srcLocStartLine))
 import Network.HTTP.Types.Header (HeaderName)
 import PgNamed (PgNamedError)
@@ -84,7 +88,7 @@ data AppError = AppError
 data AppErrorType
     {- | General not found. -}
     = NotFound
-    {- | Some exceptional circumstance has happened stop execution and return.
+    {- | Some exceptional circumstance has happened to stop execution and return.
     Optional text to provide some context in server logs.
     -}
     | ServerError Text
@@ -98,13 +102,15 @@ data AppErrorType
     -}
     | MissingHeader HeaderName
     {- | An authentication header that was required was provided but not in a
-    format that the server can understand
+    format that the server can understand.
     -}
     | HeaderDecodeError Text
-    -- | Data base specific errors
+    {- | Data base specific errors. -}
     | DbError Text
-    -- | Data base named parameters errors.
+    {- | Data base named parameters errors. -}
     | DbNamedError PgNamedError
+    {- | An error occurred while attempting to parse a @.cabal@ file. -}
+    | CabalParseError CabalErrorInfo
     {- | A HTTP error occurred using the @github@ library.
     The actual caught error is included. -}
     | GithubHttpError Text
@@ -118,7 +124,23 @@ data AppErrorType
     | UrlDownloadFailed Url
     deriving (Show, Eq)
 
--- | Map the @github@ library's @Error@ type into AppErrorType.
+data CabalErrorInfo = CabalErrorInfo
+    { cabalVersion :: Maybe Version
+    , cabalPErrors :: [CabalPError]
+    } deriving (Show, Eq)
+
+{- | A wrapper around the 'PError' type from the @Cabal@ library.
+This is needed to implement an instance of 'Eq' for 'PError' without
+triggering the @orphan-instances@ warning. -}
+newtype CabalPError = CabalPError
+    { unCabalPError :: PError
+    } deriving newtype (Show)
+
+instance Eq CabalPError where
+    CabalPError (PError pos1 str1) == CabalPError (PError pos2 str2) =
+        pos1 == pos2 && str1 == str2
+
+-- | Map the @github@ library's 'GitHub.Error' type into 'AppErrorType'.
 githubErrToAppErr :: GitHub.Error -> AppErrorType
 githubErrToAppErr = \case
     GitHub.HTTPError e    -> GithubHttpError $ show e
@@ -137,6 +159,7 @@ toHttpError AppError{..} = case appErrorType of
     HeaderDecodeError name -> err401 { errBody = encodeUtf8 $ "Unable to decode header: " <> name }
     DbError e              -> err500 { errBody = encodeUtf8 e }
     DbNamedError e         -> err500 { errBody = show e }
+    CabalParseError e      -> err500 { errBody = show e }
     GithubHttpError e      -> err500 { errBody = encodeUtf8 e }
     GithubParseError msg   -> err500 { errBody = encodeUtf8 msg }
     GithubJsonError msg    -> err500 { errBody = encodeUtf8 msg }
@@ -163,20 +186,20 @@ isInvalid _           = False
 -- Helpers
 ----------------------------------------------------------------------------
 
--- | Extract the value from a maybe, throwing the given 'AppError' if
--- the value does not exist
+-- | Extract the value from a 'Maybe', throwing the given 'AppError' if
+-- the value does not exist.
 throwOnNothing :: WithError m => AppErrorType -> Maybe a -> m a
 throwOnNothing err = withFrozenCallStack . maybe (throwError err) pure
 
 -- | Extract the value from a 'Maybe' in @m@, throwing the given 'AppError' if
--- the value does not exist
+-- the value does not exist.
 throwOnNothingM :: WithError m => AppErrorType -> m (Maybe a) -> m a
 throwOnNothingM err action = withFrozenCallStack $ action >>= throwOnNothing err
 
--- | Similar to 'throwOnNothing' but throws a 'NotFound' if the value does not exist
+-- | Similar to 'throwOnNothing' but throws a 'NotFound' error if the value does not exist.
 notFoundOnNothing :: WithError m => Maybe a -> m a
 notFoundOnNothing = withFrozenCallStack . throwOnNothing NotFound
 
--- | Similar to 'throwOnNothingM' but throws a 'NotFound' if the value does not exist
+-- | Similar to 'throwOnNothingM' but throws a 'NotFound' error if the value does not exist.
 notFoundOnNothingM :: WithError m => m (Maybe a) -> m a
 notFoundOnNothingM = withFrozenCallStack . throwOnNothingM NotFound

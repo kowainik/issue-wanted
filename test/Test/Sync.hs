@@ -25,16 +25,16 @@ syncSpecs env = describe "GitHub sync correctness" $ do
 
 parseIssueUserDataSpec :: AppEnv -> Spec
 parseIssueUserDataSpec env = describe "parseIssueUserData" $ do
-    it "parsing testGitHubUrl1 should return Just (RepoOwner owner123, RepoName repo123)" $
+    it "parsing testGitHubUrl1 should return (RepoOwner owner123, RepoName repo123)" $
         env & parseUserData testGitHubUrl1
             `equals` (RepoOwner "owner123", RepoName "repo123")
-    it "parsing testGitHubUrl2 should return Just (RepoOwner owner123, RepoName repo123)" $
+    it "parsing testGitHubUrl2 should return (RepoOwner owner123, RepoName repo123)" $
         env & parseUserData testGitHubUrl2
             `equals` (RepoOwner "owner123", RepoName "repo123")
     it "parsing testBadGitHubUrl1 should fail with NotFound error" $
         env & parseUserData testBadGitHubUrl1
             `failsWith` NotFound
-    it "parsing testBadGitHubUrl2 should fail with NotFound error" $
+    it "parsing testBadGitHubUrl2 should fail with a NotFound error" $
         env & parseUserData testBadGitHubUrl2
             `failsWith` NotFound
 
@@ -46,7 +46,7 @@ testGitHubUrl1 = GitHub.URL "https://api.github.com/repos/owner123/repo123"
 testGitHubUrl2 :: GitHub.URL
 testGitHubUrl2 = GitHub.URL "https://api.github.com/repos/owner123/repo123/issues/1"
 
--- | An invalid @GitHub.Url@ that uses @http@ instead of @https@.
+-- | An invalid @GitHub.Url@ that uses HTTP instead of HTTPS.
 testBadGitHubUrl1 :: GitHub.URL
 testBadGitHubUrl1 = GitHub.URL "http://api.github.com/repos/owner123/repo123/issues/1"
 
@@ -58,7 +58,7 @@ downloadFileSpec :: AppEnv -> Spec
 downloadFileSpec env = describe "downloadFile" $ do
     it "should succeed with 200 status code when passed a valid Url" $
        env & succeeds (downloadFileImpl issueWantedCabalUrl)
-    it "should fail with UrlDownloadFailed error when passed a non-existent Url" $
+    it "should fail with a UrlDownloadFailed error when passed a non-existent Url" $
        env & downloadFileImpl nonExistentCabalUrl
             `failsWith` UrlDownloadFailed nonExistentCabalUrl
     it "should be equal to issueWantedMainContent when passed the issueWantedMainUrl" $
@@ -86,9 +86,9 @@ getCabalCategoriesSpec env = describe "getCabalCategories" $ do
     it "should return issueWantedCategories when passed in a valid URL for the issue-wanted cabal file" $
        env & getCabalCategoriesImpl issueWantedRepo
             `equals` issueWantedCategories
-    it "should return [] when passed in a repo that doesn't exist" $
+    it "should fail with a UrlDownloadFailed error when passed a non-existent Repo" $
        env & getCabalCategoriesImpl nonExistentRepo
-            `equals` []
+            `failsWith` (UrlDownloadFailed $ repoCabalUrl nonExistentRepo)
     it "should return [] when passed in a repo that has a cabal file without a category field" $
        env & getCabalCategoriesImpl noCategoryFieldCabalFileRepo
             `equals` []
@@ -123,7 +123,7 @@ nonExistentRepo = Repo
     }
 
 -- | @Repo@ data for a repository that does exist,
--- but doesn't have a @.cabal@ file with a @category@ field.
+-- but doesn't have a @.cabal@ file with a category field.
 noCategoryFieldCabalFileRepo :: Repo
 noCategoryFieldCabalFileRepo = Repo
     { repoOwner      = RepoOwner "rashadg1030"
@@ -133,6 +133,6 @@ noCategoryFieldCabalFileRepo = Repo
     , repoCabalUrl   = mkRepoCabalUrl (RepoOwner "rashadg1030") (RepoName "kiiboodoo-api") Nothing
     }
 
--- | Represents the categories in @catgory@ field of the @issue-wanted@ @.cabal@ file.
+-- | Represents the categories in catgory field of the @issue-wanted@ @.cabal@ file.
 issueWantedCategories :: [Category]
 issueWantedCategories = [Category "Web", Category "Application"]

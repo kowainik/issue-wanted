@@ -1,7 +1,7 @@
-{- | This module contains the class definitiion of @MonadCabal@ and
-an instance of @MonadCabal@ for the @App@ monad. Instances of
-@MonadCabal@ have a @getCabalCategories@ action that returns @[Category]@
-given a @RepoOwner@ and @RepoName@. It does so by downloading a @.cabal@ file
+{- | This module contains the class definitiion of 'MonadCabal' and
+an instance of 'MonadCabal' for the 'App' monad. Instances of
+'MonadCabal' have a 'getCabalCategories' action that returns @['Category']@
+given a 'RepoOwner' and 'RepoName'. It does so by downloading a @.cabal@ file
 and parsing the @category@ field of the file.
 -}
 
@@ -15,15 +15,16 @@ module IW.Effects.Cabal
 
 import Data.Text (splitOn, strip)
 import Distribution.PackageDescription
-import Distribution.PackageDescription.Parsec (parseGenericPackageDescriptionMaybe)
+import Distribution.PackageDescription.Parsec (parseGenericPackageDescription,
+                                               runParseResult)
 
-import IW.App (App (..), WithError)
+import IW.App (App (..), AppErrorType (..), CabalPError (..), CabalErrorInfo (..),
+               WithError, throwError)
 import IW.Core.Repo (Repo (..), Category (..))
-import IW.Core.Url (Url (..))
-import IW.Effects.Download (MonadDownload (..), downloadFileMaybe)
+import IW.Effects.Download (MonadDownload (..))
 
 
--- | Describes a monad that returns @[Category]@ given a @RepoOwner@ and @RepoName@.
+-- | Describes a monad that returns @['Category']@ given a 'Repo'.
 class Monad m => MonadCabal m where
     getCabalCategories :: Repo -> m [Category]
 
@@ -32,9 +33,9 @@ instance MonadCabal App where
 
 type WithCabal env m = (MonadDownload m, WithLog env m, WithError m)
 
-{- | This function may throw anyone of the errors inherited by the use of @downloadFile@
-defined in @IW.Effects.Download@. We are using @parseGenericPackageDescriptionMaybe@
-which will return @Nothing@ on an unsuccessful parse.
+{- | This function takes a 'Repo' and either returns @['Category']@, or
+throws a 'CabalParseError' error. This function may also throw any one of the
+errors inherited by the use of 'downloadFile' defined in "IW.Effects.Download".
 -}
 getCabalCategoriesImpl
     :: forall env m.
@@ -42,16 +43,24 @@ getCabalCategoriesImpl
     => Repo
     -> m [Category]
 getCabalCategoriesImpl Repo{..} = do
-    maybeCabalFile <- downloadFileMaybe repoCabalUrl
-    case maybeCabalFile >>= parseGenericPackageDescriptionMaybe of
-        Nothing -> do
-            log W $ "Couldn't parse file downloaded from " <> unUrl repoCabalUrl
-            pure []
-        Just genPkgDescr -> do
-            log I $ "Successfully parsed file downloaded from " <> unUrl repoCabalUrl
+    cabalFile <- downloadFile repoCabalUrl
+    let (warnings, result) = runParseResult $ parseGenericPackageDescription cabalFile
+    log D $ "Parsed cabal file downloaded from " <> show repoCabalUrl
+            <> " with these warnings: " <> show warnings
+    -- | The @result@ has the type @'Either' ('Maybe' 'Distribution.Types.Version.Version', ['Distribution.Parsec.Common.PError']) a@.
+    case result of
+        Left err -> do
+            let cabalParseErr = CabalParseError $ CabalErrorInfo { cabalVersion = fst err
+                                                                 , cabalPErrors = CabalPError <$> snd err
+                                                                 }
+            log E $ "Failed to parse cabal file downloaded from " <> show repoCabalUrl
+                    <> " with these errors: " <> show cabalParseErr
+            throwError cabalParseErr
+        Right genPkgDescr -> do
+            log I $ "Successfuly parsed cabal file downloaded from " <> show repoCabalUrl
             pure $ categoryNames genPkgDescr
 
--- | Parses a comma separated @Text@ value to @[Category]@.
+-- | Parses a 'GenericPackageDescription' for @['Category']@.
 categoryNames :: GenericPackageDescription -> [Category]
 categoryNames genPkgDescr = Category <$> splitCategories genPkgDescr
   where
@@ -59,7 +68,7 @@ categoryNames genPkgDescr = Category <$> splitCategories genPkgDescr
     splitCategories = splitAndStrip "," . toText . category . packageDescription
 
     {- | This function takes a delimeter and a delimeter seperated value,
-    and returns a list of @Text@ values stripped of excess whitespace.
+    and returns a list of 'Text' values stripped of excess whitespace.
     Note that it returns an empty list when an empty delimeter seperated value is
     passed in. This prevents the value @[""]@ from being returned.
     -}
