@@ -22,8 +22,22 @@ jobs:
             - "~/.stack"
             - ".stack-work"
 
+  frontend:
+    docker:
+      - image: holmusk/elm-ci
+    steps:
+      - checkout
+      - restore_cache:
+          key: node-modules-{{ checksum "frontend/elm.json" }}
+      - run: cd frontend && npm install && elm-app build
+      - save_cache:
+          key: node-modules-{{ checksum "frontend/elm.json" }}
+          paths:
+            - "frontend/node_modules"
+
 workflows:
   version: 2
   build:
     jobs:
       - backend
+      - frontend
