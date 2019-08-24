@@ -47,7 +47,7 @@ getCabalCategoriesImpl Repo{..} = do
     let (warnings, result) = runParseResult $ parseGenericPackageDescription cabalFile
     log D $ "Parsed cabal file downloaded from " <> show repoCabalUrl
             <> " with these warnings: " <> show warnings
-    -- | The @result@ has the type @'Either' 'CabalErrorInfo' a@.
+    -- | The @result@ has the type @'Either' ('Maybe' 'Distribution.Types.Version.Version', ['Distribution.Parsec.Common.PError']) a@.
     case result of
         Left err -> do
             let cabalParseErr = CabalParseError $ CabalErrorInfo { cabalVersion = fst err

@@ -47,7 +47,7 @@ downloadFileImpl url@Url{..} = do
             log E $ "Couldn't download file from " <> unUrl
             throwError $ UrlDownloadFailed url
 
--- | A verison of 'downloadFile' that returns a @'Maybe' 'BytseString'@,
+-- | A verison of 'downloadFile' that returns a @'Maybe' 'ByteString'@,
 downloadFileMaybe :: (MonadDownload m, WithError m) => Url -> m (Maybe ByteString)
 downloadFileMaybe url = (Just <$> downloadFile url) `catchError` \case
     UrlDownloadFailed _ -> pure Nothing
