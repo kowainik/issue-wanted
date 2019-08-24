@@ -68,14 +68,6 @@ syncCategories
        )
     => Repo
     -> m ()
-<<<<<<< HEAD
 syncCategories repo = do
     categories <- getCabalCategories repo
     updateRepoCategories repo categories
-=======
-syncCategories Repo{..} = do
-    log I "Updating repository's categories..."
-    categories <- getCabalCategories repoOwner repoName
-    updateRepoCategories repoOwner repoName categories
-    log I "Categories successfully updated"
->>>>>>> c36be34... [#45] Add sync function for synchronizing all repositories and issues
