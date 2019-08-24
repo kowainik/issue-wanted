@@ -10,7 +10,7 @@ module IW.Sync.Update
 import Control.Monad.IO.Unlift (MonadUnliftIO)
 import UnliftIO.Async (async, mapConcurrently_, wait)
 
-import IW.App (WithError, catchError)
+import IW.App (AppErrorType, WithError, catchError)
 import IW.Core.Repo (Repo (..))
 import IW.Db (WithDb, upsertRepos, updateRepoCategories, upsertIssues)
 import IW.Effects.Cabal (MonadCabal (..), getCabalCategories)
@@ -29,7 +29,10 @@ syncCache
        )
     => Integer
     -> m ()
-syncCache interval = forever $ syncWithGithub interval `catchError` undefined
+syncCache interval = forever $ syncWithGithub interval `catchError` syncErrHandler
+  where
+    syncErrHandler :: AppErrorType -> m a
+    syncErrHandler = undefined
 
 -- | This function synchronizes the database with the latest GitHub data.
 syncWithGithub
