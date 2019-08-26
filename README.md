@@ -122,5 +122,3 @@ For anyone interested in the details of how issue-wanted was implemented and why
 * [GSoC 2019 - Building A Web Application with Haskell](https://rashadg1030.github.io/rashad-blog/6.html)
 * [Guide to Implementing Custom Monadic Effects in Issue-Wanted](https://rashadg1030.github.io/rashad-blog/7.html)
 * [GSoC 2019 - Final Evaluation](https://rashadg1030.github.io/rashad-blog/8.html)
-
-
