@@ -111,20 +111,20 @@ library
                      , elm-street ^>= 0.0.1
                      , github == 0.22
                      , http-api-data ^>= 0.4
-                     , http-client ^>= 0.5.14
+                     , http-client ^>= 0.6
                      , http-client-tls ^>= 0.3.5.3
                      , http-types ^>= 0.12
                      , lens ^>= 4.17
                      , mtl ^>= 2.2.2
                      , postgresql-simple ^>= 0.6.1
-                     , postgresql-simple-named ^>= 0.0.0.0
+                     , postgresql-simple-named ^>= 0.0.2.0
                      , random ^>= 1.1
                      , resource-pool
                      , servant ^>= 0.16
                      , servant-server ^>= 0.16
                      , text
                      , time >= 1.8 && < 1.10
-                     , tomland ^>= 1.0.0
+                     , tomland ^>= 1.1
                      , unliftio ^>= 0.2.12
                      , unliftio-core ^>= 0.1.2.0
                      , unordered-containers
