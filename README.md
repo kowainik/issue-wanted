@@ -11,6 +11,15 @@ programmers of all skill levels to find Haskell projects to contribute to,
 increase the number of contributions to open-source Haskell projects, and
 encourage more programmers to become a part of the Haskell community.
 
+## Architecture Description
+
+Main work on this project was done during Google Summer of Code 2019. For anyone
+interested in the details of how `issue-wanted` was implemented and why certain
+design choices were made, check out these blog posts:
+
+* [GSoC 2019 - Building A Web Application with Haskell](https://rashadg1030.github.io/rashad-blog/6.html)
+* [Guide to Implementing Custom Monadic Effects in Issue-Wanted](https://rashadg1030.github.io/rashad-blog/7.html)
+* [GSoC 2019 - Final Evaluation](https://rashadg1030.github.io/rashad-blog/8.html)
 
 ## Backend
 
@@ -21,13 +30,18 @@ You will need to have the following installed on your system in order to build a
 1. [ghc](https://www.haskell.org/ghcup/)
 2. [cabal](https://www.haskell.org/cabal/) or [stack](https://docs.haskellstack.org/en/stable/README/)
 3. [docker](https://docs.docker.com/v17.12/install/)
-4. libpq-dev (Run the command `sudo apt install libpq-dev` to install)
+4. `libpq-dev`: run the command `sudo apt install libpq-dev` to install.
 
-With `docker` installed, open up a terminal (make sure your in the `issue-wanted` directory) and run the command `make postgres`. This will setup the database for you and you should be ready to go!
+With `docker` installed, open up a terminal (make sure your in the
+`issue-wanted` directory) and run the command `make postgres`. This will setup
+the database for you and you should be ready to go!
 
-Follow the instructions under [`How to run server`](https://github.com/kowainik/issue-wanted/tree/rashadg1030/81-Document-Postgres-setup#how-to-run-server) and test the endpoints to see if everything is set up correctly.
+Follow the instructions under
+[`How to run server`](https://github.com/kowainik/issue-wanted/tree/rashadg1030/81-Document-Postgres-setup#how-to-run-server)
+and test the endpoints to see if everything is set up correctly.
 
-Refer to issue [#81](https://github.com/kowainik/issue-wanted/issues/81) if you're still having trouble.
+Refer to issue [#81](https://github.com/kowainik/issue-wanted/issues/81) if
+you're still having trouble.
 
 ### How to build
 
@@ -62,7 +76,6 @@ cabal v2-run generate-elm
 For testing the `issue-wanted` server follow these steps:
 
 1. Open up the terminal in the base folder and run `stack build`
-
 2. Run the command `stack exec issue-wanted`
 
 The server will begin running at `http://localhost:8080/`.
@@ -77,13 +90,27 @@ Issue-wanted endpoints available:
 | `/issues/:id`                | Returns a single issue with the corresponding id. |
 | `/issues?label=<label name>` | Returns a list of issues with the corresponding label. |
 
-Tip: If you stop running the server and then try to restart it, you may need to run the command `fuser -n tcp -k 8080` to free the port.
+> Tip: If you stop running the server and then try to restart it, you may need
+> to run the command `fuser -n tcp -k 8080` to free the port.
 
 ### How to run automatic tests locally
 
-1. In a separate terminal run `make postgres` (this command will run database in a Docker container)
-
+1. In a separate terminal run `make postgres` (this command will run database in
+   a Docker container)
 2. In the first terminal run `stack test` or `cabal new-test`
+
+### How to deploy new Docker image for CI
+
+When `stack` snapshot is updated, you need to update `Dockerfile` accordingly
+and push new docker image to Docker Hub. This can only be done if you have
+access to the account credentials.
+
+Perform the following commands:
+
+```
+docker build . -t kowainik/haskell-ci
+docker push kowainik/haskell-ci
+```
 
 ## Frontend
 
@@ -114,11 +141,3 @@ cd frontend/
 * in another tab: `npm run-script watch-css`
 
 Frontend will begin running at `http://localhost:3000/`.
-
-### Architecture Description
-
-For anyone interested in the details of how issue-wanted was implemented and why certain design choices were made, check out these blog posts:
-
-* [GSoC 2019 - Building A Web Application with Haskell](https://rashadg1030.github.io/rashad-blog/6.html)
-* [Guide to Implementing Custom Monadic Effects in Issue-Wanted](https://rashadg1030.github.io/rashad-blog/7.html)
-* [GSoC 2019 - Final Evaluation](https://rashadg1030.github.io/rashad-blog/8.html)
