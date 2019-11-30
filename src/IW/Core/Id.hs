@@ -9,6 +9,7 @@ module IW.Core.Id
        ) where
 
 import Data.Type.Equality (type (==))
+import Elm.Generic (elmNewtype)
 
 
 -- | Wrapper for integer id. Contains phantom type parameter for increased
@@ -16,6 +17,9 @@ import Data.Type.Equality (type (==))
 newtype Id a = Id { unId :: Int }
     deriving stock (Generic, Show)
     deriving newtype (Eq, Ord, FromField, ToField, FromJSON, ToJSON, FromHttpApiData)
+
+instance Elm (Id a) where
+    toElmDefinition _ = elmNewtype @Int "Id" "unId"
 
 -- | When we don't care about type of 'Id' but don't want to deal with type variables.
 type AnyId = Id ()
